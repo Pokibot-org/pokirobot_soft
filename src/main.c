@@ -1,5 +1,17 @@
 #include <zephyr.h>
+#include <device.h>
+#include <devicetree.h>
+#include <logging/log.h>
 
-void main(void)
-{
+
+LOG_MODULE_REGISTER(main);
+
+void main(void) {
+
+    LOG_INF("boot\n");
+    while (1)
+    {
+        k_sleep(K_MSEC(1000));
+    }
 }
+

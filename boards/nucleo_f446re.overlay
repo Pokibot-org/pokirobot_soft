@@ -1,0 +1,20 @@
+/ {
+    aliases {
+        console = &usart2;
+        stepper-bus = &uart5;
+    };
+
+};
+
+&usart2 {
+    status = "okay";
+    current-speed = < 115200 >;
+};
+
+&uart5 {
+    status = "okay";
+    current-speed = < 115200 >;
+    pinctrl-0 = < &uart5_rx_pd2 &uart5_tx_pc12 >;
+    pinctrl-names = "default";
+};
+
