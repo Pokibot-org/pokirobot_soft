@@ -5,11 +5,45 @@
 
 LOG_MODULE_REGISTER(uart_hdb, LOG_LEVEL_INF);
 
-int uart_hdb_write(const uart_hdb_t* dev, uint8_t* buf, size_t len) {
+int uart_hdb_write(uart_hdb_t* dev, const uint8_t* buf, size_t len) {
     int ret = 0;
-    for (int i = 0; i < len; i++) {
-        uart_poll_out(dev->uart, buf[i]);
+    if (len>= UART_HDB_MSG_DATA_MAX_SIZE)
+    {
+        LOG_WRN("Data to big, increase UART_HDB_MSG_DATA_MAX_SIZE");
+        return 1;
     }
+    uart_hdb_msg_t msg;
+    memcpy(&msg.data, buf, len);
+    msg.answer_buffer_len = len;
+    msg.answer_buffer = NULL;
+    msg.answer_buffer_len = 0;
+    msg.answer_received = NULL;
+    k_msgq_put(&dev->frame_queue, &msg, K_FOREVER);
+    return ret;
+}
+
+int uart_hdb_write_with_read(uart_hdb_t* dev, const uint8_t* write_buf, size_t write_len,  
+                             uint8_t* read_buf, size_t read_len) {
+    int ret = 0;
+    if (write_len >= UART_HDB_MSG_DATA_MAX_SIZE)
+    {
+        LOG_WRN("Data to big, increase UART_HDB_MSG_DATA_MAX_SIZE");
+        return 1;
+    }
+    uart_hdb_msg_t msg;
+    memcpy(&msg.data, write_buf, write_len);
+    msg.answer_buffer_len = write_len;
+    msg.answer_buffer = read_buf;
+    msg.answer_buffer_len = read_len;
+    bool answer_received = false;
+    msg.answer_received = &answer_received;
+    k_msgq_put(&dev->frame_queue, &msg, K_FOREVER);
+
+    while (!answer_received)
+    {
+        k_yield();
+    }
+    
     return ret;
 }
 
@@ -25,8 +59,21 @@ void uart_hdb_thread(void* arg1, void* arg2, void* arg3) {
     uart_hdb_t* device = (uart_hdb_t*)arg1;
     LOG_INF("Thread launched");
     while (1) {
-        uart_hdb_message_t msg;
+        uart_hdb_msg_t msg;
         k_msgq_get(&device->frame_queue, &msg, K_FOREVER);
+        for (size_t i = 0; i < msg.data_size; i++)
+        {
+            uart_poll_out(device->uart, msg.data[i]);
+        }
+
+        if (msg.answer_buffer)
+        {
+            for (size_t i = 0; i < msg.answer_buffer_len; i++)
+            {
+                uart_poll_in(device->uart, &msg.answer_buffer[i]);
+            }
+            *msg.answer_received = true;
+        }
     }
 }
 
@@ -58,7 +105,7 @@ int uart_hdb_init(uart_hdb_t* dev, const struct device* uart) {
         return 3;
     }
 
-    k_msgq_init(&dev->frame_queue, dev->frame_queue_buffer, sizeof(uart_hdb_message_t), UART_HDB_MESSAE_QUEUE_SIZE);
+    k_msgq_init(&dev->frame_queue, dev->frame_queue_buffer, sizeof(uart_hdb_msg_t), UART_HDB_MESSAGE_QUEUE_SIZE);
 
     dev->thread_id = k_thread_create(&dev->thread, dev->thread_stack, UART_HDB_STACK_SIZE, uart_hdb_thread, &dev, NULL,
                                      NULL, UART_HDB_THREAD_PRIORITY, 0, K_NO_WAIT);
