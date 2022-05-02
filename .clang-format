@@ -1,0 +1,12 @@
+---
+BasedOnStyle: LLVM
+IndentWidth: 4
+PointerAlignment: Left
+IncludeBlocks: Merge
+IncludeCategories:
+  - Regex:           '<[[:alnum:].]+>'
+    Priority:        1
+  - Regex:           '.*'
+    Priority:        2
+    SortPriority:    0
+ColumnLimit: 120
