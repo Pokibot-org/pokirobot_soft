@@ -47,7 +47,6 @@ int tmc2209_wrequest(tmc2209_t* dev, uint8_t reg, uint32_t data) {
     uint8_t tx_buf[TMC2209_WREQUEST_FRAME_SIZE];
     _tmc2209_gen_write_buf(tx_buf, dev->addr, reg, data);
     ret = uart_hdb_write(dev->uart_hdb, tx_buf, TMC2209_WREQUEST_FRAME_SIZE);
-exit:
     return ret;
 }
 
