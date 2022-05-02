@@ -3,7 +3,7 @@
 
 #include <zephyr.h>
 #include <device.h>
-#include "uart_hd_bus/uart_hdb.h"
+#include "uart_hdb/uart_hdb.h"
 
 
 // general
@@ -67,7 +67,7 @@ int tmc2209_wrequest(tmc2209_t* dev, uint8_t reg, uint32_t data);
 //int tmc2209_rreply(tmc2209_t* dev, uint32_t* data);
 //int tmc2209_transeive(tmc2209_t* dev, uint8_t reg, uint32_t* data);
 
-int tmc2209_init(tmc2209_t* dev);
+int tmc2209_init(tmc2209_t* dev, const uart_hdb_t* uart_hdb);
 int tmc2209_set_speed(tmc2209_t* dev, int32_t speed);
 
 #endif // TMC2209_H

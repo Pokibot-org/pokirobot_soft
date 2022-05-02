@@ -1,7 +1,9 @@
 #include <zephyr.h>
 #include <drivers/uart.h>
+#include <logging/log.h>
 #include "tmc2209.h"
 
+LOG_MODULE_REGISTER(tmc2209, LOG_LEVEL_INF);
 
 void _tmc2209_gen_write_buf(uint8_t buf[TMC2209_WREQUEST_FRAME_SIZE],
         uint8_t slave, uint8_t reg, uint32_t data) {
@@ -87,8 +89,13 @@ exit:
 //    return ret;
 //}
 
-int tmc2209_init(tmc2209_t* dev) {
+int tmc2209_init(tmc2209_t* dev, const uart_hdb_t* uart_hdb) {
     int ret = 0;
+    if (!uart_hdb) {
+        LOG_ERR("uart_hdb is NULL");
+        return 1;
+    }
+    dev->uart_hdb = uart_hdb;
     return ret;
 }
 
