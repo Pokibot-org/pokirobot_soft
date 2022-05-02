@@ -3,6 +3,7 @@
 
 #include <zephyr.h>
 #include <device.h>
+#include "uart_hd_bus/uart_hdb.h"
 
 
 // general
@@ -13,6 +14,10 @@
 #define TMC2209_WREQUEST_FRAME_SIZE 8
 #define TMC2209_RREQUEST_FRAME_SIZE 4
 #define TMC2209_RREPLY_FRAME_SIZE 8
+
+// values
+#define TMC2209_VACTUAL_MAX ((1<<23)-1)
+#define TMC2209_VACTUAL_MIN (-TMC2209_VACTUAL_MAX)
 
 // registers
 #define TMC2209_REG_GCONF 0x00
@@ -49,20 +54,18 @@
 #define TMC2209_ERR_SPEED_RANGE 0x2201
 
 typedef struct tmc2209 {
-    const struct device* uart;
+    const uart_hdb_t* uart_hdb;
     const uint8_t addr;
 } tmc2209_t;
 
 void _tmc2209_gen_write_buf(uint8_t buf[TMC2209_WREQUEST_FRAME_SIZE], uint8_t slave, uint8_t reg, uint32_t data);
 void _tmc2209_gen_read_buf(uint8_t buf[TMC2209_RREQUEST_FRAME_SIZE], uint8_t slave, uint8_t reg);
-int _tmc2209_write(tmc2209_t* dev, uint8_t* buf, size_t len);
-int _tmc2209_read(tmc2209_t* dev, uint8_t* buf, size_t len);
 
 uint8_t tmc2209_crc(uint8_t* buf, size_t len);
 int tmc2209_wrequest(tmc2209_t* dev, uint8_t reg, uint32_t data);
-int tmc2209_rrequest(tmc2209_t* dev, uint8_t reg);
-int tmc2209_rreply(tmc2209_t* dev, uint32_t* data);
-int tmc2209_transeive(tmc2209_t* dev, uint8_t reg, uint32_t* data);
+//int tmc2209_rrequest(tmc2209_t* dev, uint8_t reg);
+//int tmc2209_rreply(tmc2209_t* dev, uint32_t* data);
+//int tmc2209_transeive(tmc2209_t* dev, uint8_t reg, uint32_t* data);
 
 int tmc2209_init(tmc2209_t* dev);
 int tmc2209_set_speed(tmc2209_t* dev, int32_t speed);
