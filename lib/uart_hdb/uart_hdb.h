@@ -30,6 +30,7 @@ typedef struct uart_hdb {
     k_tid_t thread_id;
     __aligned(4) uint8_t frame_queue_buffer[sizeof(uart_hdb_msg_t) * UART_HDB_MESSAGE_QUEUE_SIZE];
     struct k_msgq frame_queue;
+    uint32_t baudrate;
 } uart_hdb_t;
 
 int uart_hdb_init(uart_hdb_t* dev, const struct device* uart);
