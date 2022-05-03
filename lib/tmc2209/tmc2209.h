@@ -1,10 +1,9 @@
 #ifndef TMC2209_H
 #define TMC2209_H
 
-#include <zephyr.h>
 #include <device.h>
+#include <zephyr.h>
 #include "uart_hdb/uart_hdb.h"
-
 
 // general
 #define TMC2209_SYNC 0x5
@@ -16,7 +15,7 @@
 #define TMC2209_RREPLY_FRAME_SIZE 8
 
 // values
-#define TMC2209_VACTUAL_MAX ((1<<23)-1)
+#define TMC2209_VACTUAL_MAX ((1 << 23) - 1)
 #define TMC2209_VACTUAL_MIN (-TMC2209_VACTUAL_MAX)
 
 // registers
@@ -63,12 +62,11 @@ void _tmc2209_gen_read_buf(uint8_t buf[TMC2209_RREQUEST_FRAME_SIZE], uint8_t sla
 
 uint8_t tmc2209_crc(uint8_t* buf, size_t len);
 int tmc2209_wrequest(tmc2209_t* dev, uint8_t reg, uint32_t data);
-//int tmc2209_rrequest(tmc2209_t* dev, uint8_t reg);
-//int tmc2209_rreply(tmc2209_t* dev, uint32_t* data);
-//int tmc2209_transeive(tmc2209_t* dev, uint8_t reg, uint32_t* data);
+// int tmc2209_rrequest(tmc2209_t* dev, uint8_t reg);
+// int tmc2209_rreply(tmc2209_t* dev, uint32_t* data);
+// int tmc2209_transeive(tmc2209_t* dev, uint8_t reg, uint32_t* data);
 
 int tmc2209_init(tmc2209_t* dev, uart_hdb_t* uart_hdb);
 int tmc2209_set_speed(tmc2209_t* dev, int32_t speed);
 
 #endif // TMC2209_H
-
