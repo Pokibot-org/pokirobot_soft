@@ -17,6 +17,7 @@ do
             :
         else
             echo "No newline at: $f"
+            echo >> "$f"
         fi
     fi
 done
