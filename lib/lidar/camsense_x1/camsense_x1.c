@@ -136,7 +136,7 @@ void camsense_x1_full_frame_callback(const struct device *dev, struct uart_event
 void uart_rx_callback(const struct device *dev, void *user_data)
 {
     // No need to test uart_irq_rx_ready() if the only it trigger enabeled is rx
-    uint8_t recived_byte;
+    uint8_t recived_byte = 0;
     static uint8_t frame_index = 0;
     static uint8_t header_sync_index = 0;
     static Frame_parsing_state parsing_state = frame_parsing_state_header_sync;

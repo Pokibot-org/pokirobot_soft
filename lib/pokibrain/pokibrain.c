@@ -88,7 +88,7 @@ void pokibrain_think(void)
 
 void pokibrain_task(void *arg1, void *arg2, void *arg3)
 {
-    timing_init();
+    soc_timing_init();
     timing_t start_time, end_time;
     uint64_t total;
     while (1)
@@ -99,13 +99,13 @@ void pokibrain_task(void *arg1, void *arg2, void *arg3)
         switch (ev)
         {
         case POKIBRAIN_THINK:
-            timing_start();
-            start_time = timing_counter_get();
+            soc_timing_start();
+            start_time = soc_timing_counter_get();
             pokibrain_think();
-            end_time = timing_counter_get();
-            timing_stop();
-            total = timing_cycles_get(&start_time, &end_time);
-            total = timing_cycles_to_ns(total);
+            end_time = soc_timing_counter_get();
+            soc_timing_stop();
+            total = soc_timing_cycles_get(&start_time, &end_time);
+            total = soc_timing_cycles_to_ns(total);
             LOG_INF("Thinking took %llu ms/%llu us", total/1000, total);
             break;
         case POKIBRAIN_DIE:
