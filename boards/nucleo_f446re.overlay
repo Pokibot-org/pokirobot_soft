@@ -2,8 +2,14 @@
     aliases {
         console = &usart2;
         stepper-bus = &uart5;
+        camsense-uart = &usart1;
     };
 
+};
+
+&usart1 {
+    status = "okay";
+    current-speed = < 115200 >;
 };
 
 &usart2 {
