@@ -1,8 +1,8 @@
 #ifndef UART_HDB_H
 #define UART_HDB_H
 
-#include <devicetree.h>
 #include <device.h>
+#include <devicetree.h>
 #include <zephyr.h>
 
 #define UART_HDB_STACK_SIZE 1024
@@ -36,5 +36,5 @@ typedef struct uart_hdb {
 int uart_hdb_init(uart_hdb_t* dev, const struct device* uart);
 int uart_hdb_write(uart_hdb_t* dev, const uint8_t* buf, size_t len);
 int uart_hdb_transceive(uart_hdb_t* dev, const uint8_t* write_buf, size_t write_len, uint8_t* read_buf,
-                             size_t read_len);
+                        size_t read_len);
 #endif // UART_HDB_H

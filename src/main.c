@@ -1,6 +1,7 @@
 #include <device.h>
 #include <devicetree.h>
 #include <zephyr.h>
+
 #include "tmc2209/tmc2209.h"
 #include "uart_hdb/uart_hdb.h"
 #include <logging/log.h>

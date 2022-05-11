@@ -1,5 +1,7 @@
 #include "uart_hdb.h"
+
 #include <zephyr.h>
+
 #include <drivers/uart.h>
 #include <logging/log.h>
 
@@ -58,7 +60,8 @@ void uart_hdb_thread(void* arg1, void* arg2, void* arg3) {
     while (1) {
         uart_hdb_msg_t msg;
         k_msgq_get(&device->frame_queue, &msg, K_FOREVER);
-        if (!msg.data_size) continue;
+        if (!msg.data_size)
+            continue;
         for (size_t i = 0; i < msg.data_size; i++) {
             uart_poll_out(device->uart, msg.data[i]);
         }
@@ -67,7 +70,7 @@ void uart_hdb_thread(void* arg1, void* arg2, void* arg3) {
         if (msg.answer_buffer) {
             do {
                 uart_poll_in(device->uart, &msg.answer_buffer[0]);
-            } while (msg.answer_buffer[0] != msg.data[msg.data_size-1]);
+            } while (msg.answer_buffer[0] != msg.data[msg.data_size - 1]);
 
             for (size_t i = 0; i < msg.answer_buffer_len; i++) {
                 uart_poll_in(device->uart, &msg.answer_buffer[i]);

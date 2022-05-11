@@ -1,5 +1,7 @@
 #include "tmc2209.h"
+
 #include <zephyr.h>
+
 #include <drivers/uart.h>
 #include <logging/log.h>
 

@@ -3,6 +3,7 @@
 
 #include <device.h>
 #include <zephyr.h>
+
 #include "uart_hdb/uart_hdb.h"
 
 // general
