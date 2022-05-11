@@ -6,7 +6,9 @@
 #include "uart_hdb/uart_hdb.h"
 #include <logging/log.h>
 
+
 LOG_MODULE_REGISTER(main);
+
 
 void main(void) {
     LOG_INF("BOOTING!\n");

@@ -1,7 +1,9 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+
 #include <zephyr.h>
+
 
 #define LOCKVAR(_type)                                                                                                 \
     struct {                                                                                                           \
@@ -25,6 +27,7 @@
         k_mutex_unlock(&((_var).lock));                                                                                \
     }
 
+
 typedef struct point2 {
     float x;
     float y;
@@ -34,6 +37,7 @@ typedef struct vec2 {
     float dx;
     float dy;
 } vec2_t;
+
 
 typedef struct pos2 {
     float x;
@@ -47,10 +51,10 @@ typedef struct vel2 {
     float w;
 } vel2_t;
 
+
 vec2_t point2_diff(point2_t target, point2_t orig);
 float vec2_abs(vec2_t val);
 float vec2_fast_abs(vec2_t val);
-// TODO vec_abs_fast
 
 pos2_t pos2_diff(pos2_t target, pos2_t orig);
 

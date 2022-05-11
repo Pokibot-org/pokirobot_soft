@@ -8,6 +8,7 @@
 
 LOG_MODULE_REGISTER(control);
 
+
 int control_init(control_t* dev) {
     int ret = 0;
     INIT_LOCKVAR(dev->pos);
@@ -15,6 +16,7 @@ int control_init(control_t* dev) {
     INIT_LOCKVAR(dev->motors_v);
     return ret;
 }
+
 
 #define CONTROL_LOCKVAR_SETTER(_var, _type)                                                                            \
     int control_set_##_var(control_t* dev, _type _var) {                                                               \
@@ -49,6 +51,7 @@ CONTROL_LOCKVAR_SETTER(motors_v, omni3_t)
 CONTROL_LOCKVAR_GETTER(pos, pos2_t)
 CONTROL_LOCKVAR_GETTER(target, pos2_t)
 CONTROL_LOCKVAR_GETTER(motors_v, omni3_t)
+
 
 vel2_t world_vel2_from_delta(pos2_t delta, vel2_t prev_vel) {
     // TODO clamp + ramp

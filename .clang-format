@@ -12,3 +12,4 @@ IncludeCategories:
 ColumnLimit: 120
 AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: Never
+MaxEmptyLinesToKeep: 2

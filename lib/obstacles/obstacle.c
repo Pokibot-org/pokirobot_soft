@@ -145,22 +145,22 @@ uint8_t obstacle_are_they_colliding(const obstacle_t* a, const obstacle_t* b) {
 uint8_t check_seg_collision(const point2_t* a1, const point2_t* a2, const point2_t* b1, const point2_t* b2,
                             point2_t* out) {
     vec2_t vec_a, vec_b;
-    vec_a.x = a2->x - a1->x;
-    vec_a.y = a2->y - a1->y;
-    vec_b.x = b2->x - b1->x;
-    vec_b.y = b2->y - b1->y;
+    vec_a.dx = a2->x - a1->x;
+    vec_a.dy = a2->y - a1->y;
+    vec_b.dx = b2->x - b1->x;
+    vec_b.dy = b2->y - b1->y;
 
-    int32_t den = vec_a.x * vec_b.y - vec_a.y * vec_b.x;
+    int32_t den = vec_a.dx * vec_b.dy - vec_a.dy * vec_b.dx;
     if (!den) {
         *out = *a1;
         return 0;
     }
-    float coeff_point_sur_a = ((float)(-a1->x * vec_b.y + b1->x * vec_b.y + vec_b.x * a1->y - vec_b.x * b1->y)) / den;
-    float coeff_point_sur_b = ((float)(vec_a.x * a1->y - vec_a.x * b1->y - vec_a.y * a1->x + vec_a.y * b1->x)) / den;
+    float coeff_point_sur_a = ((float)(-a1->x * vec_b.dy + b1->x * vec_b.dy + vec_b.dx * a1->y - vec_b.dx * b1->y)) / den;
+    float coeff_point_sur_b = ((float)(vec_a.dx * a1->y - vec_a.dx * b1->y - vec_a.dy * a1->x + vec_a.dy * b1->x)) / den;
 
     if (coeff_point_sur_a > 0 && coeff_point_sur_a < 1 && coeff_point_sur_b > 0 && coeff_point_sur_b < 1) {
-        out->x = a1->x + coeff_point_sur_a * vec_a.x;
-        out->y = a1->y + coeff_point_sur_a * vec_a.y;
+        out->x = a1->x + coeff_point_sur_a * vec_a.dx;
+        out->y = a1->y + coeff_point_sur_a * vec_a.dy;
         return 1;
     }
     return 0;

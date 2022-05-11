@@ -5,10 +5,12 @@
 
 #include "utils.h"
 
+
 #define CONTROL_MUTEX_TIMEOUT (K_MSEC(30))
 
 #define ROBOT_L 150.0f
 #define WHEEL_PERIMETER 267.840f
+
 
 typedef struct omni3 {
     float v1;
@@ -21,6 +23,7 @@ typedef struct control {
     LOCKVAR(pos2_t) target;
     LOCKVAR(omni3_t) motors_v;
 } control_t;
+
 
 int control_init(control_t* dev);
 

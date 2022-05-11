@@ -5,7 +5,9 @@
 
 #include <logging/log.h>
 
+
 LOG_MODULE_REGISTER(utils);
+
 
 vec2_t point2_diff(point2_t target, point2_t orig) {
     vec2_t delta = {
