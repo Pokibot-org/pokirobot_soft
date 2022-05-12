@@ -7,8 +7,7 @@
 #include "utils.h"
 
 uint8_t relative_obstacle_storing_lidar_points_relative_to_robot(obstacle_holder_t* holder, lidar_message_t* message,
-                                                                 float robot_angle_rad, point2_t robot_pos,
-                                                                 float center_offset_degre) {
+    float robot_angle_rad, point2_t robot_pos, float center_offset_degre) {
     float step = 0.0f;
     obstacle_t new_obstacle = {
         .type = obstacle_type_circle,

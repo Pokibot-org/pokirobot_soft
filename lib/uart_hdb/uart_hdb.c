@@ -23,8 +23,8 @@ int uart_hdb_write(uart_hdb_t* dev, const uint8_t* buf, size_t len) {
     return ret;
 }
 
-int uart_hdb_transceive(uart_hdb_t* dev, const uint8_t* write_buf, size_t write_len, uint8_t* read_buf,
-                        size_t read_len) {
+int uart_hdb_transceive(
+    uart_hdb_t* dev, const uint8_t* write_buf, size_t write_len, uint8_t* read_buf, size_t read_len) {
     int ret = 0;
     if (write_len >= UART_HDB_MSG_DATA_MAX_SIZE) {
         LOG_WRN("Data to big, increase UART_HDB_MSG_DATA_MAX_SIZE");
@@ -112,7 +112,7 @@ int uart_hdb_init(uart_hdb_t* dev, const struct device* uart) {
     k_msgq_init(&dev->frame_queue, dev->frame_queue_buffer, sizeof(uart_hdb_msg_t), UART_HDB_MESSAGE_QUEUE_SIZE);
 
     dev->thread_id = k_thread_create(&dev->thread, dev->thread_stack, UART_HDB_STACK_SIZE, uart_hdb_thread, &dev, NULL,
-                                     NULL, UART_HDB_THREAD_PRIORITY, 0, K_NO_WAIT);
+        NULL, UART_HDB_THREAD_PRIORITY, 0, K_NO_WAIT);
     if (!dev->thread_id) {
         LOG_ERR("Error in uart_hdb thread creation");
         return 4;

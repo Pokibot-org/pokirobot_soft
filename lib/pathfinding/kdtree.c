@@ -157,8 +157,8 @@ void kdtree_leaf_data_print_nodes_holder(const void* leaf_data, char* parent_nod
         return;
     }
     for (size_t i = 0; i < obj->nb_of_nodes; i++) {
-        KDTREE_PRINT("%s -> \"x:%d|y:%d\"\n", parent_node_name, obj->points[i].coordinate.x,
-                     obj->points[i].coordinate.y);
+        KDTREE_PRINT(
+            "%s -> \"x:%f|y:%f\"\n", parent_node_name, obj->points[i].coordinate.x, obj->points[i].coordinate.y);
     }
 }
 

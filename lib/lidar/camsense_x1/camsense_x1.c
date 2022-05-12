@@ -65,15 +65,15 @@ void process_recived_frame(uint8_t* recived_frame_no_resync_header) {
     static float previous_angle = 0;
     LOG_DBG("Receiving lidar frame");
     obj.current_speed = ((uint16_t)(recived_frame_no_resync_header[CAMSENSE_X1_SPEED_H_INDEX] << 8) |
-                         recived_frame_no_resync_header[CAMSENSE_X1_SPEED_L_INDEX]) /
+                            recived_frame_no_resync_header[CAMSENSE_X1_SPEED_L_INDEX]) /
                         3840.0; // 3840 = (64 * 60)
     lidar_message_t message = {0};
     message.start_angle = (((uint16_t)recived_frame_no_resync_header[CAMSENSE_X1_START_ANGLE_H_INDEX]) << 8 |
-                           recived_frame_no_resync_header[CAMSENSE_X1_START_ANGLE_L_INDEX]) /
+                              recived_frame_no_resync_header[CAMSENSE_X1_START_ANGLE_L_INDEX]) /
                               64.0 -
                           640; // TODO: Use shift not /
     message.end_angle = (((uint16_t)recived_frame_no_resync_header[CAMSENSE_X1_END_ANGLE_H_INDEX]) << 8 |
-                         recived_frame_no_resync_header[CAMSENSE_X1_END_ANGLE_L_INDEX]) /
+                            recived_frame_no_resync_header[CAMSENSE_X1_END_ANGLE_L_INDEX]) /
                             64.0 -
                         640;
 
@@ -184,10 +184,10 @@ int camsense_x1_init() {
             return -1;
         }
         const struct uart_config cfg = {.baudrate = 115200,
-                                        .data_bits = UART_CFG_DATA_BITS_8,
-                                        .flow_ctrl = UART_CFG_FLOW_CTRL_NONE,
-                                        .parity = UART_CFG_PARITY_NONE,
-                                        .stop_bits = UART_CFG_STOP_BITS_1};
+            .data_bits = UART_CFG_DATA_BITS_8,
+            .flow_ctrl = UART_CFG_FLOW_CTRL_NONE,
+            .parity = UART_CFG_PARITY_NONE,
+            .stop_bits = UART_CFG_STOP_BITS_1};
         int err = uart_configure(uart_dev, &cfg);
         if (err) {
             LOG_ERR("Cant configure the uart");

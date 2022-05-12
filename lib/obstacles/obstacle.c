@@ -96,8 +96,8 @@ uint8_t obstacle_holder_delete(obstacle_holder_t* obj, obstacle_t* obstacle) {
 }
 
 uint8_t are_rectangle_and_circle_colliding(const rectangle_t* rec, const circle_t* cir) {
-    uint32_t circle_distance_x = abs((int32_t)cir->coordinates.x - (int32_t)rec->coordinates.x);
-    uint32_t circle_distance_y = abs((int32_t)cir->coordinates.y - (int32_t)rec->coordinates.y);
+    uint32_t circle_distance_x = fabsf((int32_t)cir->coordinates.x - (int32_t)rec->coordinates.x);
+    uint32_t circle_distance_y = fabsf((int32_t)cir->coordinates.y - (int32_t)rec->coordinates.y);
 
     if (circle_distance_x > (rec->width / 2 + cir->radius)) {
         return 0;
@@ -125,7 +125,7 @@ uint8_t obstacle_are_they_colliding(const obstacle_t* a, const obstacle_t* b) {
     }
     if (a->type == b->type) {
         if (a->type == obstacle_type_circle) {
-            return utils_distance(&a->data.circle.coordinates, &b->data.circle.coordinates) <=
+            return vec2_abs(point2_diff(a->data.circle.coordinates, b->data.circle.coordinates)) <=
                    ((a->data.circle.radius + b->data.circle.radius));
         } else {
             return OBSTACLE_COLLISION_ERROR_UNSUPPORTED; // FIXME: NOT SUPPORTED
@@ -142,8 +142,8 @@ uint8_t obstacle_are_they_colliding(const obstacle_t* a, const obstacle_t* b) {
 
 #include "stdio.h"
 
-uint8_t check_seg_collision(const point2_t* a1, const point2_t* a2, const point2_t* b1, const point2_t* b2,
-                            point2_t* out) {
+uint8_t check_seg_collision(
+    const point2_t* a1, const point2_t* a2, const point2_t* b1, const point2_t* b2, point2_t* out) {
     vec2_t vec_a, vec_b;
     vec_a.dx = a2->x - a1->x;
     vec_a.dy = a2->y - a1->y;
@@ -155,8 +155,10 @@ uint8_t check_seg_collision(const point2_t* a1, const point2_t* a2, const point2
         *out = *a1;
         return 0;
     }
-    float coeff_point_sur_a = ((float)(-a1->x * vec_b.dy + b1->x * vec_b.dy + vec_b.dx * a1->y - vec_b.dx * b1->y)) / den;
-    float coeff_point_sur_b = ((float)(vec_a.dx * a1->y - vec_a.dx * b1->y - vec_a.dy * a1->x + vec_a.dy * b1->x)) / den;
+    float coeff_point_sur_a =
+        ((float)(-a1->x * vec_b.dy + b1->x * vec_b.dy + vec_b.dx * a1->y - vec_b.dx * b1->y)) / den;
+    float coeff_point_sur_b =
+        ((float)(vec_a.dx * a1->y - vec_a.dx * b1->y - vec_a.dy * a1->x + vec_a.dy * b1->x)) / den;
 
     if (coeff_point_sur_a > 0 && coeff_point_sur_a < 1 && coeff_point_sur_b > 0 && coeff_point_sur_b < 1) {
         out->x = a1->x + coeff_point_sur_a * vec_a.dx;
@@ -167,14 +169,13 @@ uint8_t check_seg_collision(const point2_t* a1, const point2_t* a2, const point2
 }
 
 uint8_t obstacle_get_point_of_collision_with_segment(const point2_t* start_point, const point2_t* end_point,
-                                                     const obstacle_t* obstacle, const uint16_t* seg_radius,
-                                                     point2_t* out_crd) {
+    const obstacle_t* obstacle, const float seg_radius, point2_t* out_crd) {
     point2_t points[OBSTACLE_COLLISION_NB_MAX_SIDES];
     uint8_t sides_to_check = 0;
 
     if (obstacle->type == obstacle_type_rectangle) {
-        float demi_w = (obstacle->data.rectangle.width / 2 + *seg_radius);
-        float demi_h = (obstacle->data.rectangle.height / 2 + *seg_radius);
+        float demi_w = (obstacle->data.rectangle.width / 2 + seg_radius);
+        float demi_h = (obstacle->data.rectangle.height / 2 + seg_radius);
         points[0].x = obstacle->data.rectangle.coordinates.x - demi_w;
         points[0].y = obstacle->data.rectangle.coordinates.y - demi_h;
 
@@ -189,7 +190,7 @@ uint8_t obstacle_get_point_of_collision_with_segment(const point2_t* start_point
         sides_to_check = 4;
     } else if (obstacle->type == obstacle_type_circle) {
         const float step = 2 * M_PI / OBSTACLE_COLLISION_NB_MAX_SIDES;
-        float radius = (obstacle->data.circle.radius + *seg_radius);
+        float radius = (obstacle->data.circle.radius + seg_radius);
 
         for (size_t i = 0; i < OBSTACLE_COLLISION_NB_MAX_SIDES; i++) {
             points[i].x = obstacle->data.circle.coordinates.x + radius * cosf(i * step);
@@ -217,7 +218,7 @@ uint8_t obstacle_get_point_of_collision_with_segment(const point2_t* start_point
 
     float closest_dist = UINT16_MAX;
     for (size_t i = 0; i < nb_coll; i++) {
-        float dist = utils_distance(&out_pt_coll[i], start_point);
+        float dist = vec2_abs(point2_diff(out_pt_coll[i], *start_point));
         if (dist <= closest_dist) {
             closest_dist = dist;
             *out_crd = out_pt_coll[i];

@@ -17,8 +17,7 @@
 // DECLARATION
 
 static uint8_t get_closest_point_of_collision(const pathfinding_object_t* obj, const obstacle_holder_t* ob_hold,
-                                              const point2_t* rand_coordinates,
-                                              const point2_t* closest_node_coordinates, point2_t* out_crd);
+    const point2_t* rand_coordinates, const point2_t* closest_node_coordinates, point2_t* out_crd);
 
 // FUNCTIONS
 
@@ -95,7 +94,7 @@ uint8_t get_array_of_closest_node(pathfinding_object_t* obj, point2_t* crd, path
 }
 
 void remap_nodes_to_new_node_if_closer_to_start(pathfinding_object_t* obj, obstacle_holder_t* ob_hold,
-                                                path_node_t** nodes, uint8_t nb_nodes, path_node_t* new_node) {
+    path_node_t** nodes, uint8_t nb_nodes, path_node_t* new_node) {
     for (size_t i = 0; i < nb_nodes; i++) {
         point2_t out_crd;
         int err = get_closest_point_of_collision(obj, ob_hold, &new_node->coordinate, &nodes[i]->coordinate, &out_crd);
@@ -112,8 +111,8 @@ void remap_nodes_to_new_node_if_closer_to_start(pathfinding_object_t* obj, obsta
     }
 }
 
-int get_new_valid_coordinates(pathfinding_object_t* obj, point2_t* crd_tree_node, point2_t* crd_random_node,
-                              point2_t* crd_new_node) {
+int get_new_valid_coordinates(
+    pathfinding_object_t* obj, point2_t* crd_tree_node, point2_t* crd_random_node, point2_t* crd_new_node) {
     float segment_len = vec2_abs(point2_diff(*crd_tree_node, *crd_random_node));
     if (segment_len <= obj->config.delta_distance) {
         *crd_new_node = *crd_random_node;
@@ -132,18 +131,16 @@ int get_new_valid_coordinates(pathfinding_object_t* obj, point2_t* crd_tree_node
  *
  */
 uint8_t get_closest_point_of_collision(const pathfinding_object_t* obj, const obstacle_holder_t* ob_hold,
-                                       const point2_t* rand_coordinates, const point2_t* closest_node_coordinates,
-                                       point2_t* out_crd) {
+    const point2_t* rand_coordinates, const point2_t* closest_node_coordinates, point2_t* out_crd) {
     *out_crd = *rand_coordinates;
     point2_t obstacle_checked_crd = {0};
     uint8_t collision_happened = 0;
-    float closest_obstacle = UINT32_MAX;
+    float closest_obstacle = MAXFLOAT;
     for (size_t index_obstacle = 0; index_obstacle < OBSTACLE_HOLDER_MAX_NUMBER_OF_OBSTACLE; index_obstacle++) {
         const obstacle_t* current_ob = &ob_hold->obstacles[index_obstacle];
         if (current_ob->type != obstacle_type_none) {
-            int status =
-                obstacle_get_point_of_collision_with_segment(closest_node_coordinates, rand_coordinates, current_ob,
-                                                             &obj->config.radius_of_security, &obstacle_checked_crd);
+            int status = obstacle_get_point_of_collision_with_segment(closest_node_coordinates, rand_coordinates,
+                current_ob, obj->config.radius_of_security, &obstacle_checked_crd);
             if (status == 1) {
                 collision_happened = 1;
                 // FIXME: check if it is the closest intersection point
@@ -168,13 +165,13 @@ uint8_t get_closest_point_of_collision(const pathfinding_object_t* obj, const ob
  *
  */
 uint8_t check_collision(const pathfinding_object_t* obj, const obstacle_holder_t* ob_hold, const point2_t* pt_seg_a,
-                        const point2_t* pt_seg_b) {
+    const point2_t* pt_seg_b) {
     point2_t obstacle_checked_crd;
     for (size_t index_obstacle = 0; index_obstacle < OBSTACLE_HOLDER_MAX_NUMBER_OF_OBSTACLE; index_obstacle++) {
         const obstacle_t* current_ob = &ob_hold->obstacles[index_obstacle];
         if (current_ob->type != obstacle_type_none) {
             uint8_t status = obstacle_get_point_of_collision_with_segment(
-                pt_seg_a, pt_seg_b, current_ob, &obj->config.radius_of_security, &obstacle_checked_crd);
+                pt_seg_a, pt_seg_b, current_ob, obj->config.radius_of_security, &obstacle_checked_crd);
             if (status) {
                 return 1;
             }
@@ -202,7 +199,7 @@ point2_t pathfinding_generate_rebuild_rand_coordinates(const pathfinding_object_
     if (point_gen_type_probability < obj->config.rand_goal_probability) {
         rand_coordinates = *end;
     } else if ((point_gen_type_probability <
-                obj->config.rand_goal_probability + obj->config.rand_waypoint_probability) &&
+                   obj->config.rand_goal_probability + obj->config.rand_waypoint_probability) &&
                obj->nb_of_coordinate_cached) {
         rand_coordinates = obj->coordinate_cache[(rand_num >> 24) % obj->nb_of_coordinate_cached];
     } else {
@@ -227,7 +224,7 @@ int pathfinding_cache_waypoint(pathfinding_object_t* obj, path_node_t* end_node)
 }
 
 int pathfinding_find_path(pathfinding_object_t* obj, obstacle_holder_t* ob_hold, const point2_t* start,
-                          const point2_t* end, path_node_t** end_node) {
+    const point2_t* end, path_node_t** end_node) {
     *end_node = NULL;
     // TODO: Check input validity, must be between 0 and pathfinding_boundaries
     // Init start node
@@ -265,8 +262,8 @@ int pathfinding_find_path(pathfinding_object_t* obj, obstacle_holder_t* ob_hold,
         current_node->distance_to_start = closest_node_p->distance_to_start +
                                           vec2_abs(point2_diff(closest_node_p->coordinate, current_node->coordinate));
 
-        remap_nodes_to_new_node_if_closer_to_start(obj, ob_hold, to_be_remaped_nodes, nb_of_to_be_remaped_nodes,
-                                                   current_node);
+        remap_nodes_to_new_node_if_closer_to_start(
+            obj, ob_hold, to_be_remaped_nodes, nb_of_to_be_remaped_nodes, current_node);
 
         if ((rand_coordinates.x == end->x) && (rand_coordinates.y == end->y)) {
             *end_node = current_node;
@@ -282,7 +279,7 @@ int pathfinding_find_path(pathfinding_object_t* obj, obstacle_holder_t* ob_hold,
 }
 
 int pathfinding_rebuild(pathfinding_object_t* obj, obstacle_holder_t* ob_hold, const point2_t* start,
-                        const point2_t* end, path_node_t** end_node) {
+    const point2_t* end, path_node_t** end_node) {
     *end_node = NULL;
     // TODO: Check input validity, must be between 0 and pathfinding_boundaries
     // Init start node
@@ -320,8 +317,8 @@ int pathfinding_rebuild(pathfinding_object_t* obj, obstacle_holder_t* ob_hold, c
         current_node->distance_to_start = closest_node_p->distance_to_start +
                                           vec2_abs(point2_diff(closest_node_p->coordinate, current_node->coordinate));
 
-        remap_nodes_to_new_node_if_closer_to_start(obj, ob_hold, to_be_remaped_nodes, nb_of_to_be_remaped_nodes,
-                                                   current_node);
+        remap_nodes_to_new_node_if_closer_to_start(
+            obj, ob_hold, to_be_remaped_nodes, nb_of_to_be_remaped_nodes, current_node);
 
         if ((rand_coordinates.x == end->x) && (rand_coordinates.y == end->y)) {
             *end_node = current_node;
@@ -334,7 +331,7 @@ int pathfinding_rebuild(pathfinding_object_t* obj, obstacle_holder_t* ob_hold, c
 // TODO: Optimize path and reconfigure whan there is an obtacle
 
 int pathfinding_optimize_path(pathfinding_object_t* obj, obstacle_holder_t* ob_hold, path_node_t* solved_path_end_node,
-                              uint16_t nb_of_nodes_to_add) {
+    uint16_t nb_of_nodes_to_add) {
     uint16_t counter = 0;
     path_node_t* to_be_remaped_nodes[PATHFINDING_GET_ARRAY_OF_CLOSEST_NODES_MAX_NUM] = {0};
 
@@ -343,8 +340,8 @@ int pathfinding_optimize_path(pathfinding_object_t* obj, obstacle_holder_t* ob_h
         if (current_node->is_used) {
             uint8_t nb_of_to_be_remaped_nodes =
                 get_array_of_closest_node(obj, &current_node->coordinate, to_be_remaped_nodes);
-            remap_nodes_to_new_node_if_closer_to_start(obj, ob_hold, to_be_remaped_nodes, nb_of_to_be_remaped_nodes,
-                                                       current_node);
+            remap_nodes_to_new_node_if_closer_to_start(
+                obj, ob_hold, to_be_remaped_nodes, nb_of_to_be_remaped_nodes, current_node);
             continue;
         }
         // FIXME: in middle of the node array thereis unused nodes, you must optimise all existing nodes and not stop to
@@ -361,8 +358,8 @@ int pathfinding_optimize_path(pathfinding_object_t* obj, obstacle_holder_t* ob_h
         // closest_node_p->coordinate.x, closest_node_p->coordinate.y);
 
         point2_t path_free_crd;
-        int err = get_closest_point_of_collision(obj, ob_hold, &rand_coordinates, &closest_node_p->coordinate,
-                                                 &path_free_crd);
+        int err = get_closest_point_of_collision(
+            obj, ob_hold, &rand_coordinates, &closest_node_p->coordinate, &path_free_crd);
         if (err) {
             continue;
         }
@@ -379,8 +376,8 @@ int pathfinding_optimize_path(pathfinding_object_t* obj, obstacle_holder_t* ob_h
         current_node->distance_to_start = closest_node_p->distance_to_start +
                                           vec2_abs(point2_diff(closest_node_p->coordinate, current_node->coordinate));
 
-        remap_nodes_to_new_node_if_closer_to_start(obj, ob_hold, to_be_remaped_nodes, nb_of_to_be_remaped_nodes,
-                                                   current_node);
+        remap_nodes_to_new_node_if_closer_to_start(
+            obj, ob_hold, to_be_remaped_nodes, nb_of_to_be_remaped_nodes, current_node);
         counter++;
         if (counter >= nb_of_nodes_to_add) {
             break;
