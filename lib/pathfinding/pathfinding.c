@@ -328,7 +328,7 @@ int pathfinding_rebuild(pathfinding_object_t* obj, obstacle_holder_t* ob_hold, c
     return PATHFINDING_ERROR_PATH_NOT_FOUND;
 }
 
-// TODO: Optimize path and reconfigure whan there is an obtacle
+// TODO: Optimize path and reconfigure when there is an obtacle
 
 int pathfinding_optimize_path(pathfinding_object_t* obj, obstacle_holder_t* ob_hold, path_node_t* solved_path_end_node,
     uint16_t nb_of_nodes_to_add) {
