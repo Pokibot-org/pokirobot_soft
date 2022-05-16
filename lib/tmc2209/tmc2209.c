@@ -5,7 +5,7 @@
 #include <drivers/uart.h>
 #include <logging/log.h>
 
-LOG_MODULE_REGISTER(tmc2209, LOG_LEVEL_INF);
+LOG_MODULE_REGISTER(tmc2209);
 
 void _tmc2209_gen_write_buf(uint8_t buf[TMC2209_WREQUEST_FRAME_SIZE], uint8_t slave, uint8_t reg, uint32_t data) {
     buf[0] = FIELD_PREP(GENMASK(7, 4), TMC2209_RESERVED) | FIELD_PREP(GENMASK(3, 0), TMC2209_SYNC);
@@ -94,6 +94,7 @@ int tmc2209_init(tmc2209_t* dev, uart_hdb_t* uart_hdb) {
         return 1;
     }
     dev->uart_hdb = uart_hdb;
+    LOG_INF("Device<%p> init ok", (void *)dev);
     return ret;
 }
 

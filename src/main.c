@@ -18,7 +18,6 @@ void lidar_receive_data_callback(const lidar_message_t* message, void* user_data
 
 void main(void) {
     LOG_INF("BOOTING!");
-
     // #error on callback before decimation check collisions
     camsense_x1_init(lidar_receive_data_callback, NULL);
 
@@ -36,6 +35,7 @@ void main(void) {
     if (ret < 0) {
         return;
     }
+    LOG_INF("INIT DONE!");
     while (1) {
         gpio_pin_toggle(led.port, led.pin);
         k_sleep(K_MSEC(1000));

@@ -5,7 +5,7 @@
 #include <drivers/uart.h>
 #include <logging/log.h>
 
-LOG_MODULE_REGISTER(uart_hdb, LOG_LEVEL_INF);
+LOG_MODULE_REGISTER(uart_hdb);
 
 int uart_hdb_write(uart_hdb_t* dev, const uint8_t* buf, size_t len) {
     int ret = 0;

@@ -24,7 +24,7 @@ Format of frames:
     A package always starts with <0x55><0xAA><0x03><0x08>
 */
 
-LOG_MODULE_REGISTER(camsense_x1_driver, 2);
+LOG_MODULE_REGISTER(camsense_x1_driver);
 
 // DEFINES
 #define CAMSENSE_X1_FRAME_SIZE 36
@@ -168,38 +168,36 @@ void uart_rx_callback(const struct device* dev, void* user_data) {
  *  @return -1 if error in the init, -2 if already init, of otherwise
  */
 uint8_t camsense_x1_init(camsense_x1_msg_clbk fun, void* user_data) {
-    if (obj.uart_dev == NULL) {
-        // CONFIG UART
-        obj.uart_dev = device_get_binding(DT_LABEL(CAMSENSE_X1_NODE));
-        if (obj.uart_dev == NULL) {
-            LOG_ERR("Cant get the uart device binding");
-            return 1;
-        }
-        const struct uart_config cfg = {.baudrate = 115200,
-                                        .data_bits = UART_CFG_DATA_BITS_8,
-                                        .flow_ctrl = UART_CFG_FLOW_CTRL_NONE,
-                                        .parity = UART_CFG_PARITY_NONE,
-                                        .stop_bits = UART_CFG_STOP_BITS_1};
-        int err = uart_configure(obj.uart_dev, &cfg);
-        if (err) {
-            LOG_ERR("Cant configure the uart");
-            return 1;
-        }
-
-        obj.user_data = user_data;
-        obj.msg_callback = fun;
-        obj.message.points = obj.message.points;
-        obj.message.number_of_points = CAMSENSE_X1_NUMBER_ON_POINTS_IN_MESSAGE;
-        // START DRIVER
-        uart_irq_callback_set(obj.uart_dev, uart_rx_callback);
-        uart_irq_rx_enable(obj.uart_dev);
-        return 0;
-    } else {
+    if (obj.uart_dev) {
         LOG_WRN("camsense_x1_init already called");
+        return 1;
+    }
+    // CONFIG UART
+    obj.uart_dev = device_get_binding(DT_LABEL(CAMSENSE_X1_NODE));
+    if (obj.uart_dev == NULL) {
+        LOG_ERR("Cant get the uart device binding");
+        return 1;
+    }
+    const struct uart_config cfg = {.baudrate = 115200,
+                                    .data_bits = UART_CFG_DATA_BITS_8,
+                                    .flow_ctrl = UART_CFG_FLOW_CTRL_NONE,
+                                    .parity = UART_CFG_PARITY_NONE,
+                                    .stop_bits = UART_CFG_STOP_BITS_1};
+    int err = uart_configure(obj.uart_dev, &cfg);
+    if (err) {
+        LOG_ERR("Cant configure the uart");
+        return 1;
     }
 
-    LOG_INF("Camsense init done!");
-    return 2;
+    obj.user_data = user_data;
+    obj.msg_callback = fun;
+    obj.message.points = obj.message.points;
+    obj.message.number_of_points = CAMSENSE_X1_NUMBER_ON_POINTS_IN_MESSAGE;
+    // START DRIVER
+    uart_irq_callback_set(obj.uart_dev, uart_rx_callback);
+    uart_irq_rx_enable(obj.uart_dev);
+    LOG_INF("Init done");
+    return 0;
 }
 
 float camsense_x1_get_sensor_speed() { return obj.current_speed; }
