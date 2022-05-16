@@ -45,6 +45,7 @@ typedef struct obstacle_holder {
 
 uint8_t obstacle_are_they_colliding(const obstacle_t* a, const obstacle_t* b);
 
+void obstacle_holder_clear(obstacle_holder_t* obj);
 int16_t obstacle_holder_get_number_of_obstacles(obstacle_holder_t* obj);
 uint8_t obstacle_holder_push(obstacle_holder_t* obj, obstacle_t* obstacle);
 uint8_t obstacle_holder_get(obstacle_holder_t* obj, obstacle_t** obstacle);

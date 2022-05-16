@@ -10,6 +10,12 @@
 
 #define OBSTACLE_COLLISION_NB_MAX_SIDES 8
 
+void obstacle_holder_clear(obstacle_holder_t* obj)
+{
+    obj->read_head = 0;
+    obj->write_head = 0;
+}
+
 int16_t obstacle_holder_get_number_of_obstacles(obstacle_holder_t* obj) {
     uint16_t res = 0;
     for (uint16_t i = 0; i < OBSTACLE_HOLDER_MAX_NUMBER_OF_OBSTACLE; i++) {
@@ -47,9 +53,6 @@ uint8_t obstacle_holder_push(obstacle_holder_t* obj, obstacle_t* obstacle) {
     }
     obj->obstacles[obj->write_head] = *obstacle;
     obj->write_head += 1;
-    if (obj->write_head == OBSTACLE_HOLDER_MAX_NUMBER_OF_OBSTACLE) {
-        obstacle_holder_compact(obj);
-    }
     return OBSTACLE_HOLDER_ERROR_NONE;
 }
 
