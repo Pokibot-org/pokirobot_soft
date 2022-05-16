@@ -71,7 +71,7 @@ uint8_t process_point(obstacle_manager_t* obj, uint16_t point_distance, float po
 
     // LOG_INF("IN PROCEES POINT: angle: %f, distance: %d", point_angle, point_distance);
 
-    if (((point_distance < ROBOT_MAX_RADIUS_MM) && (ABS(point_angle) > LIDAR_DETECTION_ANGLE / 2)) ||
+    if (((point_distance < ROBOT_MAX_RADIUS_MM) && (fabsf(point_angle) > LIDAR_DETECTION_ANGLE / 2)) ||
         (point_distance < ROBOT_MIN_RADIUS_MM)) // in robot do nothing
     {
         // LOG_INF("Point in robot");
@@ -80,7 +80,7 @@ uint8_t process_point(obstacle_manager_t* obj, uint16_t point_distance, float po
 
     // if it is a near obstacle change return code
     if ((point_distance < ROBOT_MAX_RADIUS_MM + LIDAR_DETECTION_DISTANCE_MM) &&
-        (ABS(point_angle) < LIDAR_DETECTION_ANGLE / 2)) {
+        (fabs(point_angle) < LIDAR_DETECTION_ANGLE / 2)) {
         LOG_DBG("Obstacle detected | angle: %.3hi, distance: %.5hu", (int16_t)(point_angle), point_distance);
         return_code = 1;
     }
