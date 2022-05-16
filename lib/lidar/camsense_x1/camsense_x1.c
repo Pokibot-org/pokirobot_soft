@@ -5,6 +5,10 @@
 #include <drivers/uart.h>
 #include <logging/log.h>
 
+#ifndef CONFIG_UART_INTERRUPT_DRIVEN
+#error CONFIG_UART_INTERRUPT_DRIVEN must be enabled
+#endif
+
 /*
 Format of frames:
     <0x55><0xAA><0x03><0x08>
@@ -194,7 +198,7 @@ uint8_t camsense_x1_init(camsense_x1_msg_clbk fun, void* user_data) {
     obj.message.points = obj.message.points;
     obj.message.number_of_points = CAMSENSE_X1_NUMBER_ON_POINTS_IN_MESSAGE;
     // START DRIVER
-    uart_irq_callback_set(obj.uart_dev, uart_rx_callback);
+    uart_irq_callback_user_data_set(obj.uart_dev, uart_rx_callback, NULL);
     uart_irq_rx_enable(obj.uart_dev);
     LOG_INF("Init done");
     return 0;

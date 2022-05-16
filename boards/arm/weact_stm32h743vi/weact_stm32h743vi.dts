@@ -65,7 +65,7 @@
 
 &rcc {
 	clocks = <&pll>;
-	clock-frequency = <DT_FREQ_M(550)>;
+	clock-frequency = <DT_FREQ_M(480)>;
 	d1cpre = <1>;
 	hpre = <2>;
 	d1ppre = <2>;
