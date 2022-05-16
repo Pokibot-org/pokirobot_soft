@@ -9,8 +9,8 @@ LOG_MODULE_REGISTER(path_manager, 2);
 
 typedef struct path_manager_object
 {
-    coordinates_t start;
-    coordinates_t end;
+    point2_t start;
+    point2_t end;
     path_manager_config_t conf;
     pathfinding_object_t pathfinding_obj;
     obstacle_holder_t obstacle_hold;
@@ -95,7 +95,7 @@ static void path_manager_task(void *p0, void *p1, void *p2)
 
 // PUBLIC FUN
 // #define TEST
-uint8_t path_manager_find_path(coordinates_t start, coordinates_t end, path_manager_config_t config)
+uint8_t path_manager_find_path(point2_t start, point2_t end, path_manager_config_t config)
 {
 
     if (config.found_path_clbk == NULL)
@@ -170,13 +170,13 @@ uint8_t path_manager_find_path(coordinates_t start, coordinates_t end, path_mana
  * @param end_node end node found by the pathfinding
  * @return int16_t return the copied path length
  */
-int16_t path_manager_retrieve_path(coordinates_t *array, uint32_t array_size,
-                                  coordinates_t **ptr_array_start, path_node_t *end_node)
+int16_t path_manager_retrieve_path(point2_t *array, uint32_t array_size,
+                                  point2_t **ptr_array_start, path_node_t *end_node)
 {
     path_node_t * current_node = end_node;
     for (int32_t i = array_size - 1; i >= 0; i--)
     {
-        array[i] = (coordinates_t){.x = current_node->coordinate.x, .y = current_node->coordinate.y};
+        array[i] = (point2_t){.x = current_node->coordinate.x, .y = current_node->coordinate.y};
         if (current_node->parent_node == NULL)
         {
             if (ptr_array_start)

@@ -2,7 +2,6 @@
 #define OBSTACLE_H
 #include <stdint.h>
 
-#include "pokutils/common_types.h"
 #include "pokutils/robot_utils.h"
 #include "utils.h"
 

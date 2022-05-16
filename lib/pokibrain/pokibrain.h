@@ -5,7 +5,6 @@
 
 #include "user_context.h"
 #include "utils.h"
-#include <pokutils/common_types.h>
 
 #define POKIBRAIN_LOG_LEVEL 4
 #define POKIBRAIN_STACK_SIZE 2048

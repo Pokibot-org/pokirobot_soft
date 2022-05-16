@@ -1,7 +1,6 @@
 #ifndef RELATIVE_OBSTACLE_STORING_H
 #define RELATIVE_OBSTACLE_STORING_H
 #include "obstacle.h"
-#include "pokutils/common_types.h"
 #include "pokutils/lidar_message.h"
 #include "utils.h"
 

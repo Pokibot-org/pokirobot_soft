@@ -60,7 +60,7 @@ uint8_t obstacle_manager_get_obstacle_snapshot(obstacle_holder_t* obj) {
     return 0;
 }
 
-uint8_t process_point(obstacle_manager_t* obj, distance_t point_distance, float point_angle) {
+uint8_t process_point(obstacle_manager_t* obj, uint16_t point_distance, float point_angle) {
     uint8_t return_code = 0;
     obstacle_t new_obstacle = {
         .type = obstacle_type_circle,

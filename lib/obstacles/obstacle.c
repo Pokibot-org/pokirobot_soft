@@ -3,10 +3,7 @@
 #include <math.h>
 
 #include "utils.h"
-#include <pokutils/common_types.h>
-#ifndef UNIT_TEST
 #include <zephyr.h>
-#endif
 
 #define OBSTACLE_COLLISION_NB_MAX_SIDES 8
 
