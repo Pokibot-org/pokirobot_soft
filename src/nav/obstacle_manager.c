@@ -93,13 +93,14 @@ uint8_t process_point(obstacle_manager_t* obj, distance_t point_distance, float 
 
     new_obstacle.data.circle.coordinates.x = actual_robot_pos.x + sinf(point_angle_absolute) * point_distance;
     new_obstacle.data.circle.coordinates.y = actual_robot_pos.y + cosf(point_angle_absolute) * point_distance;
+    // Uncomment the following lines if you want to use tools/lidar_point_visualiser.py
+    // printk("<%hd:%hd>\n", new_obstacle.data.circle.coordinates.x, new_obstacle.data.circle.coordinates.y);
 
+    // REMOVE THE POINTS IF THERE ARE NOT IN THE TABLE!
     if (new_obstacle.data.circle.coordinates.x < 0 || new_obstacle.data.circle.coordinates.x > 3000 ||
         new_obstacle.data.circle.coordinates.y < 0 || new_obstacle.data.circle.coordinates.y > 2000) {
         return 2;
     }
-    // Uncomment the following lines if you want to use tools/lidar_point_visualiser.py
-    // printk("<%hd:%hd>\n", new_obstacle.data.circle.coordinates.x, new_obstacle.data.circle.coordinates.y);
     obstacle_holder_push(&obj->obstacles_holders[obj->current_obs_holder_index], &new_obstacle);
 
     return return_code;
@@ -117,6 +118,7 @@ uint8_t process_lidar_message(obstacle_manager_t* obj, const lidar_message_t* me
     }
 
     if (message->start_angle > message->end_angle || old_end_angle > message->start_angle) {
+        LOG_DBG("Swapping buffer, old size: %d", obj->obstacles_holders[obj->current_obs_holder_index].write_head);
         obstacle_holder_clear(&obj->obstacles_holders[obj->current_obs_holder_index]);
         obj->current_obs_holder_index = !obj->current_obs_holder_index;
     }
@@ -128,7 +130,7 @@ uint8_t process_lidar_message(obstacle_manager_t* obj, const lidar_message_t* me
         if (decimation_counter) {
             continue;
         }
-        
+
         if (message->points[i].quality != 0) // Filter some noisy data
         {
 #ifdef LIDAR_COUNTER_CLOCKWISE
