@@ -92,7 +92,6 @@ void process_recived_frame(uint8_t* payload) {
         obj.message.points[point_index].distance = (((uint16_t)distance_h) << 8) | (uint16_t)distance_l;
         obj.message.points[point_index].quality = quality;
     }
-    obj.message.number_of_points = CAMSENSE_X1_NUMBER_ON_POINTS_IN_MESSAGE;
 
     // If one rotation happend, call the on_rotation_callbackon_rotation_callback callback
     if (obj.msg_callback) {
@@ -190,6 +189,7 @@ uint8_t camsense_x1_init(camsense_x1_msg_clbk fun, void* user_data) {
         obj.user_data = user_data;
         obj.msg_callback = fun;
         obj.message.points = obj.message.points;
+        obj.message.number_of_points = CAMSENSE_X1_NUMBER_ON_POINTS_IN_MESSAGE;
         // START DRIVER
         uart_irq_callback_set(obj.uart_dev, uart_rx_callback);
         uart_irq_rx_enable(obj.uart_dev);
