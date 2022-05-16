@@ -20,7 +20,7 @@ void lidar_receive_data_callback(const lidar_message_t* message, void* user_data
 
 
 void main(void) {
-    LOG_INF("BOOTING!\n");
+    LOG_INF("BOOTING!");
 
     // #error on callback before decimation check collisions
     camsense_x1_init(lidar_receive_data_callback, NULL);

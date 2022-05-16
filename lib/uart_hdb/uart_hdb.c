@@ -111,8 +111,8 @@ int uart_hdb_init(uart_hdb_t* dev, const struct device* uart) {
 
     k_msgq_init(&dev->frame_queue, dev->frame_queue_buffer, sizeof(uart_hdb_msg_t), UART_HDB_MESSAGE_QUEUE_SIZE);
 
-    dev->thread_id = k_thread_create(&dev->thread, dev->thread_stack, UART_HDB_STACK_SIZE, uart_hdb_thread, &dev, NULL,
-        NULL, UART_HDB_THREAD_PRIORITY, 0, K_NO_WAIT);
+    dev->thread_id = k_thread_create(&dev->thread, dev->thread_stack, UART_HDB_STACK_SIZE, uart_hdb_thread, dev, NULL,
+                                     NULL, UART_HDB_THREAD_PRIORITY, 0, K_NO_WAIT);
     if (!dev->thread_id) {
         LOG_ERR("Error in uart_hdb thread creation");
         return 4;

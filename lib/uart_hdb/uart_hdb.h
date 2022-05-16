@@ -28,7 +28,7 @@ typedef struct uart_hdb {
     K_THREAD_STACK_MEMBER(thread_stack, UART_HDB_STACK_SIZE);
     struct k_thread thread;
     k_tid_t thread_id;
-    __aligned(4) uint8_t frame_queue_buffer[sizeof(uart_hdb_msg_t) * UART_HDB_MESSAGE_QUEUE_SIZE];
+    char __aligned(4) frame_queue_buffer[sizeof(uart_hdb_msg_t) * UART_HDB_MESSAGE_QUEUE_SIZE];
     struct k_msgq frame_queue;
     uint32_t baudrate;
 } uart_hdb_t;
