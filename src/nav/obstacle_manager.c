@@ -15,6 +15,8 @@ LOG_MODULE_REGISTER(obstacle_manager, 3);
 #define M_PI_4 0.78539816339744830962f
 #endif
 #define MAX_LIDAR_MESSAGE 6
+
+#define OBSTACLE_MANAGER_DECIMATION_FACTOR 4
 // TYPES
 
 typedef enum { om_message_lidar_data_received } om_message_type_t;
@@ -27,7 +29,7 @@ typedef struct obstacle_manager {
     obstacle_holder_t obstacles_holders[2];
     uint8_t current_obs_holder_index;
     char __aligned(4) lidar_msgq_buffer[MAX_LIDAR_MESSAGE * sizeof(lidar_message_t)];
-    struct k_msgq lidar_msgq; 
+    struct k_msgq lidar_msgq;
 } obstacle_manager_t;
 
 K_MSGQ_DEFINE(obstacle_manager_msgq, sizeof(obstacle_manager_message_t), 10, 1);
@@ -106,6 +108,7 @@ uint8_t process_point(obstacle_manager_t* obj, distance_t point_distance, float 
 uint8_t process_lidar_message(obstacle_manager_t* obj, const lidar_message_t* message) {
     float step = 0.0f;
     uint8_t obstacle_detected = 0;
+    static uint8_t decimation_counter;
     static float old_end_angle;
     if (message->end_angle > message->start_angle) {
         step = (message->end_angle - message->start_angle) / 8.0f;
@@ -113,8 +116,7 @@ uint8_t process_lidar_message(obstacle_manager_t* obj, const lidar_message_t* me
         step = (message->end_angle - (message->start_angle - 360.0f)) / 8.0f;
     }
 
-    if (message->start_angle > message->end_angle || old_end_angle > message->start_angle)
-    {
+    if (message->start_angle > message->end_angle || old_end_angle > message->start_angle) {
         obstacle_holder_clear(&obj->obstacles_holders[obj->current_obs_holder_index]);
         obj->current_obs_holder_index = !obj->current_obs_holder_index;
     }
@@ -122,6 +124,11 @@ uint8_t process_lidar_message(obstacle_manager_t* obj, const lidar_message_t* me
 
     for (int i = 0; i < message->number_of_points; i++) // for each of the 8 samples
     {
+        decimation_counter = (decimation_counter + 1) % OBSTACLE_MANAGER_DECIMATION_FACTOR;
+        if (decimation_counter) {
+            continue;
+        }
+        
         if (message->points[i].quality != 0) // Filter some noisy data
         {
 #ifdef LIDAR_COUNTER_CLOCKWISE
