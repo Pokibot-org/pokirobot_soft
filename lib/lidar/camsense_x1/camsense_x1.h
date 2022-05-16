@@ -2,12 +2,11 @@
 #define CAMSENSE_X1_H
 #include <pokutils/lidar_message.h>
 
-typedef void (*camsense_x1_on_rotation_clbk)(); // void * == user data
+#define CAMSENSE_X1_MAX_NUMBER_OF_POINTS 400
 
-int camsense_x1_init();
-float camsense_x1_get_sensor_speed();
-int camsense_x1_read_sensor_blocking(lidar_message_t* message);
-int camsense_x1_read_sensor_non_blocking(lidar_message_t* message);
-void camsense_x1_add_on_rotation_clbk(camsense_x1_on_rotation_clbk fun);
+typedef void (*camsense_x1_msg_clbk)(const lidar_message_t* message, void* user_data); // void * == user data
+
+uint8_t camsense_x1_init(camsense_x1_msg_clbk fun, void* user_data);
+float camsense_x1_get_sensor_speed(void);
 
 #endif

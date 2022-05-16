@@ -20,7 +20,7 @@ uint8_t relative_obstacle_storing_lidar_points_relative_to_robot(obstacle_holder
         step = (message->end_angle - (message->start_angle - 360.0f)) / 8.0f;
     }
 
-    for (int i = 0; i < LIDAR_MESSAGE_NUMBER_OF_POINT; i++) // for each of the 8 samples
+    for (int i = 0; i < message->number_of_points; i++) // for each of the 8 samples
     {
         float point_angle = (message->start_angle + step * i) + (center_offset_degre + 180.0f);
         float point_angle_absolute = ((point_angle * (M_PI / 180.0f)) + robot_angle_rad);
