@@ -11,6 +11,10 @@ LOG_MODULE_REGISTER(main);
 
 // #error on callback before decimation check collisions
 
+void collision_callback(void)
+{
+    LOG_INF("Collision detected");
+}
 
 void main(void) {
     LOG_INF("BOOTING!");
@@ -20,7 +24,7 @@ void main(void) {
     uart_hdb_init(&uart_bus, DEVICE_DT_GET(DT_ALIAS(stepper_bus)));
     static tmc2209_t stepper_drv;
     tmc2209_init(&stepper_drv, &uart_bus);
-    obstacle_manager_init();
+    obstacle_manager_init(collision_callback);
     static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
     int ret;
     if (!device_is_ready(led.port)) {

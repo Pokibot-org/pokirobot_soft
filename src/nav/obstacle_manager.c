@@ -6,7 +6,7 @@
 #include "odometry/odometry.h"
 #include <logging/log.h>
 
-LOG_MODULE_REGISTER(obstacle_manager, 3);
+LOG_MODULE_REGISTER(obstacle_manager);
 
 // DEFINES
 #ifndef M_PI
@@ -30,6 +30,7 @@ typedef struct obstacle_manager {
     uint8_t current_obs_holder_index;
     char __aligned(4) lidar_msgq_buffer[MAX_LIDAR_MESSAGE * sizeof(lidar_message_t)];
     struct k_msgq lidar_msgq;
+    obstacle_manager_collision_clbk collision_callback;
 } obstacle_manager_t;
 
 K_MSGQ_DEFINE(obstacle_manager_msgq, sizeof(obstacle_manager_message_t), 10, 1);
@@ -147,7 +148,10 @@ uint8_t process_lidar_message(obstacle_manager_t* obj, const lidar_message_t* me
     }
 
     if (obstacle_detected) {
-        LOG_INF("Obstacle detected in front of the robot");
+        if (obj->collision_callback)
+        {
+            obj->collision_callback();
+        }
     }
     return 0;
 }
@@ -187,7 +191,8 @@ static void obstacle_manager_task() {
 K_THREAD_DEFINE(obstacle_manager_thread, CONFIG_OBSTACLE_MANAGER_THREAD_STACK, obstacle_manager_task, NULL, NULL, NULL,
                 CONFIG_OBSTACLE_MANAGER_THREAD_PRIORITY, 0, K_TICKS_FOREVER);
 
-void obstacle_manager_init(void) {
+void obstacle_manager_init(obstacle_manager_collision_clbk fun) {
+    obs_man_obj.collision_callback = fun;
     k_msgq_init(&obs_man_obj.lidar_msgq, obs_man_obj.lidar_msgq_buffer, sizeof(lidar_message_t), MAX_LIDAR_MESSAGE);
     camsense_x1_init(lidar_receive_data_callback, NULL);
     k_thread_start(obstacle_manager_thread);
