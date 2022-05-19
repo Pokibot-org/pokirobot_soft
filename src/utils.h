@@ -22,6 +22,7 @@
 #define M_2_SQRTPI  1.12837916709551257390
 #define M_SQRT2     1.41421356237309504880
 #define M_SQRT1_2   0.70710678118654752440
+#define M_SQRT3     1.73205080756887729352
 
 
 #define LOCKVAR(_type)                                                                                                 \

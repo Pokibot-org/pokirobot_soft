@@ -217,7 +217,7 @@ def control_plot(data):
     plt.show()
 
 if __name__ == "__main__":
-    target = Pos(4000.0, 2000.0, -2.0*2.0*math.pi)
+    target = Pos(4000.0, 2000.0, 3.0*2.0*math.pi)
     data = task(target, 10)
     #control_print(data)
     control_plot(data)
