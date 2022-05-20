@@ -1,9 +1,11 @@
 #include <device.h>
 #include <devicetree.h>
 #include <zephyr.h>
+
+#include "ihm/led_control.h"
+#include "nav/obstacle_manager.h"
 #include "tmc2209/tmc2209.h"
 #include "uart_hdb/uart_hdb.h"
-#include "nav/obstacle_manager.h"
 #include <drivers/gpio.h>
 #include <logging/log.h>
 
@@ -11,15 +13,14 @@ LOG_MODULE_REGISTER(main);
 
 // #error on callback before decimation check collisions
 
-void collision_callback(void)
-{
+void collision_callback(void) {
     LOG_INF("Collision detected");
 }
 
 void main(void) {
     LOG_INF("BOOTING!");
-    // #error on callback before decimation check collisions
-
+    led_control_init();
+    rgb_led_set(255, 0 ,0);
     static uart_hdb_t uart_bus;
     uart_hdb_init(&uart_bus, DEVICE_DT_GET(DT_ALIAS(stepper_bus)));
     static tmc2209_t stepper_drv;
@@ -35,6 +36,7 @@ void main(void) {
         return;
     }
     LOG_INF("INIT DONE!");
+    rgb_led_set(0, 255, 0);
     while (1) {
         gpio_pin_toggle(led.port, led.pin);
         k_sleep(K_MSEC(1000));
