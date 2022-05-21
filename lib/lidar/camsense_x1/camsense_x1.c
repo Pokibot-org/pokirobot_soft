@@ -1,7 +1,9 @@
 #include "camsense_x1.h"
+
 #include <device.h>
 #include <devicetree.h>
 #include <zephyr.h>
+
 #include <drivers/uart.h>
 #include <logging/log.h>
 
@@ -183,10 +185,10 @@ uint8_t camsense_x1_init(camsense_x1_msg_clbk fun, void* user_data) {
         return 1;
     }
     const struct uart_config cfg = {.baudrate = 115200,
-                                    .data_bits = UART_CFG_DATA_BITS_8,
-                                    .flow_ctrl = UART_CFG_FLOW_CTRL_NONE,
-                                    .parity = UART_CFG_PARITY_NONE,
-                                    .stop_bits = UART_CFG_STOP_BITS_1};
+        .data_bits = UART_CFG_DATA_BITS_8,
+        .flow_ctrl = UART_CFG_FLOW_CTRL_NONE,
+        .parity = UART_CFG_PARITY_NONE,
+        .stop_bits = UART_CFG_STOP_BITS_1};
     int err = uart_configure(obj.uart_dev, &cfg);
     if (err) {
         LOG_ERR("Cant configure the uart");
@@ -204,6 +206,8 @@ uint8_t camsense_x1_init(camsense_x1_msg_clbk fun, void* user_data) {
     return 0;
 }
 
-float camsense_x1_get_sensor_speed() { return obj.current_speed; }
+float camsense_x1_get_sensor_speed() {
+    return obj.current_speed;
+}
 
 #endif

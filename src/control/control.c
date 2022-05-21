@@ -2,10 +2,10 @@
 
 #include <math.h>
 #include <zephyr.h>
-#include <logging/log.h>
-#include <sys/util.h>
 
 #include "utils.h"
+#include <logging/log.h>
+#include <sys/util.h>
 
 LOG_MODULE_REGISTER(control);
 
@@ -58,11 +58,9 @@ vel2_t world_vel_from_delta(pos2_t delta, vel2_t prev_vel) {
     // planar speed capping + acceleration ramp
     float vx = PLANAR_FACTOR * delta.x;
     float vy = PLANAR_FACTOR * delta.y;
-    const float planar_speed = sqrtf(vx*vx + vy*vy);
-    const float planar_speed_prev = sqrtf(prev_vel.vx*prev_vel.vx + prev_vel.vy*prev_vel.vy);
-    const float planar_speed_clamped = MIN(
-                planar_speed,
-                MIN(planar_speed_prev + PLANAR_RAMP, PLANAR_VMAX));
+    const float planar_speed = sqrtf(vx * vx + vy * vy);
+    const float planar_speed_prev = sqrtf(prev_vel.vx * prev_vel.vx + prev_vel.vy * prev_vel.vy);
+    const float planar_speed_clamped = MIN(planar_speed, MIN(planar_speed_prev + PLANAR_RAMP, PLANAR_VMAX));
     if (planar_speed > planar_speed_clamped) {
         const float planar_factor = planar_speed_clamped / planar_speed;
         vx *= planar_factor;
@@ -70,9 +68,8 @@ vel2_t world_vel_from_delta(pos2_t delta, vel2_t prev_vel) {
     }
     // angular speed capping + acceleration ramp
     const float angular_speed_ramped = fabsf(prev_vel.w) + ANGULAR_RAMP;
-    float w = Z_CLAMP(ANGULAR_FACTOR * delta.a,
-            MAX(-angular_speed_ramped, -ANGULAR_VMAX),
-            MIN(angular_speed_ramped, ANGULAR_VMAX));
+    float w = Z_CLAMP(
+        ANGULAR_FACTOR * delta.a, MAX(-angular_speed_ramped, -ANGULAR_VMAX), MIN(angular_speed_ramped, ANGULAR_VMAX));
     // returning built vel
     vel2_t world_vel = {
         .vx = vx,

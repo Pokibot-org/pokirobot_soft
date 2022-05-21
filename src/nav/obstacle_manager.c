@@ -1,6 +1,8 @@
 #include "obstacle_manager.h"
+
 #include <math.h>
 #include <zephyr.h>
+
 #include "lidar/camsense_x1/camsense_x1.h"
 #include "obstacles/relative_obstacle_storing.h"
 #include "odometry/odometry.h"
@@ -148,8 +150,7 @@ uint8_t process_lidar_message(obstacle_manager_t* obj, const lidar_message_t* me
     }
 
     if (obstacle_detected) {
-        if (obj->collision_callback)
-        {
+        if (obj->collision_callback) {
             obj->collision_callback();
         }
     }
@@ -189,7 +190,7 @@ static void obstacle_manager_task() {
 }
 
 K_THREAD_DEFINE(obstacle_manager_thread, CONFIG_OBSTACLE_MANAGER_THREAD_STACK, obstacle_manager_task, NULL, NULL, NULL,
-                CONFIG_OBSTACLE_MANAGER_THREAD_PRIORITY, 0, K_TICKS_FOREVER);
+    CONFIG_OBSTACLE_MANAGER_THREAD_PRIORITY, 0, K_TICKS_FOREVER);
 
 void obstacle_manager_init(obstacle_manager_collision_clbk fun) {
     obs_man_obj.collision_callback = fun;

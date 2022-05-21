@@ -94,7 +94,7 @@ int tmc2209_init(tmc2209_t* dev, uart_hdb_t* uart_hdb) {
         return 1;
     }
     dev->uart_hdb = uart_hdb;
-    LOG_INF("Device<%p> init ok", (void *)dev);
+    LOG_INF("Device<%p> init ok", (void*)dev);
     return ret;
 }
 

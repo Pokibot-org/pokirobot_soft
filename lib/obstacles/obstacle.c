@@ -1,14 +1,13 @@
 #include "obstacles/obstacle.h"
 
 #include <math.h>
+#include <zephyr.h>
 
 #include "utils.h"
-#include <zephyr.h>
 
 #define OBSTACLE_COLLISION_NB_MAX_SIDES 8
 
-void obstacle_holder_clear(obstacle_holder_t* obj)
-{
+void obstacle_holder_clear(obstacle_holder_t* obj) {
     obj->read_head = 0;
     obj->write_head = 0;
 }

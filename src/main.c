@@ -2,7 +2,7 @@
 #include <devicetree.h>
 #include <zephyr.h>
 
-#include "ihm/led_control.h"
+#include "hmi/hmi_led.h"
 #include "nav/obstacle_manager.h"
 #include "tmc2209/tmc2209.h"
 #include "uart_hdb/uart_hdb.h"
@@ -19,8 +19,8 @@ void collision_callback(void) {
 
 void main(void) {
     LOG_INF("BOOTING!");
-    led_control_init();
-    rgb_led_set(255, 0 ,0);
+    hmi_led_init();
+    hmi_led_error();
     static uart_hdb_t uart_bus;
     uart_hdb_init(&uart_bus, DEVICE_DT_GET(DT_ALIAS(stepper_bus)));
     static tmc2209_t stepper_drv;
@@ -36,7 +36,7 @@ void main(void) {
         return;
     }
     LOG_INF("INIT DONE!");
-    rgb_led_set(0, 255, 0);
+    hmi_led_success();
     while (1) {
         gpio_pin_toggle(led.port, led.pin);
         k_sleep(K_MSEC(1000));

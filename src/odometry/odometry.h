@@ -5,18 +5,18 @@
 
 #define FREQ_ODOMETRY_HZ 1000
 
-#define SIGN_L  -
-#define SIGN_R  +
-#define REVS_PER_RAD    4669000 // 3649892 //3821877 // 50*2^16 * (491/67) == 2*PI
-#define RADS_PER_REV    ((float)(1.0/(double)REVS_PER_RAD)) // 50*2^16 * (491/67) == 2*PI
-#define DEGS_PER_REV(a) (int32_t)((float)a*RADS_PER_REV*180.0f/3.1415f)
+#define SIGN_L -
+#define SIGN_R +
+#define REVS_PER_RAD 4669000                               // 3649892 //3821877 // 50*2^16 * (491/67) == 2*PI
+#define RADS_PER_REV ((float)(1.0 / (double)REVS_PER_RAD)) // 50*2^16 * (491/67) == 2*PI
+#define DEGS_PER_REV(a) (int32_t)((float)a * RADS_PER_REV * 180.0f / 3.1415f)
 
-#define ENCODERS_SPI_DEV        DT_LABEL(DT_ALIAS(spi_as5047p))
-#define ENCODERS_CS_GPIO_DEV    DEVICE_DT_GET(DT_NODELABEL(gpioa))
-#define ENCODER_LEFT_CS_PIN     15
-#define ENCODER_RIGHT_CS_PIN    4
+#define ENCODERS_SPI_DEV DT_LABEL(DT_ALIAS(spi_as5047p))
+#define ENCODERS_CS_GPIO_DEV DEVICE_DT_GET(DT_NODELABEL(gpioa))
+#define ENCODER_LEFT_CS_PIN 15
+#define ENCODER_RIGHT_CS_PIN 4
 
-#define SPEED_FIFO_DEPTH    4
+#define SPEED_FIFO_DEPTH 4
 
 
 // TODO uint32_t ?
@@ -45,4 +45,3 @@ void robot_set_angle(float rad);
 pos_t robot_get_pos();
 
 #endif // ODOMETRY_H
-
