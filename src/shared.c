@@ -1,10 +1,10 @@
 #include "shared.h"
 
 #include <zephyr.h>
-#include <logging/log.h>
 
-#include "utils.h"
 #include "uart_hdb/uart_hdb.h"
+#include "utils.h"
+#include <logging/log.h>
 
 
 LOG_MODULE_REGISTER(shared);
@@ -26,4 +26,3 @@ int shared_init(void) {
     LOG_INF("shared objects init done (ret=%d)", ret);
     return ret;
 }
-

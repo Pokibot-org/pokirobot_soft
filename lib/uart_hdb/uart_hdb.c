@@ -85,7 +85,7 @@ int uart_hdb_init(uart_hdb_t* dev, const struct device* uart) {
         ret = -4;
         goto exit;
     }
-    
+
     dev->ready = true;
 exit:
     return ret;
@@ -133,4 +133,3 @@ int uart_hdb_transceive(
 
     return ret;
 }
-

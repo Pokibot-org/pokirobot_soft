@@ -2,8 +2,9 @@
 #define POKARM_H
 
 #include <zephyr.h>
-#include "tmc2209/tmc2209.h"
+
 #include "servo_pwm/servo_pwm.h"
+#include "tmc2209/tmc2209.h"
 
 /**
  * @brief pokarm

@@ -1,14 +1,14 @@
 #include <device.h>
 #include <devicetree.h>
 #include <zephyr.h>
-#include <drivers/gpio.h>
-#include <logging/log.h>
 
-#include "shared.h"
 #include "hmi/hmi_led.h"
 #include "nav/obstacle_manager.h"
+#include "shared.h"
 #include "tmc2209/tmc2209.h"
 #include "uart_hdb/uart_hdb.h"
+#include <drivers/gpio.h>
+#include <logging/log.h>
 
 LOG_MODULE_REGISTER(main);
 

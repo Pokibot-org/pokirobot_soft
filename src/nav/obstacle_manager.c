@@ -2,11 +2,11 @@
 
 #include <math.h>
 #include <zephyr.h>
-#include <logging/log.h>
 
+#include "control/control.h"
 #include "lidar/camsense_x1/camsense_x1.h"
 #include "obstacles/relative_obstacle_storing.h"
-#include "control/control.h"
+#include <logging/log.h>
 
 LOG_MODULE_REGISTER(obstacle_manager);
 

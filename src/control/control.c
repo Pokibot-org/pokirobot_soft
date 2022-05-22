@@ -1,14 +1,14 @@
 #include "control.h"
 
+#include <kernel.h>
 #include <math.h>
 #include <zephyr.h>
-#include <logging/log.h>
-#include <sys/util.h>
-#include <kernel.h>
 
-#include "utils.h"
 #include "shared.h"
 #include "tmc2209/tmc2209.h"
+#include "utils.h"
+#include <logging/log.h>
+#include <sys/util.h>
 
 LOG_MODULE_REGISTER(control);
 
@@ -157,7 +157,7 @@ static int control_task(void) {
         k_sleep(K_MSEC((uint64_t)CONTROL_PERIOD_MS));
     }
     LOG_INF("control task start");
-    while(1) {
+    while (1) {
         pos2_t target;
         // update pos
         // control_get_motors_v(&shared_ctrl, &motors_v);
@@ -182,11 +182,11 @@ static int control_task(void) {
         // commit transaction
         control_set_pos(&shared_ctrl, pos);
         tmc2209_set_speed(shared_ctrl.m1,
-                (int32_t)(motors_v.v1 * (float)256 / WHEEL_PERIMETER)); //FIXME
+            (int32_t)(motors_v.v1 * (float)256 / WHEEL_PERIMETER)); // FIXME
         tmc2209_set_speed(shared_ctrl.m2,
-                (int32_t)(motors_v.v2 * (float)256 / WHEEL_PERIMETER)); //FIXME
+            (int32_t)(motors_v.v2 * (float)256 / WHEEL_PERIMETER)); // FIXME
         tmc2209_set_speed(shared_ctrl.m3,
-                (int32_t)(motors_v.v3 * (float)256 / WHEEL_PERIMETER)); //FIXME
+            (int32_t)(motors_v.v3 * (float)256 / WHEEL_PERIMETER)); // FIXME
         // sleep
         k_sleep(K_MSEC((uint64_t)CONTROL_PERIOD_MS));
     }
@@ -194,13 +194,5 @@ static int control_task(void) {
     return ret;
 }
 
-K_THREAD_DEFINE(
-        control_task_name,
-        CONFIG_CONTROL_THREAD_STACK,
-        control_task,
-        NULL,
-        NULL,
-        NULL,
-        CONFIG_CONTROL_THREAD_PRIORITY,
-        0,
-        0);
+K_THREAD_DEFINE(control_task_name, CONFIG_CONTROL_THREAD_STACK, control_task, NULL, NULL, NULL,
+    CONFIG_CONTROL_THREAD_PRIORITY, 0, 0);

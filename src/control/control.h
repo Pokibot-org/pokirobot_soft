@@ -3,9 +3,9 @@
 
 #include <zephyr.h>
 
-#include "utils.h"
-#include "uart_hdb/uart_hdb.h"
 #include "tmc2209/tmc2209.h"
+#include "uart_hdb/uart_hdb.h"
+#include "utils.h"
 
 
 #define CONTROL_MUTEX_TIMEOUT (K_MSEC(30))

@@ -1,6 +1,7 @@
 #ifndef SERVO_PWM_H
 #define SERVO_PWM_H
 #include <stdint.h>
+
 #include <drivers/pwm.h>
 
 typedef struct servo_pwm {

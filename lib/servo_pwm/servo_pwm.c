@@ -1,14 +1,14 @@
 #include "servo_pwm.h"
 
 #include <zephyr.h>
+
 #include <drivers/pwm.h>
 
 #define M_PI 3.14159265358979323846
 
 
 int servo_pwm_set_angle(servo_pwm_t* obj, float angle_rad) {
-    if (angle_rad < 0 || angle_rad > M_PI)
-    {
+    if (angle_rad < 0 || angle_rad > M_PI) {
         return -1;
     }
     uint32_t pulse = angle_rad * (obj->period_ns / M_PI);
