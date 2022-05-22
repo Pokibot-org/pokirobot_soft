@@ -1,6 +1,10 @@
 #ifndef POKARM_H
 #define POKARM_H
 
+#include <zephyr.h>
+#include "tmc2209/tmc2209.h"
+#include "servo_pwm/servo_pwm.h"
+
 /**
  * @brief pokarm
  * Module contolling the robot arm of the pokibot
@@ -10,6 +14,12 @@
  * - rotation on Y axis : servo
  */
 
-void pokarm_init(const struct device* uart);
+typedef struct pokarm {
+    servo_pwm_t z_rot_servo;
+    servo_pwm_t y_rot_servo;
+    tmc2209_t z_stepper;
+} pokarm_t;
+
+int pokarm_init(pokarm_t* obj);
 
 #endif
