@@ -8,7 +8,7 @@
 
 #define CONTROL_MUTEX_TIMEOUT (K_MSEC(30))
 
-#define CONTROL_PERIOD_MS 10
+#define CONTROL_PERIOD_MS 10.0
 #define ROBOT_L 150.0f
 #define WHEEL_PERIMETER 267.840f
 
@@ -34,7 +34,8 @@ typedef struct control {
 } control_t;
 
 
-int control_init(control_t* dev);
+extern control_t shared_ctrl;
+
 
 int control_set_pos(control_t* dev, pos2_t pos);
 int control_set_target(control_t* dev, pos2_t target);
@@ -43,6 +44,8 @@ int control_set_motors_v(control_t* dev, omni3_t motors_v);
 int control_get_pos(control_t* dev, pos2_t* pos);
 int control_get_target(control_t* dev, pos2_t* target);
 int control_get_motors_v(control_t* dev, omni3_t* motors_v);
+
+int control_init(control_t* dev);
 
 vel2_t world_vel_from_delta(pos2_t delta, vel2_t prev_vel);
 vel2_t local_vel_from_world(pos2_t pos, vel2_t world_vel);

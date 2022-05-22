@@ -10,13 +10,7 @@
 LOG_MODULE_REGISTER(control);
 
 
-int control_init(control_t* dev) {
-    int ret = 0;
-    INIT_LOCKVAR(dev->pos);
-    INIT_LOCKVAR(dev->target);
-    INIT_LOCKVAR(dev->motors_v);
-    return ret;
-}
+control_t shared_ctrl;
 
 
 #define CONTROL_LOCKVAR_SETTER(_var, _type)                                                                            \
@@ -53,6 +47,17 @@ CONTROL_LOCKVAR_GETTER(pos, pos2_t)
 CONTROL_LOCKVAR_GETTER(target, pos2_t)
 CONTROL_LOCKVAR_GETTER(motors_v, omni3_t)
 
+
+int control_init(control_t* ctrl) {
+    int ret = 0;
+    INIT_LOCKVAR(ctrl->pos);
+    INIT_LOCKVAR(ctrl->target);
+    INIT_LOCKVAR(ctrl->motors_v);
+    control_set_pos(ctrl, (pos2_t){0, 0, 0});
+    control_set_target(ctrl, (pos2_t){0, 0, 0});
+    control_set_motors_v(ctrl, (omni3_t){0, 0, 0});
+    return ret;
+}
 
 vel2_t world_vel_from_delta(pos2_t delta, vel2_t prev_vel) {
     // planar speed capping + acceleration ramp
@@ -115,3 +120,48 @@ omni3_t omni_from_local_vel(vel2_t local_vel) {
     };
     return omni3;
 }
+
+
+static int control_task(void) {
+    LOG_INF("control task init");
+    int ret = 0;
+    control_init(&shared_ctrl);
+    pos2_t pos = {0};
+    vel2_t world_vel = {0};
+    vel2_t local_vel = {0};
+    omni3_t motors_v = {0};
+    LOG_INF("control task start");
+    while(1) {
+        pos2_t target;
+        // update pos
+        // control_get_motors_v(&shared_ctrl, &motors_v);
+        // local_vel = local_vel_from_omni(motors_v);
+        // world_vel = world_vel_from_local(old_pos, local_vel);
+        pos = (pos2_t){
+            .x = pos.x + world_vel.vx * CONTROL_PERIOD_MS / 1000.0f,
+            .y = pos.y + world_vel.vy * CONTROL_PERIOD_MS / 1000.0f,
+            .a = pos.a + world_vel.w * CONTROL_PERIOD_MS / 1000.0f,
+        };
+        // update speed
+        control_get_target(&shared_ctrl, &target);
+        world_vel = world_vel_from_delta(pos2_diff(target, pos), world_vel);
+        local_vel = local_vel_from_world(pos, world_vel);
+        motors_v =omni_from_local_vel(local_vel);
+        // commit transaction
+        control_set_pos(&shared_ctrl, pos);
+        control_set_motors_v(&shared_ctrl, motors_v);
+        // TODO setmotors speed
+    }
+    return ret;
+}
+
+K_THREAD_DEFINE(
+        control_task_name,
+        CONFIG_CONTROL_THREAD_STACK,
+        control_task,
+        NULL,
+        NULL,
+        NULL,
+        CONFIG_CONTROL_THREAD_PRIORITY,
+        0,
+        0);
