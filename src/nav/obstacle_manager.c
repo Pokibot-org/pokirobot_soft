@@ -2,11 +2,11 @@
 
 #include <math.h>
 #include <zephyr.h>
+#include <logging/log.h>
 
 #include "lidar/camsense_x1/camsense_x1.h"
 #include "obstacles/relative_obstacle_storing.h"
-#include "odometry/odometry.h"
-#include <logging/log.h>
+#include "control/control.h"
 
 LOG_MODULE_REGISTER(obstacle_manager);
 
@@ -69,7 +69,8 @@ uint8_t process_point(obstacle_manager_t* obj, uint16_t point_distance, float po
         .data.circle.radius = 0 // FIXME: remove the magic number
     };
 
-    pos_t actual_robot_pos = robot_get_pos();
+    pos2_t actual_robot_pos;
+    control_get_pos(&shared_ctrl, &actual_robot_pos);
 
     // LOG_INF("IN PROCEES POINT: angle: %f, distance: %d", point_angle, point_distance);
 
@@ -87,7 +88,7 @@ uint8_t process_point(obstacle_manager_t* obj, uint16_t point_distance, float po
         return_code = 1;
     }
 
-    float point_angle_absolute = ((point_angle * (M_PI / 180.0f)) + actual_robot_pos.a_rad);
+    float point_angle_absolute = ((point_angle * (M_PI / 180.0f)) + actual_robot_pos.a);
     if (point_angle_absolute < -M_PI_2) {
         point_angle_absolute += M_PI;
     } else if (point_angle_absolute > M_PI_2) {

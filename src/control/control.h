@@ -4,6 +4,8 @@
 #include <zephyr.h>
 
 #include "utils.h"
+#include "uart_hdb/uart_hdb.h"
+#include "tmc2209/tmc2209.h"
 
 
 #define CONTROL_MUTEX_TIMEOUT (K_MSEC(30))
@@ -28,24 +30,29 @@ typedef struct omni3 {
 } omni3_t;
 
 typedef struct control {
+    bool start;
+    bool brake;
     LOCKVAR(pos2_t) pos;
     LOCKVAR(pos2_t) target;
-    LOCKVAR(omni3_t) motors_v;
+    tmc2209_t* m1;
+    tmc2209_t* m2;
+    tmc2209_t* m3;
 } control_t;
 
 
+extern tmc2209_t train_motor_1;
+extern tmc2209_t train_motor_2;
+extern tmc2209_t train_motor_3;
 extern control_t shared_ctrl;
 
 
 int control_set_pos(control_t* dev, pos2_t pos);
 int control_set_target(control_t* dev, pos2_t target);
-int control_set_motors_v(control_t* dev, omni3_t motors_v);
 
 int control_get_pos(control_t* dev, pos2_t* pos);
 int control_get_target(control_t* dev, pos2_t* target);
-int control_get_motors_v(control_t* dev, omni3_t* motors_v);
 
-int control_init(control_t* dev);
+int control_init(control_t* dev, tmc2209_t* m1, tmc2209_t* m2, tmc2209_t* m3);
 
 vel2_t world_vel_from_delta(pos2_t delta, vel2_t prev_vel);
 vel2_t local_vel_from_world(pos2_t pos, vel2_t world_vel);

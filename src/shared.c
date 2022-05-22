@@ -1,0 +1,29 @@
+#include "shared.h"
+
+#include <zephyr.h>
+#include <logging/log.h>
+
+#include "utils.h"
+#include "uart_hdb/uart_hdb.h"
+
+
+LOG_MODULE_REGISTER(shared);
+
+
+uart_hdb_t steppers_uart_hdb;
+tmc2209_t arm_zaxis_motor;
+
+
+int shared_init(void) {
+    LOG_INF("shared objects init");
+    int ret = 0;
+    int tmp = 0;
+    tmp = uart_hdb_init(&steppers_uart_hdb, DEVICE_DT_GET(DT_ALIAS(stepper_bus)));
+    if (tmp) {
+        LOG_ERR("failed to init train_motor_1");
+        ret = -10;
+    }
+    LOG_INF("shared objects init done (ret=%d)", ret);
+    return ret;
+}
+

@@ -87,13 +87,14 @@ int tmc2209_wrequest(tmc2209_t* dev, uint8_t reg, uint32_t data) {
 //     return ret;
 // }
 
-int tmc2209_init(tmc2209_t* dev, uart_hdb_t* uart_hdb) {
+int tmc2209_init(tmc2209_t* dev, uart_hdb_t* uart_hdb, uint8_t addr) {
     int ret = 0;
     if (!uart_hdb) {
         LOG_ERR("uart_hdb is NULL");
         return 1;
     }
     dev->uart_hdb = uart_hdb;
+    dev-> addr = addr;
     LOG_INF("Device<%p> init ok", (void*)dev);
     return ret;
 }
