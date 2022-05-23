@@ -9,10 +9,7 @@
 
 LOG_MODULE_REGISTER(shared);
 
-
 uart_hdb_t steppers_uart_hdb;
-tmc2209_t arm_zaxis_motor;
-
 
 int shared_init(void) {
     LOG_INF("shared objects init");
