@@ -8,7 +8,7 @@
         sw-tirette = &button2;
         sw-pump = &button3;
         sw-valve = &button4;
-        sw-electroaimant = &button5;
+        sw-electromagnet = &button5;
         red-pwm-led = &red_pwm_led;
 		green-pwm-led = &green_pwm_led;
 		blue-pwm-led = &blue_pwm_led;

@@ -13,8 +13,8 @@ LOG_MODULE_REGISTER(pokipump);
 const struct gpio_dt_spec spec_pump;
 const struct gpio_dt_spec spec_valve;
 #else
-const struct gpio_dt_spec spec_pump = GPIO_DT_SPEC_GET(DT_ALIAS(sw_pump), gpio);
-const struct gpio_dt_spec spec_valve = GPIO_DT_SPEC_GET(DT_ALIAS(sw_valve), gpio);
+const struct gpio_dt_spec spec_pump = GPIO_DT_SPEC_GET(DT_ALIAS(sw_pump), gpios);
+const struct gpio_dt_spec spec_valve = GPIO_DT_SPEC_GET(DT_ALIAS(sw_valve), gpios);
 #endif
 
 
