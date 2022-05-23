@@ -6,8 +6,8 @@
         sw-cote = &button0;
         sw-robot = &button1;
         sw-tirette = &button2;
-        sw-pompe = &button3;
-        sw-vanne = &button4;
+        sw-pump = &button3;
+        sw-valve = &button4;
         sw-electroaimant = &button5;
         red-pwm-led = &red_pwm_led;
 		green-pwm-led = &green_pwm_led;
