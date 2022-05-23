@@ -28,8 +28,7 @@ static figurine_lifter_t obj = {
 };
 #endif
 
-int fl_set_magnet(int value)
-{
+int fl_set_magnet(int value) {
     return gpio_pin_set_dt(&obj.magnet_spec, value);
 }
 
@@ -47,14 +46,12 @@ int figurine_lifter_init(void) {
     return err;
 }
 
-int figurine_lifter_grab(void)
-{
+int figurine_lifter_grab(void) {
     int err = 0;
     return err;
 }
 
-int figurine_lifter_put(void)
-{
+int figurine_lifter_put(void) {
     int err = 0;
     return err;
 }

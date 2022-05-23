@@ -5,8 +5,8 @@
 #include <zephyr.h>
 
 #include "servo_pwm/servo_pwm.h"
-#include "tmc2209/tmc2209.h"
 #include "shared.h"
+#include "tmc2209/tmc2209.h"
 #include <logging/log.h>
 
 LOG_MODULE_REGISTER(pokarm);

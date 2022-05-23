@@ -31,17 +31,17 @@ int main(void) {
         ret = -1;
         goto exit;
     }
-    if (tirette_init()){
+    if (tirette_init()) {
         LOG_ERR("failed to init tirette");
         ret = -1;
         goto exit;
     }
-    if (pokarm_init()){
+    if (pokarm_init()) {
         LOG_ERR("failed to init pokarm");
         ret = -1;
         goto exit;
     }
-    if (figurine_lifter_init()){
+    if (figurine_lifter_init()) {
         LOG_ERR("failed to init figurine_lifter");
         ret = -1;
         goto exit;
@@ -56,7 +56,7 @@ int main(void) {
     if (ret < 0) {
         goto exit;
     }
-    
+
     LOG_INF("INIT DONE!");
     hmi_led_success();
     while (1) {
