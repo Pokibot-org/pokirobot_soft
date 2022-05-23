@@ -14,7 +14,8 @@
 		blue-pwm-led = &blue_pwm_led;
         servo-orientation = &servo_0;
         servo-bras = &servo_1;
-        servo-dicristaline = &servo_2;
+        servo-dicristaline1 = &servo_2;
+        servo-dicristaline2 = &servo_3;
     };
 
     gpio_keys {
@@ -69,12 +70,17 @@
 		};
         servo_1: servo_1 {
 			pwms = <&pwm2 1 0 PWM_POLARITY_NORMAL>;
-			label = "Servo 0";
+			label = "Servo 1";
 			status = "okay";
 		};
         servo_2: servo_2 {
 			pwms = <&pwm2 2 0 PWM_POLARITY_NORMAL>;
-			label = "Servo 0";
+			label = "Servo 2";
+			status = "okay";
+		};
+		servo_3: servo_3 {
+			pwms = <&pwm2 3 0 PWM_POLARITY_NORMAL>;
+			label = "Servo 3";
 			status = "okay";
 		};
 	};
@@ -97,7 +103,7 @@
 
 	pwm2: pwm {
 		status = "okay";
-		pinctrl-0 = <&tim2_ch1_pb8 &tim2_ch2_pb9>;
+		pinctrl-0 = <&tim2_ch1_pb8 &tim2_ch2_pb9 &tim2_ch3_pb10>;
 		pinctrl-names = "default";
 	};
 };

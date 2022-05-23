@@ -1,7 +1,7 @@
 # pokirobot_soft
 Soft du robot pokibot utilisé pour la coupe de france de robotique.
 
-Utilise zepyr os v3.0.0
+Utilise zepyr os v3.1.0
 
 ## Sanity checks
 
