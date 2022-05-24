@@ -26,9 +26,11 @@ K_HEAP_DEFINE(kdtree_heap, 2048);
 
 #define KDTREE_MAX_DEEPTH 10
 
-kd_tree_t* kdtree_create_equally_spaced(uint8_t power_of_division, float width, float height, uint32_t leaf_size) {
+kd_tree_t* kdtree_create_equally_spaced(
+    uint8_t power_of_division, float width, float height, uint32_t leaf_size) {
     if (power_of_division >= KDTREE_MAX_DEEPTH || power_of_division < 1) {
-        KDTREE_PRINT_ERR("Called with a wrong power_of_division, min 1, max %d", KDTREE_MAX_DEEPTH);
+        KDTREE_PRINT_ERR("Called with a wrong power_of_division, min 1, max %d",
+            KDTREE_MAX_DEEPTH);
         return NULL;
     }
 
@@ -67,7 +69,8 @@ kd_tree_t* kdtree_create_equally_spaced(uint8_t power_of_division, float width, 
             *current_dim = *current_dim / 2;
             (*current_superblock)->dim = *current_dim;
 
-            KDTREE_PRINT_INF("ADD BLOCK with dim %d", (*current_superblock)->dim);
+            KDTREE_PRINT_INF(
+                "ADD BLOCK with dim %d", (*current_superblock)->dim);
         }
 
         // IF LEAF
@@ -132,7 +135,8 @@ uint8_t kdtree_push(kd_tree_t* tree, const path_node_t* node) {
                 return 1;
             }
         } else {
-            // There is more compacy ways to do it but like this it will be faster
+            // There is more compacy ways to do it but like this it will be
+            // faster
             if (deepth % 2) {
                 if (node->coordinate.y >= current_block->dim) {
                     current_block = current_block->sons.block_r;
@@ -151,18 +155,20 @@ uint8_t kdtree_push(kd_tree_t* tree, const path_node_t* node) {
     }
 };
 
-void kdtree_leaf_data_print_nodes_holder(const void* leaf_data, char* parent_node_name) {
+void kdtree_leaf_data_print_nodes_holder(
+    const void* leaf_data, char* parent_node_name) {
     const nodes_holder_t* obj = leaf_data;
     if (obj->nb_of_nodes == 0) {
         return;
     }
     for (size_t i = 0; i < obj->nb_of_nodes; i++) {
-        KDTREE_PRINT(
-            "%s -> \"x:%f|y:%f\"\n", parent_node_name, obj->points[i].coordinate.x, obj->points[i].coordinate.y);
+        KDTREE_PRINT("%s -> \"x:%f|y:%f\"\n", parent_node_name,
+            obj->points[i].coordinate.x, obj->points[i].coordinate.y);
     }
 }
 
-void kdtree_print_superblock(kd_superblock_t* block, kdtree_leaf_data_print leaf_clbk) {
+void kdtree_print_superblock(
+    kd_superblock_t* block, kdtree_leaf_data_print leaf_clbk) {
 
     if (block->data != NULL) {
         char node_name[30];

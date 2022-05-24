@@ -19,30 +19,30 @@ tmc2209_t train_motor_3;
 control_t shared_ctrl;
 
 
-#define CONTROL_LOCKVAR_SETTER(_var, _type)                                                                            \
-    int control_set_##_var(control_t* dev, _type _var) {                                                               \
-        int err = 0;                                                                                                   \
-        SET_LOCKVAR(dev->_var, _var, err, CONTROL_MUTEX_TIMEOUT);                                                      \
-        if (err) {                                                                                                     \
-            LOG_ERR("could not lock _var mutex for write access");                                                     \
-            goto exit_error;                                                                                           \
-        }                                                                                                              \
-        return 0;                                                                                                      \
-    exit_error:                                                                                                        \
-        return -1;                                                                                                     \
+#define CONTROL_LOCKVAR_SETTER(_var, _type)                                    \
+    int control_set_##_var(control_t* dev, _type _var) {                       \
+        int err = 0;                                                           \
+        SET_LOCKVAR(dev->_var, _var, err, CONTROL_MUTEX_TIMEOUT);              \
+        if (err) {                                                             \
+            LOG_ERR("could not lock _var mutex for write access");             \
+            goto exit_error;                                                   \
+        }                                                                      \
+        return 0;                                                              \
+    exit_error:                                                                \
+        return -1;                                                             \
     }
 
-#define CONTROL_LOCKVAR_GETTER(_var, _type)                                                                            \
-    int control_get_##_var(control_t* dev, _type* _var) {                                                              \
-        int err = 0;                                                                                                   \
-        SET_LOCKVAR(dev->_var, *_var, err, CONTROL_MUTEX_TIMEOUT);                                                     \
-        if (err) {                                                                                                     \
-            LOG_ERR("could not lock _var mutex for write access");                                                     \
-            goto exit_error;                                                                                           \
-        }                                                                                                              \
-        return 0;                                                                                                      \
-    exit_error:                                                                                                        \
-        return -1;                                                                                                     \
+#define CONTROL_LOCKVAR_GETTER(_var, _type)                                    \
+    int control_get_##_var(control_t* dev, _type* _var) {                      \
+        int err = 0;                                                           \
+        SET_LOCKVAR(dev->_var, *_var, err, CONTROL_MUTEX_TIMEOUT);             \
+        if (err) {                                                             \
+            LOG_ERR("could not lock _var mutex for write access");             \
+            goto exit_error;                                                   \
+        }                                                                      \
+        return 0;                                                              \
+    exit_error:                                                                \
+        return -1;                                                             \
     }
 
 CONTROL_LOCKVAR_SETTER(pos, pos2_t)
@@ -83,8 +83,10 @@ vel2_t world_vel_from_delta(pos2_t delta, vel2_t prev_vel) {
     float vx = PLANAR_FACTOR * delta.x;
     float vy = PLANAR_FACTOR * delta.y;
     const float planar_speed = sqrtf(vx * vx + vy * vy);
-    const float planar_speed_prev = sqrtf(prev_vel.vx * prev_vel.vx + prev_vel.vy * prev_vel.vy);
-    const float planar_speed_clamped = MIN(planar_speed, MIN(planar_speed_prev + PLANAR_RAMP, PLANAR_VMAX));
+    const float planar_speed_prev =
+        sqrtf(prev_vel.vx * prev_vel.vx + prev_vel.vy * prev_vel.vy);
+    const float planar_speed_clamped =
+        MIN(planar_speed, MIN(planar_speed_prev + PLANAR_RAMP, PLANAR_VMAX));
     if (planar_speed > planar_speed_clamped) {
         const float planar_factor = planar_speed_clamped / planar_speed;
         vx *= planar_factor;
@@ -92,8 +94,9 @@ vel2_t world_vel_from_delta(pos2_t delta, vel2_t prev_vel) {
     }
     // angular speed capping + acceleration ramp
     const float angular_speed_ramped = fabsf(prev_vel.w) + ANGULAR_RAMP;
-    float w = Z_CLAMP(
-        ANGULAR_FACTOR * delta.a, MAX(-angular_speed_ramped, -ANGULAR_VMAX), MIN(angular_speed_ramped, ANGULAR_VMAX));
+    float w = Z_CLAMP(ANGULAR_FACTOR * delta.a,
+        MAX(-angular_speed_ramped, -ANGULAR_VMAX),
+        MIN(angular_speed_ramped, ANGULAR_VMAX));
     // returning built vel
     vel2_t world_vel = {
         .vx = vx,
@@ -148,7 +151,8 @@ static int control_task(void) {
     vel2_t world_vel = {0};
     vel2_t local_vel = {0};
     omni3_t motors_v = {0};
-    if (control_init(&shared_ctrl, &train_motor_1, &train_motor_2, &train_motor_3)) {
+    if (control_init(
+            &shared_ctrl, &train_motor_1, &train_motor_2, &train_motor_3)) {
         LOG_ERR("failed to init control object");
         ret = -1;
     }
@@ -194,5 +198,7 @@ static int control_task(void) {
     return ret;
 }
 
-K_THREAD_DEFINE(control_task_name, CONFIG_CONTROL_THREAD_STACK, control_task, NULL, NULL, NULL,
-    CONFIG_CONTROL_THREAD_PRIORITY, 0, 0);
+#if CONFIG_CONTROL_TASK
+K_THREAD_DEFINE(control_task_name, CONFIG_CONTROL_THREAD_STACK, control_task,
+    NULL, NULL, NULL, CONFIG_CONTROL_THREAD_PRIORITY, 0, 0);
+#endif

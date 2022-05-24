@@ -51,7 +51,10 @@ LOG_MODULE_REGISTER(camsense_x1_driver);
 #error camsense-uart uart alias is not in device tree and configured
 #else
 
-typedef enum { frame_parsing_state_header_sync, frame_parsing_state_normal } Frame_parsing_state;
+typedef enum {
+    frame_parsing_state_header_sync,
+    frame_parsing_state_normal
+} Frame_parsing_state;
 
 // PRIVATE VARIABLE
 static const uint8_t camsense_x1_header[] = {0x55, 0xAA, 0x03, 0x08};
@@ -78,41 +81,54 @@ camsense_x1_obj_t obj = {0};
  */
 void process_recived_frame(uint8_t* payload) {
     LOG_DBG("Receiving lidar frame");
-    obj.current_speed = ((uint16_t)(payload[CAMSENSE_X1_SPEED_H_INDEX] << 8) | payload[CAMSENSE_X1_SPEED_L_INDEX]) /
+    obj.current_speed = ((uint16_t)(payload[CAMSENSE_X1_SPEED_H_INDEX] << 8) |
+                            payload[CAMSENSE_X1_SPEED_L_INDEX]) /
                         3840.0; // 3840 = (64 * 60)
     obj.message.start_angle =
-        -640 + (((uint16_t)payload[CAMSENSE_X1_START_ANGLE_H_INDEX]) << 8 | payload[CAMSENSE_X1_START_ANGLE_L_INDEX]) /
+        -640 + (((uint16_t)payload[CAMSENSE_X1_START_ANGLE_H_INDEX]) << 8 |
+                   payload[CAMSENSE_X1_START_ANGLE_L_INDEX]) /
                    64.0; // TODO: Use shift not /
     obj.message.end_angle =
-        -640 +
-        (((uint16_t)payload[CAMSENSE_X1_END_ANGLE_H_INDEX]) << 8 | payload[CAMSENSE_X1_END_ANGLE_L_INDEX]) / 64.0;
+        -640 + (((uint16_t)payload[CAMSENSE_X1_END_ANGLE_H_INDEX]) << 8 |
+                   payload[CAMSENSE_X1_END_ANGLE_L_INDEX]) /
+                   64.0;
 
-    for (int point_index = 0; point_index < CAMSENSE_X1_NUMBER_ON_POINTS_IN_MESSAGE; point_index++) {
+    for (int point_index = 0;
+         point_index < CAMSENSE_X1_NUMBER_ON_POINTS_IN_MESSAGE; point_index++) {
         uint8_t distance_l =
-            payload[CAMSENSE_X1_FIRST_POINT_INDEX + CAMSENSE_X1_POINT_DISTANCE_L_RELATIVE_INDEX + (point_index * 3)];
+            payload[CAMSENSE_X1_FIRST_POINT_INDEX +
+                    CAMSENSE_X1_POINT_DISTANCE_L_RELATIVE_INDEX +
+                    (point_index * 3)];
         uint8_t distance_h =
-            payload[CAMSENSE_X1_FIRST_POINT_INDEX + CAMSENSE_X1_POINT_DISTANCE_H_RELATIVE_INDEX + (point_index * 3)];
-        uint8_t quality =
-            payload[CAMSENSE_X1_FIRST_POINT_INDEX + CAMSENSE_X1_POINT_QUALITY_RELATIVE_INDEX + (point_index * 3)];
+            payload[CAMSENSE_X1_FIRST_POINT_INDEX +
+                    CAMSENSE_X1_POINT_DISTANCE_H_RELATIVE_INDEX +
+                    (point_index * 3)];
+        uint8_t quality = payload[CAMSENSE_X1_FIRST_POINT_INDEX +
+                                  CAMSENSE_X1_POINT_QUALITY_RELATIVE_INDEX +
+                                  (point_index * 3)];
 
-        obj.message.points[point_index].distance = (((uint16_t)distance_h) << 8) | (uint16_t)distance_l;
+        obj.message.points[point_index].distance =
+            (((uint16_t)distance_h) << 8) | (uint16_t)distance_l;
         obj.message.points[point_index].quality = quality;
     }
 
-    // If one rotation happend, call the on_rotation_callbackon_rotation_callback callback
+    // If one rotation happend, call the
+    // on_rotation_callbackon_rotation_callback callback
     if (obj.msg_callback) {
         obj.msg_callback(&obj.message, obj.user_data);
     }
 }
 
 void camsense_x1_read_one_frame(void) {
-    int err = uart_rx_enable(obj.uart_dev, obj.frame_buffer, CAMSENSE_X1_HEADER_SIZE, SYS_FOREVER_MS);
+    int err = uart_rx_enable(obj.uart_dev, obj.frame_buffer,
+        CAMSENSE_X1_HEADER_SIZE, SYS_FOREVER_MS);
     if (err) {
         LOG_ERR("Cant start full frame read");
     }
 }
 
-void camsense_x1_full_frame_callback(const struct device* dev, struct uart_event* evt, void* user_data) {
+void camsense_x1_full_frame_callback(
+    const struct device* dev, struct uart_event* evt, void* user_data) {
     if (evt->type == UART_RX_RDY) {
         uint8_t* frame = evt->data.rx.buf;
         if (memcmp(frame, camsense_x1_header, CAMSENSE_X1_HEADER_SIZE) == 0) {
@@ -155,7 +171,8 @@ void uart_rx_callback(const struct device* dev, void* user_data) {
     case frame_parsing_state_normal:
         obj.frame_buffer[frame_index] = recived_byte;
         frame_index += 1;
-        if (frame_index == (CAMSENSE_X1_FRAME_SIZE - CAMSENSE_X1_HEADER_SIZE - 1)) {
+        if (frame_index ==
+            (CAMSENSE_X1_FRAME_SIZE - CAMSENSE_X1_HEADER_SIZE - 1)) {
             frame_index = 0;
             parsing_state = frame_parsing_state_header_sync;
             process_recived_frame(obj.frame_buffer);

@@ -10,8 +10,8 @@
         sw-valve = &button4;
         sw-electromagnet = &button5;
         red-pwm-led = &red_pwm_led;
-		green-pwm-led = &green_pwm_led;
-		blue-pwm-led = &blue_pwm_led;
+        green-pwm-led = &green_pwm_led;
+        blue-pwm-led = &blue_pwm_led;
         servo-orientation = &servo_0;
         servo-bras = &servo_1;
         servo-dicristaline1 = &servo_2;
@@ -47,27 +47,27 @@
     };
 
     pwmleds {
-		compatible = "pwm-leds";
-		green_pwm_led: green_pwm_led {
-			pwms = <&pwm1 1 0 PWM_POLARITY_NORMAL>;
-			label = "Green PWM LED";
-			status = "okay";
-		};
-		blue_pwm_led: blue_pwm_led {
-			pwms = <&pwm3 1 0 PWM_POLARITY_NORMAL>;
-			label = "Blue PWM LED";
-			status = "okay";
-		};
-		red_pwm_led: red_pwm_led {
-			pwms = <&pwm3 2 0 PWM_POLARITY_NORMAL>;
-			label = "Red PWM LED";
-			status = "okay";
-		};
+        compatible = "pwm-leds";
+        green_pwm_led: green_pwm_led {
+            pwms = <&pwm1 1 0 PWM_POLARITY_NORMAL>;
+            label = "Green PWM LED";
+            status = "okay";
+        };
+        blue_pwm_led: blue_pwm_led {
+            pwms = <&pwm3 1 0 PWM_POLARITY_NORMAL>;
+            label = "Blue PWM LED";
+            status = "okay";
+        };
+        red_pwm_led: red_pwm_led {
+            pwms = <&pwm3 2 0 PWM_POLARITY_NORMAL>;
+            label = "Red PWM LED";
+            status = "okay";
+        };
         servo_0: servo_0 {
-			pwms = <&pwm3 3 0 PWM_POLARITY_NORMAL>;
-			label = "Servo 0";
-			status = "okay";
-		};
+            pwms = <&pwm3 3 0 PWM_POLARITY_NORMAL>;
+            label = "Servo 0";
+            status = "okay";
+        };
         servo_1: servo_1 {
 			pwms = <&pwm2 1 0 PWM_POLARITY_NORMAL>;
 			label = "Servo 1";
@@ -87,19 +87,19 @@
 };
 
 &timers1 {
-	st,prescaler = <10000>;
-	status = "okay";
+    st,prescaler = <10000>;
+    status = "okay";
 
-	pwm1: pwm {
-		status = "okay";
-		pinctrl-0 = <&tim1_ch1_pa8>;
-		pinctrl-names = "default";
-	};
+    pwm1: pwm {
+        status = "okay";
+        pinctrl-0 = <&tim1_ch1_pa8>;
+        pinctrl-names = "default";
+    };
 };
 
 &timers2 {
-	st,prescaler = <10000>;
-	status = "okay";
+    st,prescaler = <10000>;
+    status = "okay";
 
 	pwm2: pwm {
 		status = "okay";
@@ -109,21 +109,21 @@
 };
 
 &timers3 {
-	st,prescaler = <10000>;
-	status = "okay";
+    st,prescaler = <10000>;
+    status = "okay";
 
-	pwm3: pwm {
-		status = "okay";
-		pinctrl-0 = <&tim3_ch1_pb4 &tim3_ch2_pb5 &tim3_ch4_pc9>;
-		pinctrl-names = "default";
-	};
+    pwm3: pwm {
+        status = "okay";
+        pinctrl-0 = <&tim3_ch1_pb4 &tim3_ch2_pb5 &tim3_ch4_pc9>;
+        pinctrl-names = "default";
+    };
 };
 
 &usart1 {
-	pinctrl-0 = <&usart1_tx_pa9 &usart1_rx_pa10>;
-	pinctrl-names = "default";
-	current-speed = <115200>;
-	status = "okay";
+    pinctrl-0 = <&usart1_tx_pa9 &usart1_rx_pa10>;
+    pinctrl-names = "default";
+    current-speed = <115200>;
+    status = "okay";
 };
 
 &usart2 {
@@ -136,5 +136,5 @@
     current-speed = < 115200 >;
     pinctrl-0 = < &uart5_rx_pd2 &uart5_tx_pc12 >;
     pinctrl-names = "default";
-    single-wire;
+    // single-wire;
 };

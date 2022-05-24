@@ -24,9 +24,12 @@ typedef struct {
     pokibrain_user_context_t* world_context;
 } pokibrain_callback_params_t;
 
-typedef uint8_t (*pokibrain_task_function_t)(pokibrain_callback_params_t* params);
-typedef int32_t (*pokibrain_reward_calulation_t)(pokibrain_callback_params_t* params);
-typedef uint8_t (*pokibrain_completion_callback_t)(pokibrain_callback_params_t* params);
+typedef uint8_t (*pokibrain_task_function_t)(
+    pokibrain_callback_params_t* params);
+typedef int32_t (*pokibrain_reward_calulation_t)(
+    pokibrain_callback_params_t* params);
+typedef uint8_t (*pokibrain_completion_callback_t)(
+    pokibrain_callback_params_t* params);
 
 typedef struct {
     pos2_t task_position;
@@ -36,7 +39,8 @@ typedef struct {
     pokibrain_process_data_t _process_data;
 } pokibrain_task_t;
 
-void pokibrain_init(pokibrain_task_t* tasks, uint32_t number_of_tasks, pokibrain_user_context_t* world_context);
+void pokibrain_init(pokibrain_task_t* tasks, uint32_t number_of_tasks,
+    pokibrain_user_context_t* world_context);
 void pokibrain_start(void);
 void pokibrain_think_now(void);
 #endif

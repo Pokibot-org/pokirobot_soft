@@ -22,5 +22,6 @@ int rgb_set(rgb_t* led, uint8_t r, uint8_t g, uint8_t b) {
 }
 
 bool rgb_is_ready(rgb_t* led) {
-    return led_is_ready(&led->red) && led_is_ready(&led->green) && led_is_ready(&led->blue);
+    return led_is_ready(&led->red) && led_is_ready(&led->green) &&
+           led_is_ready(&led->blue);
 }

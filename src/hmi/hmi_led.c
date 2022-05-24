@@ -22,13 +22,16 @@ int hmi_led_init(void) {
     if (ret) {
         LOG_ERR("RGB device not ready");
         if (!led_is_ready(&hmi_led.red)) {
-            LOG_ERR("red LED device is not ready: %s", hmi_led.red.spec.dev->name);
+            LOG_ERR(
+                "red LED device is not ready: %s", hmi_led.red.spec.dev->name);
         }
         if (!led_is_ready(&hmi_led.green)) {
-            LOG_ERR("green LED device is not ready: %s", hmi_led.green.spec.dev->name);
+            LOG_ERR("green LED device is not ready: %s",
+                hmi_led.green.spec.dev->name);
         }
         if (!led_is_ready(&hmi_led.blue)) {
-            LOG_ERR("blue LED device is not ready: %s", hmi_led.blue.spec.dev->name);
+            LOG_ERR("blue LED device is not ready: %s",
+                hmi_led.blue.spec.dev->name);
         }
     }
     LOG_INF("HMI LED initialization done (ret: %d)", ret);

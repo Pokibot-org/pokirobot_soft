@@ -18,7 +18,8 @@ typedef struct path_manager_object {
 } path_manager_object_t;
 
 // PRIVATE VAR
-K_THREAD_STACK_DEFINE(path_manager_stack_area, CONFIG_PATH_MANAGER_THREAD_STACK);
+K_THREAD_STACK_DEFINE(
+    path_manager_stack_area, CONFIG_PATH_MANAGER_THREAD_STACK);
 struct k_thread path_manager_thread_data;
 k_tid_t path_manager_tid = {0};
 static path_manager_object_t pm_obj = {0};
@@ -30,7 +31,8 @@ static path_manager_object_t pm_obj = {0};
 void pbd(pathfinding_object_t* obj) {
     char tab[DEBUG_TAB_SIZE_Y][DEBUG_TAB_SIZE_X + 1] = {0};
 
-    // printf("FB: %d %d\n", obj->config.field_boundaries.x, obj->config.field_boundaries.y);
+    // printf("FB: %d %d\n", obj->config.field_boundaries.x,
+    // obj->config.field_boundaries.y);
     for (size_t y = 0; y < DEBUG_TAB_SIZE_Y; y++) {
         for (size_t x = 0; x < DEBUG_TAB_SIZE_X; x++) {
             tab[y][x] = '.';
@@ -40,8 +42,10 @@ void pbd(pathfinding_object_t* obj) {
 
     for (size_t i = 0; i < PATHFINDING_MAX_NUM_OF_NODES; i++) {
         if (obj->nodes[i].is_used) {
-            uint16_t y = obj->nodes[i].coordinate.y * DEBUG_TAB_SIZE_Y / obj->config.field_boundaries.max_y;
-            uint16_t x = obj->nodes[i].coordinate.x * DEBUG_TAB_SIZE_X / obj->config.field_boundaries.max_x;
+            uint16_t y = obj->nodes[i].coordinate.y * DEBUG_TAB_SIZE_Y /
+                         obj->config.field_boundaries.max_y;
+            uint16_t x = obj->nodes[i].coordinate.x * DEBUG_TAB_SIZE_X /
+                         obj->config.field_boundaries.max_x;
             tab[y][x] = 'X';
         }
     }
@@ -59,8 +63,8 @@ static void path_manager_task(void* p0, void* p1, void* p2) {
     path_manager_object_t* pm_obj = (path_manager_object_t*)p0;
     path_node_t* pn_end;
 
-    int err =
-        pathfinding_find_path(&pm_obj->pathfinding_obj, &pm_obj->obstacle_hold, &pm_obj->start, &pm_obj->end, &pn_end);
+    int err = pathfinding_find_path(&pm_obj->pathfinding_obj,
+        &pm_obj->obstacle_hold, &pm_obj->start, &pm_obj->end, &pn_end);
     if (err) {
         LOG_WRN("Path not found err %d", err);
     } else {
@@ -83,7 +87,8 @@ static void path_manager_task(void* p0, void* p1, void* p2) {
 
 // PUBLIC FUN
 // #define TEST
-uint8_t path_manager_find_path(point2_t start, point2_t end, path_manager_config_t config) {
+uint8_t path_manager_find_path(
+    point2_t start, point2_t end, path_manager_config_t config) {
 
     if (config.found_path_clbk == NULL) {
         return -2;
@@ -100,8 +105,11 @@ uint8_t path_manager_find_path(point2_t start, point2_t end, path_manager_config
 
 #ifdef TEST
 #warning COMMENT TEST define in path_manager
-    memset(&pm_obj.obstacle_hold, 0, sizeof(pm_obj.obstacle_hold)); // TODO: Reactivate get snapshot obstacle manager
-    obstacle_t obs = {.type = obstacle_type_circle, .data.circle = {.coordinates = {.x = 1500, .y = 10}, .radius = 0}};
+    memset(&pm_obj.obstacle_hold, 0,
+        sizeof(pm_obj.obstacle_hold)); // TODO: Reactivate get snapshot obstacle
+                                       // manager
+    obstacle_t obs = {.type = obstacle_type_circle,
+        .data.circle = {.coordinates = {.x = 1500, .y = 10}, .radius = 0}};
     for (size_t i = 0; i < 120; i++) {
         obstacle_holder_push(&pm_obj.obstacle_hold, &obs);
         obs.data.circle.coordinates.y += 10;
@@ -125,8 +133,9 @@ uint8_t path_manager_find_path(point2_t start, point2_t end, path_manager_config
     pathfinding_config.radius_of_security = ROBOT_MAX_RADIUS_MM; // 300 mm
     pathfinding_object_configure(&pm_obj.pathfinding_obj, &pathfinding_config);
 
-    path_manager_tid = k_thread_create(&path_manager_thread_data, path_manager_stack_area,
-        K_THREAD_STACK_SIZEOF(path_manager_stack_area), path_manager_task, &pm_obj, NULL, NULL,
+    path_manager_tid = k_thread_create(&path_manager_thread_data,
+        path_manager_stack_area, K_THREAD_STACK_SIZEOF(path_manager_stack_area),
+        path_manager_task, &pm_obj, NULL, NULL,
         CONFIG_PATH_MANAGER_THREAD_PRIORITY, 0, K_NO_WAIT);
     if (path_manager_tid == NULL) {
         LOG_ERR("Cant start path manager thread");
@@ -145,11 +154,12 @@ uint8_t path_manager_find_path(point2_t start, point2_t end, path_manager_config
  * @param end_node end node found by the pathfinding
  * @return int16_t return the copied path length
  */
-int16_t path_manager_retrieve_path(
-    point2_t* array, uint32_t array_size, point2_t** ptr_array_start, path_node_t* end_node) {
+int16_t path_manager_retrieve_path(point2_t* array, uint32_t array_size,
+    point2_t** ptr_array_start, path_node_t* end_node) {
     path_node_t* current_node = end_node;
     for (int32_t i = array_size - 1; i >= 0; i--) {
-        array[i] = (point2_t){.x = current_node->coordinate.x, .y = current_node->coordinate.y};
+        array[i] = (point2_t){
+            .x = current_node->coordinate.x, .y = current_node->coordinate.y};
         if (current_node->parent_node == NULL) {
             if (ptr_array_start) {
                 *ptr_array_start = &array[i];

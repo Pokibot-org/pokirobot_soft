@@ -58,8 +58,10 @@ typedef struct tmc2209 {
     uint8_t addr;
 } tmc2209_t;
 
-void _tmc2209_gen_write_buf(uint8_t buf[TMC2209_WREQUEST_FRAME_SIZE], uint8_t slave, uint8_t reg, uint32_t data);
-void _tmc2209_gen_read_buf(uint8_t buf[TMC2209_RREQUEST_FRAME_SIZE], uint8_t slave, uint8_t reg);
+void _tmc2209_gen_write_buf(uint8_t buf[TMC2209_WREQUEST_FRAME_SIZE],
+    uint8_t slave, uint8_t reg, uint32_t data);
+void _tmc2209_gen_read_buf(
+    uint8_t buf[TMC2209_RREQUEST_FRAME_SIZE], uint8_t slave, uint8_t reg);
 
 uint8_t tmc2209_crc(uint8_t* buf, size_t len);
 int tmc2209_wrequest(tmc2209_t* dev, uint8_t reg, uint32_t data);
@@ -69,5 +71,6 @@ int tmc2209_wrequest(tmc2209_t* dev, uint8_t reg, uint32_t data);
 
 int tmc2209_init(tmc2209_t* dev, uart_hdb_t* uart_hdb, uint8_t addr);
 int tmc2209_set_speed(tmc2209_t* dev, int32_t speed);
+int tmc2209_get_ifcnt(tmc2209_t* dev, uint32_t* ifcnt);
 
 #endif // TMC2209_H

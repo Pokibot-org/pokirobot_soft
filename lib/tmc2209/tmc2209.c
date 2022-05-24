@@ -2,15 +2,19 @@
 
 #include <zephyr.h>
 
+#include "uart_hdb/uart_hdb.h"
 #include <drivers/uart.h>
 #include <logging/log.h>
 
 LOG_MODULE_REGISTER(tmc2209);
 
-void _tmc2209_gen_write_buf(uint8_t buf[TMC2209_WREQUEST_FRAME_SIZE], uint8_t slave, uint8_t reg, uint32_t data) {
-    buf[0] = FIELD_PREP(GENMASK(7, 4), TMC2209_RESERVED) | FIELD_PREP(GENMASK(3, 0), TMC2209_SYNC);
+void _tmc2209_gen_write_buf(uint8_t buf[TMC2209_WREQUEST_FRAME_SIZE],
+    uint8_t slave, uint8_t reg, uint32_t data) {
+    buf[0] = FIELD_PREP(GENMASK(7, 4), TMC2209_RESERVED) |
+             FIELD_PREP(GENMASK(3, 0), TMC2209_SYNC);
     buf[1] = FIELD_PREP(GENMASK(7, 0), slave);
-    buf[2] = FIELD_PREP(GENMASK(7, 7), TMC2209_RW_WRITE) | FIELD_PREP(GENMASK(6, 0), reg);
+    buf[2] = FIELD_PREP(GENMASK(7, 7), TMC2209_RW_WRITE) |
+             FIELD_PREP(GENMASK(6, 0), reg);
     buf[3] = FIELD_PREP(GENMASK(7, 0), FIELD_GET(GENMASK(31, 24), data));
     buf[4] = FIELD_PREP(GENMASK(7, 0), FIELD_GET(GENMASK(23, 16), data));
     buf[5] = FIELD_PREP(GENMASK(7, 0), FIELD_GET(GENMASK(15, 8), data));
@@ -18,10 +22,13 @@ void _tmc2209_gen_write_buf(uint8_t buf[TMC2209_WREQUEST_FRAME_SIZE], uint8_t sl
     buf[7] = tmc2209_crc(buf, TMC2209_WREQUEST_FRAME_SIZE);
 }
 
-void _tmc2209_gen_read_buf(uint8_t buf[TMC2209_RREQUEST_FRAME_SIZE], uint8_t slave, uint8_t reg) {
-    buf[0] = FIELD_PREP(GENMASK(7, 4), TMC2209_RESERVED) | FIELD_PREP(GENMASK(3, 0), TMC2209_SYNC);
+void _tmc2209_gen_read_buf(
+    uint8_t buf[TMC2209_RREQUEST_FRAME_SIZE], uint8_t slave, uint8_t reg) {
+    buf[0] = FIELD_PREP(GENMASK(7, 4), TMC2209_RESERVED) |
+             FIELD_PREP(GENMASK(3, 0), TMC2209_SYNC);
     buf[1] = FIELD_PREP(GENMASK(7, 0), slave);
-    buf[2] = FIELD_PREP(GENMASK(7, 7), TMC2209_RW_READ) | FIELD_PREP(GENMASK(6, 0), reg);
+    buf[2] = FIELD_PREP(GENMASK(7, 7), TMC2209_RW_READ) |
+             FIELD_PREP(GENMASK(6, 0), reg);
     buf[3] = tmc2209_crc(buf, TMC2209_RREQUEST_FRAME_SIZE);
 }
 
@@ -42,6 +49,7 @@ uint8_t tmc2209_crc(uint8_t* buf, size_t len) {
 }
 
 int tmc2209_wrequest(tmc2209_t* dev, uint8_t reg, uint32_t data) {
+    // LOG_DBG("tmc2209_wrequest");
     int ret = 0;
     uint8_t tx_buf[TMC2209_WREQUEST_FRAME_SIZE];
     _tmc2209_gen_write_buf(tx_buf, dev->addr, reg, data);
@@ -49,43 +57,20 @@ int tmc2209_wrequest(tmc2209_t* dev, uint8_t reg, uint32_t data) {
     return ret;
 }
 
-// int tmc2209_rrequest(tmc2209_t* dev, uint8_t reg) {
-//     int ret = 0;
-//     uint8_t tx_buf[TMC2209_RREQUEST_FRAME_SIZE];
-//     uint8_t rx_buf[TMC2209_RREPLY_FRAME_SIZE];
-//     _tmc2209_gen_read_buf(tx_buf, dev->addr, reg);
-//     ret = _tmc2209_write(dev, tx_buf, TMC2209_RREQUEST_FRAME_SIZE);
-//     _tmc2209_read(dev, rx_buf, TMC2209_RREQUEST_FRAME_SIZE); // flush
-// exit:
-//     return ret;
-// }
-//
-// int tmc2209_rreply(tmc2209_t* dev, uint32_t* data) {
-//     int ret = 0;
-//     uint8_t rx_buf[TMC2209_RREPLY_FRAME_SIZE];
-//     ret = _tmc2209_read(dev, rx_buf, TMC2209_RREPLY_FRAME_SIZE);
-//     uint8_t crc = tmc2209_crc(rx_buf, TMC2209_RREPLY_FRAME_SIZE);
-//     if (crc != rx_buf[7]) { // could check for reply addr and sync too
-//         ret = TMC2209_ERR_RREPLY_CRC;
-//         goto exit;
-//     }
-//     *data = FIELD_PREP(GENMASK(31,24), rx_buf[3]) |
-//         FIELD_PREP(GENMASK(23,16), rx_buf[4]) |
-//         FIELD_PREP(GENMASK(15,8), rx_buf[5]) |
-//         FIELD_PREP(GENMASK(7,0), rx_buf[6]);
-// exit:
-//     return ret;
-// }
-//
-// int tmc2209_transeive(tmc2209_t* dev, uint8_t reg, uint32_t* data) {
-//     int ret = 0;
-//     ret = tmc2209_rrequest(dev, reg);
-//     if (ret) { goto exit; }
-//     ret = tmc2209_rreply(dev, data);
-//     if (ret) { goto exit; }
-// exit:
-//     return ret;
-// }
+int tmc2209_rrequest(tmc2209_t* dev, uint8_t reg, uint32_t* data) {
+    LOG_DBG("tmc2209_rrequest");
+    int ret = 0;
+    uint8_t rx_buf[TMC2209_RREQUEST_FRAME_SIZE];
+    uint8_t reply[TMC2209_RREPLY_FRAME_SIZE];
+    _tmc2209_gen_read_buf(rx_buf, dev->addr, reg);
+    ret = uart_hdb_transceive(dev->uart_hdb, rx_buf,
+            TMC2209_RREQUEST_FRAME_SIZE, reply, TMC2209_RREPLY_FRAME_SIZE);
+    *data = FIELD_PREP(GENMASK(31, 24), reply[3]) |
+            FIELD_PREP(GENMASK(23, 16), reply[4]) |
+            FIELD_PREP(GENMASK(15, 8), reply[5]) |
+            FIELD_PREP(GENMASK(7, 0), reply[6]);
+    return ret;
+}
 
 int tmc2209_init(tmc2209_t* dev, uart_hdb_t* uart_hdb, uint8_t addr) {
     int ret = 0;
@@ -95,17 +80,25 @@ int tmc2209_init(tmc2209_t* dev, uart_hdb_t* uart_hdb, uint8_t addr) {
     }
     dev->uart_hdb = uart_hdb;
     dev->addr = addr;
-    LOG_INF("Device<%p> init ok", (void*)dev);
+    LOG_INF("tmc2209 <%p> init ok", (void*)dev);
     return ret;
 }
 
 int tmc2209_set_speed(tmc2209_t* dev, int32_t speed) {
+    // LOG_DBG("tmc2209_set_speed");
     int ret = 0;
-    if (speed < TMC2209_VACTUAL_MIN || speed > TMC2209_VACTUAL_MIN) {
+    if (speed < TMC2209_VACTUAL_MIN || speed > TMC2209_VACTUAL_MAX) {
         ret = TMC2209_ERR_SPEED_RANGE;
         goto exit;
     }
     tmc2209_wrequest(dev, TMC2209_REG_VACTUAL, speed);
+exit:
+    return ret;
+}
+
+int tmc2209_get_ifcnt(tmc2209_t* dev, uint32_t* ifcnt) {
+    int ret = 0;
+    tmc2209_rrequest(dev, TMC2209_REG_IFCNT, ifcnt);
 exit:
     return ret;
 }

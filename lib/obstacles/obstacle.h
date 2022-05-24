@@ -26,7 +26,11 @@ typedef struct rectangle {
     uint16_t height;
 } rectangle_t;
 
-typedef enum { obstacle_type_none, obstacle_type_circle, obstacle_type_rectangle } Obstacle_type_t;
+typedef enum {
+    obstacle_type_none,
+    obstacle_type_circle,
+    obstacle_type_rectangle
+} Obstacle_type_t;
 
 typedef struct obstacle {
     Obstacle_type_t type : 2;
@@ -48,15 +52,17 @@ void obstacle_holder_clear(obstacle_holder_t* obj);
 int16_t obstacle_holder_get_number_of_obstacles(obstacle_holder_t* obj);
 uint8_t obstacle_holder_push(obstacle_holder_t* obj, obstacle_t* obstacle);
 uint8_t obstacle_holder_get(obstacle_holder_t* obj, obstacle_t** obstacle);
-uint8_t obstacle_holder_push_circular_buffer_mode(obstacle_holder_t* obj, obstacle_t* obstacle);
+uint8_t obstacle_holder_push_circular_buffer_mode(
+    obstacle_holder_t* obj, obstacle_t* obstacle);
 uint8_t obstacle_holder_delete_index(obstacle_holder_t* obj, uint16_t index);
 uint8_t obstacle_holder_delete(obstacle_holder_t* obj, obstacle_t* obstacle);
-uint8_t obstacle_get_point_of_collision_with_segment(const point2_t* start_point, const point2_t* end_point,
+uint8_t obstacle_get_point_of_collision_with_segment(
+    const point2_t* start_point, const point2_t* end_point,
     const obstacle_t* obstacle, const float seg_radius, point2_t* out_crd);
 #ifdef UNIT_TEST
 uint8_t obstacle_holder_compact(obstacle_holder_t* obj);
-uint8_t check_seg_collision(
-    const point2_t* a1, const point2_t* a2, const point2_t* b1, const point2_t* b2, point2_t* out);
+uint8_t check_seg_collision(const point2_t* a1, const point2_t* a2,
+    const point2_t* b1, const point2_t* b2, point2_t* out);
 #endif
 
 #endif

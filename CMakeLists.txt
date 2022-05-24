@@ -12,4 +12,5 @@ file(GLOB_RECURSE APP_SOURCES
     src/*.c lib/*.c)
 
 target_sources(app PRIVATE ${APP_SOURCES})
+#target_sources(app PRIVATE src/main.c)
 
