@@ -1,8 +1,9 @@
 #include "servo_pwm.h"
-
 #include <zephyr.h>
-
 #include <drivers/pwm.h>
+#include <logging/log.h>
+
+LOG_MODULE_REGISTER(servo);
 
 #define M_PI 3.14159265358979323846
 
@@ -16,6 +17,7 @@ int servo_pwm_set_angle(servo_pwm_t* obj, float angle_rad) {
 }
 
 int servo_pwm_init(servo_pwm_t* obj, uint32_t pwm_period_ns) {
+    LOG_DBG("Init obj(%p), dev %p", obj, obj->spec.dev);
     if (!device_is_ready(obj->spec.dev)) {
         return -1;
     }

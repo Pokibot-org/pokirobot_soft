@@ -36,11 +36,11 @@ int main(void) {
         ret = -1;
         goto exit;
     }
-    // if (pokarm_init()) {
-    //     LOG_ERR("failed to init pokarm");
-    //     ret = -1;
-    //     goto exit;
-    // }
+    if (pokarm_init()) {
+        LOG_ERR("failed to init pokarm");
+        ret = -1;
+        goto exit;
+    }
     if (figurine_lifter_init()) {
         LOG_ERR("failed to init figurine_lifter");
         ret = -1;

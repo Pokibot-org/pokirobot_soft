@@ -21,20 +21,21 @@ LOG_MODULE_REGISTER(pokarm);
  */
 
 typedef struct pokarm {
-    servo_pwm_t z_rot_servo;
-    servo_pwm_t y_rot_servo;
+    servo_pwm_t servo_orientation;
+    servo_pwm_t servo_arm;
     tmc2209_t z_stepper;
 } pokarm_t;
-static pokarm_t obj;
+static pokarm_t obj = {
+    .servo_orientation.spec = PWM_DT_SPEC_GET(DT_ALIAS(servo_orientation)),
+    .servo_arm.spec = PWM_DT_SPEC_GET(DT_ALIAS(servo_arm)),
+};
 
-
-#define Z_SPEED (10 * TMC2209_VACTUAL_MAX / 100)
 
 int pokarm_init() {
     int err = 0;
     const unsigned int period_ns = USEC_PER_SEC / 50;
-    err |= servo_pwm_init(&obj.z_rot_servo, period_ns);
-    err |= servo_pwm_init(&obj.y_rot_servo, period_ns);
+    err |= servo_pwm_init(&obj.servo_orientation, period_ns);
+    err |= servo_pwm_init(&obj.servo_arm, period_ns);
     err |= tmc2209_init(&obj.z_stepper, &steppers_uart_hdb, 3);
     if (err) {
         LOG_ERR("Error in init %d", err);
