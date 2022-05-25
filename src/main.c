@@ -64,6 +64,7 @@ void match() {
         LOG_ERR("failed to init led");
         goto exit;
     }
+    pokarm_up();
     LOG_INF("MATCH INIT DONE");
     LOG_INF("MATCH WAIT FOR TASKS");
     while (1) {
@@ -82,28 +83,32 @@ void match() {
     shared_ctrl.start = true;
     int side = gpio_pin_get_dt(&sw_side);
     LOG_DBG("side= %d", side);
-    pos2_t dst = {200.0f, 900.0f, 0.25f * M_PI};
-    if (side == 0) {
+    pos2_t dst_1 = {200.0f, 900.0f, 0.25f * M_PI};
+    if (side == SIDE_YELLOW) {
         dst.x = -dst.x;
         dst.a = -dst.a;
     }
-    control_set_target(&shared_ctrl, dst);
-    uint32_t timeout_counter = 99;
-    while (1) {
-        LOG_DBG("alive");
+    LOG_DBG("go to target 1");
+    control_set_target(&shared_ctrl, dst_1);
+    for (int i = 0; i < 200; i++) {
         gpio_pin_toggle(led.port, led.pin);
-        // control_set_target(&shared_ctrl, dst);
-        k_sleep(K_MSEC(1000));
-        timeout_counter--;
-        if (!timeout_counter) {
-            tmc2209_set_speed(&train_motor_1, 0);
-            tmc2209_set_speed(&train_motor_2, 0);
-            tmc2209_set_speed(&train_motor_3, 0);
-            k_sleep(K_MSEC(100));
-            k_sched_lock();
-            while (1) {
-            }
-        }
+        k_sleep(K_MSEC(100));
+    }
+    LOG_DBG("sending pokarm out");
+    pokarm_pos_put_haxagone_display();
+    LOG_DBG("go to target 2");
+    pos2_t dst_2 = {300.0f, 1800.0f, 0.25f * M_PI};
+    control_set_target(&shared_ctrl, dst_2);
+    for (int i = 0; i < 20; i++) {
+        gpio_pin_toggle(led.port, led.pin);
+        k_sleep(K_MSEC(100));
+    }
+    tmc2209_set_speed(&train_motor_1, 0);
+    tmc2209_set_speed(&train_motor_2, 0);
+    tmc2209_set_speed(&train_motor_3, 0);
+    k_sleep(K_MSEC(100));
+    k_sched_lock();
+    while (1) {
     }
 exit:
     LOG_INF("MATCH DONE (ret: %d)", ret);

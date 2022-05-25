@@ -24,6 +24,8 @@
 #define M_SQRT1_2 0.70710678118654752440
 #define M_SQRT3 1.73205080756887729352
 
+#define SIDE_YELLOW 0
+#define SIDE_PURPLE 1
 
 #define LOCKVAR(_type)                                                         \
     struct {                                                                   \
