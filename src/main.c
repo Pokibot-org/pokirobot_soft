@@ -76,8 +76,8 @@ int main(void) {
         gpio_pin_toggle(led.port, led.pin);
         for (uint8_t i = 0; i < 4; i++) {
             train_motor_2.addr = i;
-            tmc2209_set_speed(&train_motor_2, 200);
-            k_sleep(K_MSEC(1));
+            tmc2209_set_speed(&train_motor_2, 2000);
+            // k_sleep(K_MSEC(1));
         }
         k_sleep(K_MSEC(1000));
         LOG_DBG("step 2");
@@ -85,7 +85,7 @@ int main(void) {
         for (uint8_t i = 0; i < 4; i++) {
             train_motor_2.addr = i;
             tmc2209_set_speed(&train_motor_2, 0);
-            k_sleep(K_MSEC(1));
+            // k_sleep(K_MSEC(1));
         }
         k_sleep(K_MSEC(1000));
         LOG_DBG("step 3");
@@ -95,7 +95,7 @@ int main(void) {
             uint32_t ifcnt;
             tmc2209_get_ifcnt(&train_motor_2, &ifcnt);
             LOG_DBG("addr: %x --- ifcnt: %u", i, ifcnt);
-            k_sleep(K_MSEC(1));
+            // k_sleep(K_MSEC(1));
         }
         k_sleep(K_MSEC(1000));
         //tmc2209_set_speed(&train_motor_1, 0);
