@@ -92,7 +92,7 @@ void match() {
         LOG_DBG("alive");
         gpio_pin_toggle(led.port, led.pin);
         // control_set_target(&shared_ctrl, dst);
-        k_sleep(K_MSEC(1));
+        k_sleep(K_MSEC(1000));
     }
 exit:
     LOG_INF("MATCH DONE (ret: %d)", ret);

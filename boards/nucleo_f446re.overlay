@@ -147,3 +147,7 @@
     pinctrl-names = "default";
     // single-wire;
 };
+
+&i2c1 {
+    status = "disabled";
+};

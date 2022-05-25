@@ -12,11 +12,6 @@ LOG_MODULE_REGISTER(servo);
 
 
 int servo_pwm_set_angle(servo_pwm_t* obj, float angle_rad) {
-    if (angle_rad < obj->config.min_angle ||
-        angle_rad > obj->config.max_angle) {
-        LOG_ERR("Invalid angle provided: %f", angle_rad);
-        return -1;
-    }
     float angle_ratio = (angle_rad - obj->config.min_angle) /
                         fabsf(obj->config.max_angle - obj->config.min_angle);
     uint32_t pulse =
