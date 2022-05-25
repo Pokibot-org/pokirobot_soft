@@ -52,13 +52,13 @@ int pokipump_init(void) {
 int pokipump_suck(void) {
     int err = 0;
     err |= gpio_pin_set_dt(&spec_valve, 1);
-    err |= gpio_pin_set_dt(&spec_pump, 1);
+    err |= gpio_pin_set_dt(&spec_pump, 0);
     return err;
 }
 
 int pokipump_release(void) {
     int err = 0;
     err |= gpio_pin_set_dt(&spec_pump, 0);
-    err |= gpio_pin_set_dt(&spec_valve, 0);
+    err |= gpio_pin_set_dt(&spec_valve, 1);
     return err;
 }
