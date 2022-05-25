@@ -29,14 +29,8 @@ void uart_hdb_thread(void* arg1, void* arg2, void* arg3) {
             continue;
         }
         LOG_DBG("message received: %02x %02x %02x %02x %02x %02x %02x %02x",
-                msg.data[0],
-                msg.data[1],
-                msg.data[2],
-                msg.data[3],
-                msg.data[4],
-                msg.data[5],
-                msg.data[6],
-                msg.data[7]);
+            msg.data[0], msg.data[1], msg.data[2], msg.data[3], msg.data[4],
+            msg.data[5], msg.data[6], msg.data[7]);
         for (size_t i = 0; i < msg.data_size; i++) {
             uart_poll_out(device->uart, msg.data[i]);
         }
@@ -61,14 +55,10 @@ void uart_hdb_thread(void* arg1, void* arg2, void* arg3) {
             }
             *msg.answer_received = true;
             LOG_DBG("reply received: %02x %02x %02x %02x %02x %02x %02x %02x",
-                    msg.answer_buffer[0],
-                    msg.answer_buffer[1],
-                    msg.answer_buffer[2],
-                    msg.answer_buffer[3],
-                    msg.answer_buffer[4],
-                    msg.answer_buffer[5],
-                    msg.answer_buffer[6],
-                    msg.answer_buffer[7]);
+                msg.answer_buffer[0], msg.answer_buffer[1],
+                msg.answer_buffer[2], msg.answer_buffer[3],
+                msg.answer_buffer[4], msg.answer_buffer[5],
+                msg.answer_buffer[6], msg.answer_buffer[7]);
         }
         k_sleep(K_USEC(50));
     }
@@ -170,7 +160,7 @@ int uart_hdb_transceive(uart_hdb_t* dev, const uint8_t* write_buf,
     // k_sleep(K_MSEC(1));
 
     int timeout = 0;
-    while (!answer_received && timeout<100) {
+    while (!answer_received && timeout < 100) {
         // k_yield();
         timeout++;
         k_sleep(K_USEC(10));

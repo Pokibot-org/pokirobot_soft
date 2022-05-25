@@ -16,8 +16,9 @@ typedef struct figurine_lifter {
     struct gpio_dt_spec magnet_spec;
 } figurine_lifter_t;
 
-#if !(DT_NODE_HAS_STATUS(DT_ALIAS(servo_dicristaline1), okay) &&                                                       \
-      DT_NODE_HAS_STATUS(DT_ALIAS(servo_dicristaline2), okay) && DT_NODE_HAS_STATUS(DT_ALIAS(sw_electromagnet), okay))
+#if !(DT_NODE_HAS_STATUS(DT_ALIAS(servo_dicristaline1), okay) &&               \
+      DT_NODE_HAS_STATUS(DT_ALIAS(servo_dicristaline2), okay) &&               \
+      DT_NODE_HAS_STATUS(DT_ALIAS(sw_electromagnet), okay))
 #error Device tree not valid, missing stuff for figurine lifter
 static figurine_lifter_t obj;
 #else

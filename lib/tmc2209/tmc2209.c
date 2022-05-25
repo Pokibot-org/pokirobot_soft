@@ -64,7 +64,7 @@ int tmc2209_rrequest(tmc2209_t* dev, uint8_t reg, uint32_t* data) {
     uint8_t reply[TMC2209_RREPLY_FRAME_SIZE];
     _tmc2209_gen_read_buf(rx_buf, dev->addr, reg);
     ret = uart_hdb_transceive(dev->uart_hdb, rx_buf,
-            TMC2209_RREQUEST_FRAME_SIZE, reply, TMC2209_RREPLY_FRAME_SIZE);
+        TMC2209_RREQUEST_FRAME_SIZE, reply, TMC2209_RREPLY_FRAME_SIZE);
     *data = FIELD_PREP(GENMASK(31, 24), reply[3]) |
             FIELD_PREP(GENMASK(23, 16), reply[4]) |
             FIELD_PREP(GENMASK(15, 8), reply[5]) |

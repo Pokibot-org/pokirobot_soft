@@ -9,13 +9,16 @@
 
 LOG_MODULE_REGISTER(pokipump);
 
-#if !(DT_NODE_HAS_STATUS(DT_ALIAS(sw_pump), okay) && DT_NODE_HAS_STATUS(DT_ALIAS(sw_valve), okay))
+#if !(DT_NODE_HAS_STATUS(DT_ALIAS(sw_pump), okay) &&                           \
+      DT_NODE_HAS_STATUS(DT_ALIAS(sw_valve), okay))
 #error Device tree not valid, missing pump and valve
 const struct gpio_dt_spec spec_pump;
 const struct gpio_dt_spec spec_valve;
 #else
-const struct gpio_dt_spec spec_pump = GPIO_DT_SPEC_GET(DT_ALIAS(sw_pump), gpios);
-const struct gpio_dt_spec spec_valve = GPIO_DT_SPEC_GET(DT_ALIAS(sw_valve), gpios);
+const struct gpio_dt_spec spec_pump =
+    GPIO_DT_SPEC_GET(DT_ALIAS(sw_pump), gpios);
+const struct gpio_dt_spec spec_valve =
+    GPIO_DT_SPEC_GET(DT_ALIAS(sw_valve), gpios);
 #endif
 
 

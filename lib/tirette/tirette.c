@@ -13,7 +13,8 @@ LOG_MODULE_REGISTER(tirette);
 #error Device tree not valid, missing stuff for figurine lifter
 static const struct gpio_dt_spec tirette_spec;
 #else
-static const struct gpio_dt_spec tirette_spec = GPIO_DT_SPEC_GET(DT_ALIAS(sw_tirette), gpios);
+static const struct gpio_dt_spec tirette_spec =
+    GPIO_DT_SPEC_GET(DT_ALIAS(sw_tirette), gpios);
 #endif
 
 int tirette_init(void) {
