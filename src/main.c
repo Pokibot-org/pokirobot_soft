@@ -40,7 +40,7 @@ int main(void) {
         LOG_ERR("failed to init pokarm");
         ret = -1;
         goto exit;
-    }
+    }    
     if (figurine_lifter_init()) {
         LOG_ERR("failed to init figurine_lifter");
         ret = -1;
@@ -62,6 +62,9 @@ int main(void) {
 
     LOG_INF("INIT DONE!");
     hmi_led_success();
+
+    pokarm_test();
+
     while (1) {
         LOG_DBG("step 1");
         gpio_pin_toggle(led.port, led.pin);

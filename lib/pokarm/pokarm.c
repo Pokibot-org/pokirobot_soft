@@ -31,15 +31,43 @@ static pokarm_t obj = {
 };
 
 
-int pokarm_init() {
+int pokarm_init(void) {
     int err = 0;
-    const unsigned int period_ns = USEC_PER_SEC / 50;
-    err |= servo_pwm_init(&obj.servo_orientation, period_ns);
-    err |= servo_pwm_init(&obj.servo_arm, period_ns);
+
+    const servo_pwm_config_t servo_config = {
+        .period = NSEC_PER_SEC / 50,
+        .min_angle = 0,
+        .max_angle = M_PI,
+        .min_pulse = 1000000,
+        .max_pulse = 2000000
+    };
+    obj.servo_orientation.config = servo_config;
+    obj.servo_arm.config = servo_config;
+
+    err |= servo_pwm_init(&obj.servo_orientation);
+    err |= servo_pwm_init(&obj.servo_arm);
     err |= tmc2209_init(&obj.z_stepper, &steppers_uart_hdb, 3);
     if (err) {
         LOG_ERR("Error in init %d", err);
     }
     LOG_INF("Init done");
     return err;
+}
+
+void pokarm_test(void)
+{
+    LOG_INF("---------- TEST -------------");
+    int err;
+    uint8_t steps = 32;
+    for (float angle = 0; angle < M_PI; angle+=(M_PI/steps))
+    {
+        err = servo_pwm_set_angle(&obj.servo_arm, angle);
+        if (err) LOG_WRN("err %d", err);
+        k_sleep(K_MSEC(1000));
+    }
+    while (1)
+    {
+        k_sleep(K_MSEC(1000));
+    }
+    
 }

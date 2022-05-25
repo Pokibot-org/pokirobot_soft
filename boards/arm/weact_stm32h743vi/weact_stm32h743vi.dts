@@ -46,22 +46,22 @@
 			status = "okay";
 		};
         servo_0: servo_0 {
-            pwms = <&pwm2 1 0 PWM_POLARITY_NORMAL>;
+            pwms = <&pwm2 1 20000000 PWM_POLARITY_NORMAL>;
             label = "Servo 0";
             status = "okay";
         };
         servo_1: servo_1 {
-			pwms = <&pwm2 2 0 PWM_POLARITY_NORMAL>;
+			pwms = <&pwm2 2 20000000 PWM_POLARITY_NORMAL>;
 			label = "Servo 1";
 			status = "okay";
 		};
         servo_2: servo_2 {
-			pwms = <&pwm2 3 0 PWM_POLARITY_NORMAL>;
+			pwms = <&pwm2 3 20000000 PWM_POLARITY_NORMAL>;
 			label = "Servo 2";
 			status = "okay";
 		};
 		servo_3: servo_3 {
-			pwms = <&pwm2 4 0 PWM_POLARITY_NORMAL>;
+			pwms = <&pwm2 4 20000000 PWM_POLARITY_NORMAL>;
 			label = "Servo 3";
 			status = "okay";
 		};
@@ -69,6 +69,7 @@
 
 
     gpio_keys {
+		status = "okay";
 		user_button: button_user {
 			label = "User";
 			gpios = <&gpioc 13 GPIO_ACTIVE_HIGH>;
@@ -122,18 +123,18 @@
 };
 
 &timers2 {
-    st,prescaler = <10000>;
+	st,prescaler = <0>;
     status = "okay";
 
 	pwm2: pwm {
 		status = "okay";
-		pinctrl-0 = <&tim2_ch1_pa15 &tim2_ch2_pb3 &tim2_ch3_pb10 &tim2_ch4_pb11>;
+		pinctrl-0 = <&tim2_ch1_pa15 &tim2_ch2_pa1 &tim2_ch3_pb10 &tim2_ch4_pb11>;
 		pinctrl-names = "default";
 	};
 };
 
 &timers3 {
-	st,prescaler = <10000>;
+	st,prescaler = <0>;
 	status = "okay";
 
 	pwm3: pwm {
