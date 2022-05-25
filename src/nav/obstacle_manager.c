@@ -128,7 +128,7 @@ uint8_t process_point(
 uint8_t process_lidar_message(
     obstacle_manager_t* obj, const lidar_message_t* message) {
     float step = 0.0f;
-    uint8_t obstacle_detected = 0;
+    static bool obstacle_detected = 0;
     static uint8_t decimation_counter;
     static float old_end_angle;
     if (message->end_angle > message->start_angle) {
@@ -144,6 +144,13 @@ uint8_t process_lidar_message(
         obstacle_holder_clear(
             &obj->obstacles_holders[obj->current_obs_holder_index]);
         obj->current_obs_holder_index = !obj->current_obs_holder_index;
+        if (obstacle_detected) {
+            if (obj->collision_callback) {
+                obj->collision_callback(obstacle_detected);
+            }
+        }
+        obstacle_detected = false;
+
     }
     old_end_angle = message->end_angle;
 
@@ -170,14 +177,8 @@ uint8_t process_lidar_message(
                 &obs_man_obj, message->points[i].distance, point_angle);
             if (err_code == 1) // 0 ok, 1 in front of robot, 2 outside table
             {
-                obstacle_detected = 1;
+                obstacle_detected = true;
             }
-        }
-    }
-
-    if (obstacle_detected) {
-        if (obj->collision_callback) {
-            obj->collision_callback();
         }
     }
     return 0;

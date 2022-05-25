@@ -17,8 +17,10 @@ LOG_MODULE_REGISTER(main);
 
 // #error on callback before decimation check collisions
 
-void collision_callback(void) {
-    LOG_INF("Collision detected");
+void collision_callback(bool collision) {
+    if (collision)
+        LOG_INF("Collision detected");
+    shared_ctrl.brake = collision;
 }
 
 int main(void) {
@@ -63,7 +65,10 @@ int main(void) {
     LOG_INF("INIT DONE!");
     hmi_led_success();
 
-    //pokarm_test();
+    // pokarm_test();
+    LOG_INF("Waiting for tirette to be released !");
+    tirette_wait_until_released();
+    LOG_INF("Tirette released !");
 
     while (1) {
         LOG_DBG("step 1");

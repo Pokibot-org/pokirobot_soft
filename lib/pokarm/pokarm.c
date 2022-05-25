@@ -52,6 +52,22 @@ int pokarm_init(void) {
     return err;
 }
 
+int pokarm_up(void) {
+    int err = 0;
+    return err;
+}
+
+int pokarm_pos_flat_hexagone(void) {
+    int err = 0;
+    return err;
+}
+
+int pokarm_pos_put_haxagone_display(void) {
+    int err = 0;
+    return err;
+}
+
+
 void pokarm_test(void) {
     LOG_INF("---------- TEST -------------");
     int err;
