@@ -32,6 +32,8 @@ void match() {
     // hmi_led_error();
     static const struct gpio_dt_spec led =
         GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
+    static const struct gpio_dt_spec sw_side =
+        GPIO_DT_SPEC_GET(DT_ALIAS(sw_side), gpios);
     obstacle_manager_init(collision_callback);
     int ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
     if (ret < 0) {
@@ -71,16 +73,26 @@ void match() {
         }
         break;
     }
-
-    LOG_INF("Waiting for tirette to be released !");
+    k_sleep(K_MSEC(1000));
+    LOG_INF("MATCH WAIT FOR STARTER KEY");
     tirette_wait_until_released();
     hmi_led_success();
     LOG_INF("MATCH START");
+    k_sleep(K_MSEC(1000));
     shared_ctrl.start = true;
+    int side = gpio_pin_get_dt(&sw_side);
+    LOG_DBG("side= %d", side);
+    pos2_t dst = {200.0f, 900.0f, 0.25f * M_PI};
+    if (side == 0) {
+        dst.x = -dst.x; 
+        dst.a = -dst.a; 
+    }
+    control_set_target(&shared_ctrl, dst);
     while (1) {
         LOG_DBG("alive");
         gpio_pin_toggle(led.port, led.pin);
-        k_sleep(K_MSEC(1000));
+        // control_set_target(&shared_ctrl, dst);
+        k_sleep(K_MSEC(1));
     }
 exit:
     LOG_INF("MATCH DONE (ret: %d)", ret);
@@ -98,10 +110,11 @@ int main(void) {
     // wait for init
 
     // main thread
-    // test_gconf();
-    // test_motor_cmd();
-    // test_target();
-    // test_calibration();
+
+    // _test_gconf();
+    // _test_motor_cmd();
+    // _test_target();
+    // _test_calibration();
     match();
 exit:
     return ret;

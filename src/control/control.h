@@ -11,19 +11,19 @@
 #define CONTROL_MUTEX_TIMEOUT (K_MSEC(30))
 
 #define CONTROL_PERIOD_MS 10.0
-#define ROBOT_L 150.0f
+#define ROBOT_L 137.6f
 #define WHEEL_PERIMETER 267.840f
 #define MM_TO_USTEPS 95238.0f
 
-#define PLANAR_VMAX 300.0f // 100 mm/s
+#define PLANAR_VMAX 200.0f // 100 mm/s
 #define PLANAR_FACTOR (0.007f * PLANAR_VMAX)
 #define PLANAR_RAMP                                                            \
-    (0.2f * PLANAR_VMAX * CONTROL_PERIOD_MS) // 1/0.2 seconds to reach vmax
+    (0.1f * PLANAR_VMAX * CONTROL_PERIOD_MS) // 1/0.2 seconds to reach vmax
 
-#define ANGULAR_VMAX (2.0f * M_PI) // 0.1 rotation/s
+#define ANGULAR_VMAX (0.5f * M_PI) // 0.1 rotation/s
 #define ANGULAR_FACTOR (0.5f * ANGULAR_VMAX)
 #define ANGULAR_RAMP                                                           \
-    (0.2f * ANGULAR_VMAX * CONTROL_PERIOD_MS) // 1/0.2 seconds to reach vmax
+    (0.1f * ANGULAR_VMAX * CONTROL_PERIOD_MS) // 1/0.2 seconds to reach vmax
 
 
 typedef struct omni3 {
@@ -64,5 +64,9 @@ vel2_t world_vel_from_local(pos2_t pos, vel2_t local_vel);
 omni3_t omni_from_local_vel(vel2_t local_vel);
 vel2_t local_vel_from_omni(omni3_t omni);
 
+void _test_gconf();
+void _test_motor_cmd();
+void _test_target();
+void _test_calibration();
 
 #endif

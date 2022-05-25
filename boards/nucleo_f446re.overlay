@@ -3,7 +3,7 @@
         console = &usart2;
         stepper-bus = &uart5;
         camsense-uart = &usart1;
-        sw-cote = &button0;
+        sw-side = &button0;
         sw-robot = &button1;
         sw-tirette = &button2;
         sw-pump = &button3;

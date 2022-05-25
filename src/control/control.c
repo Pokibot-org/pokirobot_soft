@@ -213,7 +213,7 @@ K_THREAD_DEFINE(control_task_name, CONFIG_CONTROL_THREAD_STACK, control_task,
 
 void _test_gconf() {
     uint32_t gconf;
-    control_init(&shared_ctrl, &train_motor_1, &train_motor_2, &train_motor_3);
+    // control_init(&shared_ctrl, &train_motor_1, &train_motor_2, &train_motor_3);
     k_sleep(K_MSEC(1000));
     while (1) {
         tmc2209_get_gconf(&train_motor_1, &gconf);
@@ -224,7 +224,7 @@ void _test_gconf() {
 void _test_motor_cmd() {
     static const struct gpio_dt_spec led =
         GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
-    control_init(&shared_ctrl, &train_motor_1, &train_motor_2, &train_motor_3);
+    // control_init(&shared_ctrl, &train_motor_1, &train_motor_2, &train_motor_3);
     k_sleep(K_MSEC(1000));
     while(1) {
         gpio_pin_toggle(led.port, led.pin);
@@ -265,7 +265,6 @@ void _test_target() {
 #if !(CONFIG_CONTROL_TASK)
     LOG_ERR("control task not launched");
 #endif
-    control_init(&shared_ctrl, &train_motor_1, &train_motor_2, &train_motor_3);
     while (1) {
         if (!shared_ctrl.ready) {
             k_sleep(K_MSEC(100));
@@ -282,12 +281,14 @@ void _test_target() {
 }
 
 void _test_calibration() {
-    static const struct gpio_dt_spec led =
-        GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
+    LOG_INF("_test_calibration");
+    shared_init();
+    // static const struct gpio_dt_spec led =
+    //     GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
+    // int ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
 #if !(CONFIG_CONTROL_TASK)
     LOG_ERR("control task not launched");
 #endif
-    control_init(&shared_ctrl, &train_motor_1, &train_motor_2, &train_motor_3);
     while (1) {
         if (!shared_ctrl.ready) {
             k_sleep(K_MSEC(100));
@@ -297,14 +298,19 @@ void _test_calibration() {
     }
     shared_ctrl.start = true;
     LOG_DBG("alive");
-    gpio_pin_toggle(led.port, led.pin);
+    // gpio_pin_toggle(led.port, led.pin);
     control_set_pos(&shared_ctrl, (pos2_t){0.0f, 0.0f, 0.0f});
     control_set_target(&shared_ctrl, (pos2_t){0.0f, 0.0f, 0.0f});
     k_sleep(K_MSEC(2000));
     LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y, shared_ctrl.pos.val.a);
     LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.target.val.x, shared_ctrl.target.val.y, shared_ctrl.target.val.a);
-    gpio_pin_toggle(led.port, led.pin);
-    control_set_target(&shared_ctrl, (pos2_t){0.0f, 1300.0f, 0.0f * M_PI});
+    // gpio_pin_toggle(led.port, led.pin);
+    // control_set_target(&shared_ctrl, (pos2_t){0.0f, 1300.0f, 0.0f * M_PI});
+    // k_sleep(K_MSEC(15000));
+    // LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y, shared_ctrl.pos.val.a);
+    // LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.target.val.x, shared_ctrl.target.val.y, shared_ctrl.target.val.a);
+    // gpio_pin_toggle(led.port, led.pin);
+    control_set_target(&shared_ctrl, (pos2_t){0.0f, 0.0f, 10.0f * M_PI});
     k_sleep(K_MSEC(15000));
     LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y, shared_ctrl.pos.val.a);
     LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.target.val.x, shared_ctrl.target.val.y, shared_ctrl.target.val.a);
