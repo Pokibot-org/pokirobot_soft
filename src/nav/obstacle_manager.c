@@ -6,16 +6,12 @@
 #include "control/control.h"
 #include "lidar/camsense_x1/camsense_x1.h"
 #include "obstacles/relative_obstacle_storing.h"
+#include "utils.h"
 #include <logging/log.h>
 
 LOG_MODULE_REGISTER(obstacle_manager);
 
 // DEFINES
-#ifndef M_PI
-#define M_PI 3.14159265358979323846f
-#define M_PI_2 1.57079632679489661923f
-#define M_PI_4 0.78539816339744830962f
-#endif
 #define MAX_LIDAR_MESSAGE 6
 
 #define OBSTACLE_MANAGER_DECIMATION_FACTOR 4
@@ -45,8 +41,9 @@ K_SEM_DEFINE(obsacle_holder_lock, 1, 1);
 #define CAMSENSE_FACTORY_CENTER_OFFSET_DEG 16.0f
 #define CAMSENSE_CENTER_OFFSET_DEG (CAMSENSE_FACTORY_CENTER_OFFSET_DEG)
 // #define LIDAR_COUNTER_CLOCKWISE
-#define LIDAR_DETECTION_DISTANCE_MM 250
-#define LIDAR_DETECTION_ANGLE 100
+#define LIDAR_DETECTION_DISTANCE_MM 200
+// 360 == detecting obstacles even behind
+#define LIDAR_DETECTION_ANGLE 360
 // FUNC
 
 void obstacle_manager_send_message(const obstacle_manager_message_t* msg) {
@@ -150,7 +147,6 @@ uint8_t process_lidar_message(
             }
         }
         obstacle_detected = false;
-
     }
     old_end_angle = message->end_angle;
 
