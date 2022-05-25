@@ -15,7 +15,7 @@
 #define WHEEL_PERIMETER 267.840f
 #define MM_TO_USTEPS 95238.0f
 
-#define PLANAR_VMAX 1000.0f // 100 mm/s
+#define PLANAR_VMAX 300.0f // 100 mm/s
 #define PLANAR_FACTOR (0.007f * PLANAR_VMAX)
 #define PLANAR_RAMP                                                            \
     (0.2f * PLANAR_VMAX * CONTROL_PERIOD_MS) // 1/0.2 seconds to reach vmax
