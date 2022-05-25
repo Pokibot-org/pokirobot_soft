@@ -63,7 +63,7 @@ int main(void) {
     LOG_INF("INIT DONE!");
     hmi_led_success();
 
-    pokarm_test();
+    //pokarm_test();
 
     while (1) {
         LOG_DBG("step 1");

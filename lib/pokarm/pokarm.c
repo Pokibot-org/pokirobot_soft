@@ -37,8 +37,8 @@ int pokarm_init(void) {
     const servo_pwm_config_t servo_config = {.period = NSEC_PER_SEC / 50,
         .min_angle = 0,
         .max_angle = M_PI,
-        .min_pulse = 1000000,
-        .max_pulse = 2000000};
+        .min_pulse = 500000,
+        .max_pulse = 2500000};
     obj.servo_orientation.config = servo_config;
     obj.servo_arm.config = servo_config;
 
@@ -55,7 +55,7 @@ int pokarm_init(void) {
 void pokarm_test(void) {
     LOG_INF("---------- TEST -------------");
     int err;
-    uint8_t steps = 32;
+    uint8_t steps = 6;
     for (float angle = 0; angle < M_PI; angle += (M_PI / steps)) {
         err = servo_pwm_set_angle(&obj.servo_arm, angle);
         if (err)
