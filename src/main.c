@@ -1,6 +1,9 @@
 #include <device.h>
 #include <devicetree.h>
 #include <zephyr.h>
+#include "kernel.h"
+#include <drivers/gpio.h>
+#include <logging/log.h>
 
 #include "control/control.h"
 #include "figurine_lifter/figurine_lifter.h"
@@ -11,8 +14,6 @@
 #include "tirette/tirette.h"
 #include "tmc2209/tmc2209.h"
 #include "utils.h"
-#include <drivers/gpio.h>
-#include <logging/log.h>
 
 LOG_MODULE_REGISTER(main);
 
@@ -24,11 +25,19 @@ void collision_callback(bool collision) {
     shared_ctrl.brake = collision;
 }
 
-int main(void) {
-    LOG_INF("BOOTING!");
-    int ret = 0;
-    hmi_led_init();
-    hmi_led_error();
+
+void match() {
+    LOG_INF("MATCH INIT");
+    // hmi_led_init();
+    // hmi_led_error();
+    static const struct gpio_dt_spec led =
+        GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
+    control_init(&shared_ctrl, &train_motor_1, &train_motor_2, &train_motor_3);
+    int ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
+    if (ret < 0) {
+        LOG_ERR("failed to init led");
+        goto exit;
+    }
     if (shared_init()) {
         LOG_ERR("failed to init shared objects");
         ret = -1;
@@ -49,25 +58,12 @@ int main(void) {
         ret = -1;
         goto exit;
     }
-    control_init(&shared_ctrl, &train_motor_1, &train_motor_2, &train_motor_3);
-    // obstacle_manager_init(collision_callback);
-    static const struct gpio_dt_spec led =
-        GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
     if (!device_is_ready(led.port)) {
         LOG_ERR("failed to init led");
         goto exit;
     }
-    ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
-    if (ret < 0) {
-        LOG_ERR("failed to init led");
-        goto exit;
-    }
-    // pokarm_test();
-
-    k_sleep(K_MSEC(1000));
-    LOG_INF("INIT DONE!");
-    hmi_led_success();
-
+    LOG_INF("MATCH INIT DONE");
+    LOG_INF("MATCH WAIT FOR TASKS");
     while (1) {
         if (!shared_ctrl.ready) {
             k_sleep(K_MSEC(100));
@@ -75,70 +71,38 @@ int main(void) {
         }
         break;
     }
+
     LOG_INF("Waiting for tirette to be released !");
     tirette_wait_until_released();
-    LOG_INF("Tirette released !");
-
+    hmi_led_success();
+    LOG_INF("MATCH START");
     shared_ctrl.start = true;
-    // main thread
     while (1) {
         LOG_DBG("alive");
         gpio_pin_toggle(led.port, led.pin);
-        control_set_pos(&shared_ctrl, (pos2_t){0.0f, 0.0f, 0.0f});
-        control_set_target(&shared_ctrl, (pos2_t){0.0f, 0.0f, 0.0f});
-        k_sleep(K_MSEC(2000));
-        LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x,
-            shared_ctrl.pos.val.y, shared_ctrl.pos.val.a);
-        LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.target.val.x,
-            shared_ctrl.target.val.y, shared_ctrl.target.val.a);
-        gpio_pin_toggle(led.port, led.pin);
-        control_set_target(&shared_ctrl, (pos2_t){0.0f, 1300.0f, 0.0f * M_PI});
-        k_sleep(K_MSEC(15000));
-        LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x,
-            shared_ctrl.pos.val.y, shared_ctrl.pos.val.a);
-        LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.target.val.x,
-            shared_ctrl.target.val.y, shared_ctrl.target.val.a);
-        goto exit;
-
-        // uint32_t gconf;
-        // tmc2209_get_gconf(&train_motor_1, &gconf);
-        // k_sleep(K_MSEC(8000));
-
-
-        // gpio_pin_toggle(led.port, led.pin);
-        // control_set_target(&shared_ctrl, (pos2_t){1000.0f,
-        // 1000.0f, 2.0f*M_PI}); k_sleep(K_MSEC(5000));
-
-        // gpio_pin_toggle(led.port, led.pin);
-        // tmc2209_set_speed(&train_motor_1, 0);
-        // tmc2209_set_speed(&train_motor_2, 0);
-        // tmc2209_set_speed(&train_motor_3, 0);
-        // gpio_pin_toggle(led.port, led.pin);
-        // tmc2209_set_speed(&train_motor_1, 10000);
-        // tmc2209_set_speed(&train_motor_2, 20000);
-        // tmc2209_set_speed(&train_motor_3, 40000);
-        // k_sleep(K_MSEC(1000));
-        // gpio_pin_toggle(led.port, led.pin);
-        // tmc2209_set_speed(&train_motor_1, 0);
-        // tmc2209_set_speed(&train_motor_2, 0);
-        // tmc2209_set_speed(&train_motor_3, 0);
-        // k_sleep(K_MSEC(1000));
-        // gpio_pin_toggle(led.port, led.pin);
-        // tmc2209_set_speed(&train_motor_1, 10000);
-        // tmc2209_set_speed(&train_motor_2, 0);
-        // tmc2209_set_speed(&train_motor_3, 0);
-        // k_sleep(K_MSEC(1000));
-        // gpio_pin_toggle(led.port, led.pin);
-        // tmc2209_set_speed(&train_motor_1, 0);
-        // tmc2209_set_speed(&train_motor_2, 10000);
-        // tmc2209_set_speed(&train_motor_3, 0);
-        // k_sleep(K_MSEC(1000));
-        // gpio_pin_toggle(led.port, led.pin);
-        // tmc2209_set_speed(&train_motor_1, 0);
-        // tmc2209_set_speed(&train_motor_2, 0);
-        // tmc2209_set_speed(&train_motor_3, 10000);
-        // k_sleep(K_MSEC(1000));
+        k_sleep(K_MSEC(10));
     }
+exit:
+    LOG_INF("MATCH DONE (ret: %d)", ret);
+    return;
+}
+
+
+int main(void) {
+    LOG_INF("BOOTING");
+    int ret = 0;
+
+    // obstacle_manager_init(collision_callback);
+
+    //pokarm_test();
+    // wait for init
+
+    // main thread
+    // test_gconf();
+    // test_motor_cmd();
+    // test_target();
+    // test_calibration();
+    match();
 exit:
     return ret;
 }
