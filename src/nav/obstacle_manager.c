@@ -69,12 +69,10 @@ uint8_t process_point(
         .type = obstacle_type_circle,
         .data.circle.radius = 0 // FIXME: remove the magic number
     };
-
     pos2_t actual_robot_pos;
     control_get_pos(&shared_ctrl, &actual_robot_pos);
 
-    // LOG_INF("IN PROCEES POINT: angle: %f, distance: %d", point_angle,
-    // point_distance);
+    // LOG_INF("IN PROCESS POINT: angle: %f, distance: %d", point_angle, point_distance);
 
     if (((point_distance < ROBOT_MAX_RADIUS_MM) &&
             (fabsf(point_angle) > LIDAR_DETECTION_ANGLE / 2)) ||
@@ -150,8 +148,7 @@ uint8_t process_lidar_message(
     }
     old_end_angle = message->end_angle;
 
-    for (int i = 0; i < message->number_of_points;
-         i++) // for each of the 8 samples
+    for (int i = 0; i < NUMBER_OF_LIDAR_POINTS; i++)
     {
         decimation_counter =
             (decimation_counter + 1) % OBSTACLE_MANAGER_DECIMATION_FACTOR;
@@ -166,8 +163,8 @@ uint8_t process_lidar_message(
                 360.0f - ((message->start_angle + step * i) +
                              (CAMSENSE_CENTER_OFFSET_DEG + 180.0f));
 #else
-            float point_angle = (message->start_angle + step * i) +
-                                (CAMSENSE_CENTER_OFFSET_DEG + 180.0f);
+            float point_angle = (message->start_angle + step * i) -
+                                (-CAMSENSE_CENTER_OFFSET_DEG + 180.0f);
 #endif
             uint8_t err_code = process_point(
                 &obs_man_obj, message->points[i].distance, point_angle);
