@@ -9,7 +9,7 @@
 #include "utils.h"
 #include <logging/log.h>
 
-LOG_MODULE_REGISTER(obstacle_manager);
+LOG_MODULE_REGISTER(obstacle_manager, 3);
 
 // DEFINES
 #define MAX_LIDAR_MESSAGE 6
@@ -197,9 +197,9 @@ static void obstacle_manager_task() {
     obstacle_manager_message_t msg;
     while (true) {
         k_msgq_get(&obstacle_manager_msgq, &msg, K_FOREVER);
-        LOG_DBG("Recived message");
+        LOG_DBG("Received message");
         if (msg.type == om_message_lidar_data_received) {
-            LOG_DBG("Recived event");
+            LOG_DBG("Received event");
 
             lidar_message_t lidar_message;
             k_sem_take(&obsacle_holder_lock, K_FOREVER);

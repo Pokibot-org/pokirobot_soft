@@ -32,6 +32,7 @@ void match() {
     // hmi_led_error();
     static const struct gpio_dt_spec led =
         GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
+    obstacle_manager_init(collision_callback);
     int ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
     if (ret < 0) {
         LOG_ERR("failed to init led");
@@ -79,7 +80,7 @@ void match() {
     while (1) {
         LOG_DBG("alive");
         gpio_pin_toggle(led.port, led.pin);
-        k_sleep(K_MSEC(10));
+        k_sleep(K_MSEC(1000));
     }
 exit:
     LOG_INF("MATCH DONE (ret: %d)", ret);
