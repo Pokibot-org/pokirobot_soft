@@ -18,6 +18,11 @@
 // values
 #define TMC2209_VACTUAL_MAX ((1 << 23) - 1)
 #define TMC2209_VACTUAL_MIN (-TMC2209_VACTUAL_MAX)
+#define TMC2209_GCONF_DEFAULT 0x00000101
+#define TMC2209_CHOPCONF_DEFAULT 0x10000053
+#define TMC2209_MSTEP_ADDR_SELECT 1
+#define TMC2209_MSTEP_REG_SELECT 1
+#define TMC2209_MRES_256 0
 
 // registers
 #define TMC2209_REG_GCONF 0x00
@@ -71,6 +76,9 @@ int tmc2209_wrequest(tmc2209_t* dev, uint8_t reg, uint32_t data);
 
 int tmc2209_init(tmc2209_t* dev, uart_hdb_t* uart_hdb, uint8_t addr);
 int tmc2209_set_speed(tmc2209_t* dev, int32_t speed);
+int tmc2209_set_senddelay(tmc2209_t* dev, uint32_t senddelay);
+int tmc2209_set_mres(tmc2209_t* dev, uint32_t mres);
+int tmc2209_get_gconf(tmc2209_t* dev, uint32_t* gconf);
 int tmc2209_get_ifcnt(tmc2209_t* dev, uint32_t* ifcnt);
 
 #endif // TMC2209_H
