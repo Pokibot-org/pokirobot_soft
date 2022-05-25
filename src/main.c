@@ -32,7 +32,6 @@ void match() {
     // hmi_led_error();
     static const struct gpio_dt_spec led =
         GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
-    control_init(&shared_ctrl, &train_motor_1, &train_motor_2, &train_motor_3);
     int ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
     if (ret < 0) {
         LOG_ERR("failed to init led");
