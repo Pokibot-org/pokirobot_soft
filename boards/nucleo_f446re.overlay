@@ -37,11 +37,11 @@
             label = "tirette";
         };
         button4: button_4 {
-            gpios = <&gpioc 4 GPIO_ACTIVE_HIGH>;
+            gpios = <&gpiob 1 GPIO_ACTIVE_HIGH>;
             label = "tirette";
         };
         button5: button_5 {
-            gpios = <&gpiob 1 GPIO_ACTIVE_HIGH>;
+            gpios = <&gpioc 4 GPIO_ACTIVE_HIGH>;
             label = "tirette";
         };
     };
