@@ -21,15 +21,15 @@
     gpio_keys {
         compatible = "gpio-keys";
         button0: button_0 {
-            gpios = <&gpioa 7 GPIO_ACTIVE_HIGH>;
+            gpios = <&gpioa 15 GPIO_ACTIVE_HIGH>;
             label = "sw cote";
         };
         button1: button_1 {
-            gpios = <&gpioa 5 GPIO_ACTIVE_HIGH>;
+            gpios = <&gpioc 13 GPIO_ACTIVE_HIGH>;
             label = "sw robot";
         };
         button2: button_2 {
-            gpios = <&gpioa 6 GPIO_ACTIVE_HIGH>;
+            gpios = <&gpioc 9 GPIO_ACTIVE_HIGH>;
             label = "tirette";
         };
         button3: button_3 {
