@@ -4,10 +4,10 @@
 #include <devicetree.h>
 #include <zephyr.h>
 
+#include "utils.h"
 #include <drivers/gpio.h>
 #include <logging/log.h>
 #include <servo_pwm/servo_pwm.h>
-#include "utils.h"
 
 LOG_MODULE_REGISTER(figurine_lifter);
 
@@ -36,13 +36,11 @@ int fl_set_magnet(int value) {
 
 int figurine_lifter_init(void) {
     int err = 0;
-    const servo_pwm_config_t servo_config = {
-        .period = NSEC_PER_SEC / 50,
+    const servo_pwm_config_t servo_config = {.period = NSEC_PER_SEC / 50,
         .min_angle = 0,
         .max_angle = M_PI,
         .min_pulse = 1000000,
-        .max_pulse = 2000000
-    };
+        .max_pulse = 2000000};
     obj.servo_1.config = servo_config;
     obj.servo_2.config = servo_config;
     err |= servo_pwm_init(&obj.servo_1);
