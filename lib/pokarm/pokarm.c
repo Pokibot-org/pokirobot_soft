@@ -54,16 +54,19 @@ int pokarm_init(void) {
 
 int pokarm_up(void) {
     int err = 0;
+    err |= servo_pwm_set_angle(&obj.servo_arm, M_PI*0.9);
     return err;
 }
 
 int pokarm_pos_flat_hexagone(void) {
     int err = 0;
+    err |= servo_pwm_set_angle(&obj.servo_arm, M_PI/4);
     return err;
 }
 
 int pokarm_pos_put_haxagone_display(void) {
     int err = 0;
+    err |= servo_pwm_set_angle(&obj.servo_arm, M_PI*3/4);
     return err;
 }
 
