@@ -13,16 +13,17 @@
 #define CONTROL_PERIOD_MS 10.0
 #define ROBOT_L 150.0f
 #define WHEEL_PERIMETER 267.840f
+#define MM_TO_USTEPS 95238.0f
 
-#define PLANAR_VMAX 1000.0f // 1000 mm/s
+#define PLANAR_VMAX 1000.0f // 100 mm/s
 #define PLANAR_FACTOR (0.007f * PLANAR_VMAX)
 #define PLANAR_RAMP                                                            \
-    (2.0f * PLANAR_VMAX * CONTROL_PERIOD_MS) // 1/2 seconds to reach vmax
+    (0.2f * PLANAR_VMAX * CONTROL_PERIOD_MS) // 1/0.2 seconds to reach vmax
 
-#define ANGULAR_VMAX (2.0f * M_PI) // 1 rotation/s
+#define ANGULAR_VMAX (2.0f * M_PI) // 0.1 rotation/s
 #define ANGULAR_FACTOR (0.5f * ANGULAR_VMAX)
 #define ANGULAR_RAMP                                                           \
-    (2.0f * ANGULAR_VMAX * CONTROL_PERIOD_MS) // 1/2 seconds to reach vmax
+    (0.2f * ANGULAR_VMAX * CONTROL_PERIOD_MS) // 1/0.2 seconds to reach vmax
 
 
 typedef struct omni3 {
@@ -34,6 +35,7 @@ typedef struct omni3 {
 typedef struct control {
     bool start;
     bool brake;
+    bool ready;
     LOCKVAR(pos2_t) pos;
     LOCKVAR(pos2_t) target;
     tmc2209_t* m1;

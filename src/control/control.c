@@ -2,6 +2,7 @@
 
 #include <kernel.h>
 #include <math.h>
+#include <stdint.h>
 #include <zephyr.h>
 
 #include "shared.h"
@@ -35,7 +36,7 @@ control_t shared_ctrl;
 #define CONTROL_LOCKVAR_GETTER(_var, _type)                                    \
     int control_get_##_var(control_t* dev, _type* _var) {                      \
         int err = 0;                                                           \
-        SET_LOCKVAR(dev->_var, *_var, err, CONTROL_MUTEX_TIMEOUT);             \
+        READ_LOCKVAR(dev->_var, *_var, err, CONTROL_MUTEX_TIMEOUT);             \
         if (err) {                                                             \
             LOG_ERR("could not lock _var mutex for write access");             \
             goto exit_error;                                                   \
@@ -58,8 +59,8 @@ int control_init(control_t* ctrl, tmc2209_t* m1, tmc2209_t* m2, tmc2209_t* m3) {
     ctrl->brake = false;
     INIT_LOCKVAR(ctrl->pos);
     INIT_LOCKVAR(ctrl->target);
-    control_set_pos(ctrl, (pos2_t){0, 0, 0});
-    control_set_target(ctrl, (pos2_t){0, 0, 0});
+    control_set_pos(ctrl, (pos2_t){0.0f, 0.0f, 0.0f});
+    control_set_target(ctrl, (pos2_t){0.0f, 0.0f, 0.0f});
     ctrl->m1 = m1;
     ctrl->m2 = m2;
     ctrl->m3 = m3;
@@ -75,6 +76,7 @@ int control_init(control_t* ctrl, tmc2209_t* m1, tmc2209_t* m2, tmc2209_t* m3) {
         LOG_ERR("failed to init control motor 3");
         ret = -1;
     }
+    ctrl->ready = true;
     return ret;
 }
 
@@ -186,12 +188,15 @@ static int control_task(void) {
         // commit transaction
         control_set_pos(&shared_ctrl, pos);
         tmc2209_set_speed(shared_ctrl.m1,
-            (int32_t)(motors_v.v1 * (float)256 / WHEEL_PERIMETER)); // FIXME
+            (int32_t)(motors_v.v1 * MM_TO_USTEPS / WHEEL_PERIMETER));
         tmc2209_set_speed(shared_ctrl.m2,
-            (int32_t)(motors_v.v2 * (float)256 / WHEEL_PERIMETER)); // FIXME
+            (int32_t)(motors_v.v2 * MM_TO_USTEPS / WHEEL_PERIMETER));
         tmc2209_set_speed(shared_ctrl.m3,
-            (int32_t)(motors_v.v3 * (float)256 / WHEEL_PERIMETER)); // FIXME
+            (int32_t)(motors_v.v3 * MM_TO_USTEPS / WHEEL_PERIMETER));
         // sleep
+        // LOG_DBG("pos: %.2f %.2f %.2f", pos.x, pos.y, pos.a);
+        // LOG_DBG("target: %.2f %.2f %.2f", target.x, target.y, target.a);
+        // LOG_DBG("speed: %.2f %.2f %.2f", motors_v.v1, motors_v.v2, motors_v.v3);
         k_sleep(K_MSEC((uint64_t)CONTROL_PERIOD_MS));
     }
     LOG_INF("control task done (ret=%d)", ret);

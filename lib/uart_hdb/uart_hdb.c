@@ -21,22 +21,20 @@ void uart_hdb_thread(void* arg1, void* arg2, void* arg3) {
     uart_hdb_t* device = (uart_hdb_t*)arg1;
     LOG_INF("uart_hdb thread launched");
     while (1) {
-        static int t = 0;
         uart_hdb_msg_t msg;
         k_msgq_get(&device->frame_queue, &msg, K_FOREVER);
         if (!msg.data_size) {
             LOG_DBG("data_size = 0");
             continue;
         }
-        LOG_DBG("message received: %02x %02x %02x %02x %02x %02x %02x %02x",
-            msg.data[0], msg.data[1], msg.data[2], msg.data[3], msg.data[4],
-            msg.data[5], msg.data[6], msg.data[7]);
+        // LOG_DBG("message received: %02x %02x %02x %02x",
+        //     msg.data[0], msg.data[1], msg.data[2], msg.data[3]);
+        // LOG_DBG("message received: %02x %02x %02x %02x %02x %02x %02x %02x",
+        //     msg.data[0], msg.data[1], msg.data[2], msg.data[3], msg.data[4],
+        //     msg.data[5], msg.data[6], msg.data[7]);
         for (size_t i = 0; i < msg.data_size; i++) {
             uart_poll_out(device->uart, msg.data[i]);
         }
-        // for (int y = 0; y<100; y++) {
-        //     LOG_DBG("%d", t++);
-        // }
         if (msg.answer_buffer) {
             // do {
             //     uart_poll_in(device->uart, &msg.answer_buffer[0]);
@@ -54,11 +52,11 @@ void uart_hdb_thread(void* arg1, void* arg2, void* arg3) {
                 }
             }
             *msg.answer_received = true;
-            LOG_DBG("reply received: %02x %02x %02x %02x %02x %02x %02x %02x",
-                msg.answer_buffer[0], msg.answer_buffer[1],
-                msg.answer_buffer[2], msg.answer_buffer[3],
-                msg.answer_buffer[4], msg.answer_buffer[5],
-                msg.answer_buffer[6], msg.answer_buffer[7]);
+            // LOG_DBG("reply received: %02x %02x %02x %02x %02x %02x %02x %02x",
+            //     msg.answer_buffer[0], msg.answer_buffer[1],
+            //     msg.answer_buffer[2], msg.answer_buffer[3],
+            //     msg.answer_buffer[4], msg.answer_buffer[5],
+            //     msg.answer_buffer[6], msg.answer_buffer[7]);
         }
         k_sleep(K_USEC(50));
     }

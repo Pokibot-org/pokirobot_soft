@@ -4,7 +4,7 @@ menu "PokiSettings"
 
 config CONTROL_TASK
     bool "enable control task"
-    default n
+    default y
 config CONTROL_THREAD_STACK
     int "stack size"
     default 1024

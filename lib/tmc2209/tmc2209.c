@@ -2,6 +2,7 @@
 
 #include <zephyr.h>
 
+#include "sys/util.h"
 #include "uart_hdb/uart_hdb.h"
 #include <drivers/uart.h>
 #include <logging/log.h>
@@ -80,18 +81,56 @@ int tmc2209_init(tmc2209_t* dev, uart_hdb_t* uart_hdb, uint8_t addr) {
     }
     dev->uart_hdb = uart_hdb;
     dev->addr = addr;
+    tmc2209_set_senddelay(dev, 2);
+    tmc2209_set_mres(dev, TMC2209_MRES_256);
     LOG_INF("tmc2209 <%p> init ok", (void*)dev);
     return ret;
 }
 
 int tmc2209_set_speed(tmc2209_t* dev, int32_t speed) {
     // LOG_DBG("tmc2209_set_speed");
+    // switch (dev->addr) {
+    // case 0:
+    //     speed *= 1;
+    //     break;
+    // case 1:
+    //     speed *= 4;
+    //     break;
+    // case 2:
+    //     speed *= 8;
+    //     break;
+    // }
     int ret = 0;
     if (speed < TMC2209_VACTUAL_MIN || speed > TMC2209_VACTUAL_MAX) {
         ret = TMC2209_ERR_SPEED_RANGE;
         goto exit;
     }
     tmc2209_wrequest(dev, TMC2209_REG_VACTUAL, speed);
+exit:
+    return ret;
+}
+
+int tmc2209_set_senddelay(tmc2209_t* dev, uint32_t senddelay) {
+    int ret = 0;
+    uint32_t data = FIELD_PREP(GENMASK(11, 8), senddelay);
+    tmc2209_wrequest(dev, TMC2209_REG_SLAVECONF, data);
+exit:
+    return ret;
+}
+
+int tmc2209_set_mres(tmc2209_t* dev, uint32_t mres) {
+    int ret = 0;
+    uint32_t gconf = TMC2209_GCONF_DEFAULT | FIELD_PREP(GENMASK(7, 7), TMC2209_MSTEP_REG_SELECT);
+    tmc2209_wrequest(dev, TMC2209_REG_GCONF, gconf);
+    uint32_t chopconf = TMC2209_CHOPCONF_DEFAULT | FIELD_PREP(GENMASK(27, 24), mres);
+    tmc2209_wrequest(dev, TMC2209_REG_CHOPCONF, chopconf);
+exit:
+    return ret;
+}
+
+int tmc2209_get_gconf(tmc2209_t* dev, uint32_t* gconf) {
+    int ret = 0;
+    tmc2209_rrequest(dev, TMC2209_REG_GCONF, gconf);
 exit:
     return ret;
 }
