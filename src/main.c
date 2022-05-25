@@ -85,8 +85,8 @@ void match() {
     LOG_DBG("side= %d", side);
     pos2_t dst_1 = {200.0f, 900.0f, 0.25f * M_PI};
     if (side == SIDE_YELLOW) {
-        dst.x = -dst.x;
-        dst.a = -dst.a;
+        dst_1.x = -dst_1.x;
+        dst_1.a = -dst_1.a;
     }
     LOG_DBG("go to target 1");
     control_set_target(&shared_ctrl, dst_1);

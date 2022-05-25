@@ -142,10 +142,8 @@ uint8_t process_lidar_message(
         obstacle_holder_clear(
             &obj->obstacles_holders[obj->current_obs_holder_index]);
         obj->current_obs_holder_index = !obj->current_obs_holder_index;
-        if (obstacle_detected) {
-            if (obj->collision_callback) {
-                obj->collision_callback(obstacle_detected);
-            }
+        if (obj->collision_callback) {
+            obj->collision_callback(obstacle_detected);
         }
         obstacle_detected = false;
     }
