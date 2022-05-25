@@ -39,7 +39,9 @@ static obstacle_manager_t obs_man_obj = {0};
 K_SEM_DEFINE(obsacle_holder_lock, 1, 1);
 // PRIVATE DEF
 #define CAMSENSE_FACTORY_CENTER_OFFSET_DEG 16.0f
-#define CAMSENSE_CENTER_OFFSET_DEG (CAMSENSE_FACTORY_CENTER_OFFSET_DEG)
+#define CAMSENSE_OFFSET_IN_ROBOT (180.0f * 2 / 3)
+#define CAMSENSE_CENTER_OFFSET_DEG                                             \
+    (CAMSENSE_FACTORY_CENTER_OFFSET_DEG + CAMSENSE_OFFSET_IN_ROBOT)
 // #define LIDAR_COUNTER_CLOCKWISE
 #define LIDAR_DETECTION_DISTANCE_MM 200
 // 360 == detecting obstacles even behind
@@ -72,7 +74,8 @@ uint8_t process_point(
     pos2_t actual_robot_pos;
     control_get_pos(&shared_ctrl, &actual_robot_pos);
 
-    // LOG_INF("IN PROCESS POINT: angle: %f, distance: %d", point_angle, point_distance);
+    // LOG_INF("IN PROCESS POINT: angle: %f, distance: %d", point_angle,
+    // point_distance);
 
     if (((point_distance < ROBOT_MAX_RADIUS_MM) &&
             (fabsf(point_angle) > LIDAR_DETECTION_ANGLE / 2)) ||
@@ -148,8 +151,7 @@ uint8_t process_lidar_message(
     }
     old_end_angle = message->end_angle;
 
-    for (int i = 0; i < NUMBER_OF_LIDAR_POINTS; i++)
-    {
+    for (int i = 0; i < NUMBER_OF_LIDAR_POINTS; i++) {
         decimation_counter =
             (decimation_counter + 1) % OBSTACLE_MANAGER_DECIMATION_FACTOR;
         if (decimation_counter) {
@@ -166,6 +168,12 @@ uint8_t process_lidar_message(
             float point_angle = (message->start_angle + step * i) -
                                 (-CAMSENSE_CENTER_OFFSET_DEG + 180.0f);
 #endif
+            if (point_angle > 180.0f) {
+                point_angle -= 360.0f;
+            } else if (point_angle < -180.0f) {
+                point_angle += 360.0f;
+            }
+
             uint8_t err_code = process_point(
                 &obs_man_obj, message->points[i].distance, point_angle);
             if (err_code == 1) // 0 ok, 1 in front of robot, 2 outside table
