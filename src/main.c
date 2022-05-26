@@ -163,8 +163,16 @@ void match_2() {
         GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
     static const struct gpio_dt_spec sw_side =
         GPIO_DT_SPEC_GET(DT_ALIAS(sw_side), gpios);
+    static const struct gpio_dt_spec sw_power =
+        GPIO_DT_SPEC_GET(DT_ALIAS(sw_power), gpios);
+        
     obstacle_manager_init(collision_callback);
     int ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
+    if (ret < 0) {
+        LOG_ERR("failed to init led");
+        goto exit;
+    }
+    ret = gpio_pin_configure_dt(&sw_power, GPIO_INPUT);
     if (ret < 0) {
         LOG_ERR("failed to init led");
         goto exit;
@@ -194,21 +202,29 @@ void match_2() {
         goto exit;
     }
     pokarm_up();
+    figurine_lifter_up_inside();
+    pokibrain_init(NULL, 0, NULL, end_game_callback);
     LOG_INF("MATCH INIT DONE");
-    LOG_INF("MATCH WAIT FOR TASKS");
-    while (1) {
-        if (!shared_ctrl.ready) {
-            k_sleep(K_MSEC(100));
-            continue;
-        }
-        break;
+    LOG_INF("MATCH WAIT FOR TASKS AND POWER");
+    
+    while (!gpio_pin_get_dt(&sw_power))
+    {
+        k_sleep(K_MSEC(1));
     }
-    k_sleep(K_MSEC(1000));
+    LOG_INF("POWER IS UP!");
+    shared_ctrl.start_init = true;
+
+    LOG_INF("MATCH WAIT FOR TASKS");
+    control_task_wait_ready();
+
+    k_sleep(K_MSEC(500));
+    hmi_led_success();
+
     LOG_INF("MATCH WAIT FOR STARTER KEY");
     tirette_wait_until_released();
-    hmi_led_success();
     LOG_INF("MATCH START");
-    k_sleep(K_MSEC(1000));
+    pokibrain_start();
+    k_sleep(K_MSEC(1000)); // delay before going away not to let the key halfway in
     shared_ctrl.start = true;
     int side = gpio_pin_get_dt(&sw_side);
     LOG_DBG("side= %d", side);
@@ -296,8 +312,16 @@ void match_3() {
         GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
     static const struct gpio_dt_spec sw_side =
         GPIO_DT_SPEC_GET(DT_ALIAS(sw_side), gpios);
+    static const struct gpio_dt_spec sw_power =
+        GPIO_DT_SPEC_GET(DT_ALIAS(sw_power), gpios);
+        
     obstacle_manager_init(collision_callback);
     int ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
+    if (ret < 0) {
+        LOG_ERR("failed to init led");
+        goto exit;
+    }
+    ret = gpio_pin_configure_dt(&sw_power, GPIO_INPUT);
     if (ret < 0) {
         LOG_ERR("failed to init led");
         goto exit;
@@ -327,21 +351,29 @@ void match_3() {
         goto exit;
     }
     pokarm_up();
+    figurine_lifter_up_inside();
+    pokibrain_init(NULL, 0, NULL, end_game_callback);
     LOG_INF("MATCH INIT DONE");
-    LOG_INF("MATCH WAIT FOR TASKS");
-    while (1) {
-        if (!shared_ctrl.ready) {
-            k_sleep(K_MSEC(100));
-            continue;
-        }
-        break;
+    LOG_INF("MATCH WAIT FOR TASKS AND POWER");
+    
+    while (!gpio_pin_get_dt(&sw_power))
+    {
+        k_sleep(K_MSEC(1));
     }
-    k_sleep(K_MSEC(1000));
+    LOG_INF("POWER IS UP!");
+    shared_ctrl.start_init = true;
+
+    LOG_INF("MATCH WAIT FOR TASKS");
+    control_task_wait_ready();
+
+    k_sleep(K_MSEC(500));
+    hmi_led_success();
+
     LOG_INF("MATCH WAIT FOR STARTER KEY");
     tirette_wait_until_released();
-    hmi_led_success();
     LOG_INF("MATCH START");
-    k_sleep(K_MSEC(1000));
+    pokibrain_start();
+    k_sleep(K_MSEC(1000)); // delay before going away not to let the key halfway in
     shared_ctrl.start = true;
     int side = gpio_pin_get_dt(&sw_side);
     LOG_DBG("side= %d", side);
