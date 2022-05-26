@@ -16,6 +16,7 @@
         servo-arm = &servo_1;
         servo-dicristaline1 = &servo_2;
         servo-dicristaline2 = &servo_3;
+        sw-power = &button6;
     };
 
     gpio_keys {
@@ -42,6 +43,10 @@
         };
         button5: button_5 {
             gpios = <&gpioc 4 GPIO_ACTIVE_HIGH>;
+            label = "tirette";
+        };
+        button6: button_6 {
+            gpios = <&gpiob 13 GPIO_ACTIVE_HIGH>;
             label = "tirette";
         };
     };

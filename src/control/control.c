@@ -159,6 +159,11 @@ static int control_task(void) {
     vel2_t world_vel = { .vx = 0.0f, .vy = 0.0f, .w = 0.0f};
     vel2_t local_vel = { .vx = 0.0f, .vy = 0.0f, .w = 0.0f};
     omni3_t motors_v = { .v1 = 0.0f, .v2 = 0.0f, .v3 = 0.0f};
+    while (!shared_ctrl.start_init)
+    {
+        k_sleep(K_MSEC(1));
+    }
+    
     if (control_init(
             &shared_ctrl, &train_motor_1, &train_motor_2, &train_motor_3)) {
         LOG_ERR("failed to init control object");

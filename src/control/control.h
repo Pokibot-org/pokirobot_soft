@@ -34,6 +34,7 @@ typedef struct omni3 {
 
 typedef struct control {
     bool start;
+    bool start_init;
     bool brake;
     bool ready;
     LOCKVAR(pos2_t) pos;
