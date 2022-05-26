@@ -161,6 +161,19 @@ void control_task_wait_ready() {
     }
 }
 
+void control_task_wait_target(float planar_sensivity, float angular_sensivity,
+        uint32_t timeout_ms) {
+    shared_ctrl.planar_target_sensivity = planar_sensivity;
+    shared_ctrl.angular_target_sensivity = angular_sensivity;
+    shared_ctrl.at_target = false;
+    for (int i = 0; i < timeout_ms; i++) {
+        if (shared_ctrl.at_target) {
+            break;
+        }
+    }
+    return shared_ctrl.at_target;
+}
+
 static void control_task_wait_start() {
     while (!shared_ctrl.start) {
         k_sleep(K_MSEC(10));

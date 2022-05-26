@@ -71,6 +71,7 @@ omni3_t omni_from_local_vel(vel2_t local_vel);
 vel2_t local_vel_from_omni(omni3_t omni);
 
 void control_task_wait_ready();
+void control_task_wait_target();
 
 void _test_gconf();
 void _test_motor_cmd();
