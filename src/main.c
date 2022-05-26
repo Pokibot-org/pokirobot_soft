@@ -23,7 +23,7 @@ void collision_callback(bool collision) {
     if (collision) {
         LOG_INF("Collision detected");
     }
-    //shared_ctrl.brake = collision;
+    shared_ctrl.brake = collision;
 }
 
 
@@ -86,7 +86,7 @@ void match() {
     LOG_DBG("side= %d", side);
     pos2_t dst_1 = {200.0f, 900.0f, 0.5f * M_PI};
     if (side == SIDE_YELLOW) {
-        dst_1.x = -dst_1.x; 
+        dst_1.y = -dst_1.y; 
         dst_1.a = -dst_1.a; 
     }
     LOG_DBG("go to target 1");
@@ -100,11 +100,11 @@ void match() {
     LOG_DBG("go to target 2");
     pos2_t dst_2 = {300.0f, 1800.0f, 0.5f * M_PI};
     if (side == SIDE_YELLOW) {
-        dst_2.x = -dst_2.x; 
+        dst_2.y = -dst_2.y; 
         dst_2.a = -dst_2.a; 
     }
     control_set_target(&shared_ctrl, dst_2);
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < 200; i++) {
         gpio_pin_toggle(led.port, led.pin);
         k_sleep(K_MSEC(100));
     }

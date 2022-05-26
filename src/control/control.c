@@ -178,9 +178,9 @@ static int control_task(void) {
         };
         // update speed
         if (shared_ctrl.brake) {
-            world_vel = (vel2_t){0};
-            local_vel = (vel2_t){0};
-            motors_v = (omni3_t){0};
+            world_vel = (vel2_t){.vx = 0.0f, .vy = 0.0f, .w = 0.0f};
+            local_vel = (vel2_t){.vx = 0.0f, .vy = 0.0f, .w = 0.0f};
+            motors_v = (omni3_t){.v1 = 0.0f, .v2 = 0.0f, .v3 = 0.0f};
         } else {
             control_get_target(&shared_ctrl, &target);
             world_vel = world_vel_from_delta(pos2_diff(target, pos), world_vel);
@@ -260,6 +260,8 @@ void _test_motor_cmd() {
 }
 
 void _test_target() {
+    LOG_INF("_test_target");
+    shared_init();
     static const struct gpio_dt_spec led =
         GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
 #if !(CONFIG_CONTROL_TASK)
@@ -273,9 +275,19 @@ void _test_target() {
         break;
     }
     shared_ctrl.start = true;
+    k_sleep(K_MSEC(5000));
     while(1) {
         gpio_pin_toggle(led.port, led.pin);
-        control_set_target(&shared_ctrl, (pos2_t){1000.0f, 1000.0f, 2.0f*M_PI});
+        control_set_target(&shared_ctrl, (pos2_t){100.0f, 100.0f, 1.0f*M_PI});
+        LOG_DBG("1");
+        k_sleep(K_MSEC(5000));
+        gpio_pin_toggle(led.port, led.pin);
+        control_set_target(&shared_ctrl, (pos2_t){0.0f, 0.0f, 0.0f*M_PI});
+        LOG_DBG("2");
+        k_sleep(K_MSEC(5000));
+        gpio_pin_toggle(led.port, led.pin);
+        control_set_target(&shared_ctrl, (pos2_t){100.0f, -100.0f, -2.0f*M_PI});
+        LOG_DBG("3");
         k_sleep(K_MSEC(5000));
     }
 }
