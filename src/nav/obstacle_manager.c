@@ -43,7 +43,7 @@ K_SEM_DEFINE(obsacle_holder_lock, 1, 1);
 #define CAMSENSE_CENTER_OFFSET_DEG                                             \
     (CAMSENSE_FACTORY_CENTER_OFFSET_DEG + CAMSENSE_OFFSET_IN_ROBOT)
 // #define LIDAR_COUNTER_CLOCKWISE
-#define LIDAR_DETECTION_DISTANCE_MM 340
+#define LIDAR_DETECTION_DISTANCE_MM 250
 // 360 == detecting obstacles even behind
 #define LIDAR_DETECTION_ANGLE 360
 // FUNC

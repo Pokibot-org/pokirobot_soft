@@ -27,7 +27,7 @@ void collision_callback(bool collision) {
 }
 
 
-void match() {
+void match_1() {
     LOG_INF("MATCH INIT");
     // hmi_led_init();
     // hmi_led_error();
@@ -84,26 +84,42 @@ void match() {
     shared_ctrl.start = true;
     int side = gpio_pin_get_dt(&sw_side);
     LOG_DBG("side= %d", side);
-    pos2_t dst_1 = {0.0f, 1000.0f, 0.0f * M_PI};
+
+    LOG_DBG("go to target 1");
+    pos2_t dst_1 = {770.0f, 350.0f, 0.5f * M_PI};
     if (side == SIDE_YELLOW) {
-        dst_1.y = -dst_1.y; 
+        dst_1.x = -dst_1.x; 
         dst_1.a = -dst_1.a; 
     }
-    LOG_DBG("go to target 1");
     control_set_target(&shared_ctrl, dst_1);
     for (int i = 0; i < 200; i++) {
         gpio_pin_toggle(led.port, led.pin);
         k_sleep(K_MSEC(100));
     }
-    LOG_DBG("sending pokarm out");
-    pokarm_pos_put_haxagone_display();
+
     LOG_DBG("go to target 2");
-    pos2_t dst_2 = {300.0f, 1800.0f, 0.5f * M_PI};
+    pos2_t dst_2 = {770.0f, 640.0f, 0.5f * M_PI};
     if (side == SIDE_YELLOW) {
-        dst_2.y = -dst_2.y; 
+        dst_2.x = -dst_2.x; 
         dst_2.a = -dst_2.a; 
     }
     control_set_target(&shared_ctrl, dst_2);
+    for (int i = 0; i < 40; i++) {
+        gpio_pin_toggle(led.port, led.pin);
+        k_sleep(K_MSEC(100));
+    }
+    LOG_DBG("sending pokarm out");
+    pokarm_pos_put_haxagone_display();
+    k_sleep(K_MSEC(1000));
+
+    LOG_DBG("go to target 3");
+    pos2_t dst_3 = {950.0f, 700.0f, 0.5f * M_PI};
+    // pos2_t dst_3 = {0.0f, 0.0f, 100.0f * M_PI};
+    if (side == SIDE_YELLOW) {
+        dst_3.x = -dst_3.x; 
+        dst_3.a = -dst_3.a; 
+    }
+    control_set_target(&shared_ctrl, dst_3);
     for (int i = 0; i < 200; i++) {
         gpio_pin_toggle(led.port, led.pin);
         k_sleep(K_MSEC(100));
@@ -135,7 +151,7 @@ int main(void) {
     // _test_motor_cmd();
     // _test_target();
     // _test_calibration();
-    match();
+    match_1();
 exit:
     return ret;
 }

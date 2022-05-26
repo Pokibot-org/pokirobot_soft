@@ -56,6 +56,7 @@ CONTROL_LOCKVAR_GETTER(target, pos2_t)
 
 
 int control_init(control_t* ctrl, tmc2209_t* m1, tmc2209_t* m2, tmc2209_t* m3) {
+    k_sleep(K_MSEC(1000));
     int ret = 0;
     ctrl->start = false;
     ctrl->brake = false;
@@ -66,17 +67,20 @@ int control_init(control_t* ctrl, tmc2209_t* m1, tmc2209_t* m2, tmc2209_t* m3) {
     ctrl->m1 = m1;
     ctrl->m2 = m2;
     ctrl->m3 = m3;
-    if (tmc2209_init(ctrl->m1, &steppers_uart_hdb, 0)) {
-        LOG_ERR("failed to init control motor 1");
-        ret = -1;
-    }
-    if (tmc2209_init(ctrl->m2, &steppers_uart_hdb, 1)) {
-        LOG_ERR("failed to init control motor 2");
-        ret = -1;
-    }
-    if (tmc2209_init(ctrl->m3, &steppers_uart_hdb, 2)) {
-        LOG_ERR("failed to init control motor 3");
-        ret = -1;
+    for (int i = 0; i<10; i++) {
+        if (tmc2209_init(ctrl->m1, &steppers_uart_hdb, 0)) {
+            LOG_ERR("failed to init control motor 1");
+            ret = -1;
+        }
+        if (tmc2209_init(ctrl->m2, &steppers_uart_hdb, 1)) {
+            LOG_ERR("failed to init control motor 2");
+            ret = -1;
+        }
+        if (tmc2209_init(ctrl->m3, &steppers_uart_hdb, 2)) {
+            LOG_ERR("failed to init control motor 3");
+            ret = -1;
+        }
+        k_sleep(K_MSEC(10));
     }
     ctrl->ready = true;
     return ret;
@@ -121,8 +125,8 @@ vel2_t world_vel_from_local(pos2_t pos, vel2_t local_vel) {
 
 vel2_t local_vel_from_world(pos2_t pos, vel2_t world_vel) {
     vel2_t local_vel = {
-        .vx = cosf(pos.a) * world_vel.vx + sinf(pos.a) * world_vel.vy,
-        .vy = -sinf(pos.a) * world_vel.vx + cosf(pos.a) * world_vel.vy,
+        .vx = cosf(pos.a) * world_vel.vx - sinf(pos.a) * world_vel.vy,
+        .vy = sinf(pos.a) * world_vel.vx + cosf(pos.a) * world_vel.vy,
         .w = world_vel.w,
     };
     return local_vel;
@@ -151,10 +155,10 @@ omni3_t omni_from_local_vel(vel2_t local_vel) {
 static int control_task(void) {
     LOG_INF("control task init");
     int ret = 0;
-    pos2_t pos = {0};
-    vel2_t world_vel = {0};
-    vel2_t local_vel = {0};
-    omni3_t motors_v = {0};
+    pos2_t pos = {.x = 0.0f, .y = 0.0f, .a= 0.0f};
+    vel2_t world_vel = { .vx = 0.0f, .vy = 0.0f, .w = 0.0f};
+    vel2_t local_vel = { .vx = 0.0f, .vy = 0.0f, .w = 0.0f};
+    omni3_t motors_v = { .v1 = 0.0f, .v2 = 0.0f, .v3 = 0.0f};
     if (control_init(
             &shared_ctrl, &train_motor_1, &train_motor_2, &train_motor_3)) {
         LOG_ERR("failed to init control object");
@@ -198,7 +202,7 @@ static int control_task(void) {
         // sleep
         // LOG_DBG("pos: %.2f %.2f %.2f", pos.x, pos.y, pos.a);
         // LOG_DBG("target: %.2f %.2f %.2f", target.x, target.y, target.a);
-        // LOG_DBG("speed: %.2f %.2f %.2f", motors_v.v1, motors_v.v2, motors_v.v3);
+        LOG_DBG("speed: %.2f %.2f %.2f", motors_v.v1, motors_v.v2, motors_v.v3);
         k_sleep(K_MSEC((uint64_t)CONTROL_PERIOD_MS));
     }
     LOG_INF("control task done (ret=%d)", ret);
@@ -317,13 +321,21 @@ void _test_calibration() {
     LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y, shared_ctrl.pos.val.a);
     LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.target.val.x, shared_ctrl.target.val.y, shared_ctrl.target.val.a);
     // gpio_pin_toggle(led.port, led.pin);
-    // control_set_target(&shared_ctrl, (pos2_t){0.0f, 1300.0f, 0.0f * M_PI});
-    // k_sleep(K_MSEC(15000));
-    // LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y, shared_ctrl.pos.val.a);
-    // LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.target.val.x, shared_ctrl.target.val.y, shared_ctrl.target.val.a);
-    // gpio_pin_toggle(led.port, led.pin);
     control_set_target(&shared_ctrl, (pos2_t){0.0f, 0.0f, 10.0f * M_PI});
     k_sleep(K_MSEC(15000));
     LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y, shared_ctrl.pos.val.a);
     LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.target.val.x, shared_ctrl.target.val.y, shared_ctrl.target.val.a);
+    // gpio_pin_toggle(led.port, led.pin);
+    // control_set_target(&shared_ctrl, (pos2_t){0.0f, 1000.0f, 0.0f * M_PI});
+    // k_sleep(K_MSEC(10000));
+    // LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y, shared_ctrl.pos.val.a);
+    // LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.target.val.x, shared_ctrl.target.val.y, shared_ctrl.target.val.a);
+    // control_set_target(&shared_ctrl, (pos2_t){0.0f, 1000.0f, 0.5f * M_PI});
+    // k_sleep(K_MSEC(5000));
+    // LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y, shared_ctrl.pos.val.a);
+    // LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.target.val.x, shared_ctrl.target.val.y, shared_ctrl.target.val.a);
+    // control_set_target(&shared_ctrl, (pos2_t){1000.0f, 1000.0f, 0.5f * M_PI});
+    // k_sleep(K_MSEC(5000));
+    // LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y, shared_ctrl.pos.val.a);
+    // LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.target.val.x, shared_ctrl.target.val.y, shared_ctrl.target.val.a);
 }

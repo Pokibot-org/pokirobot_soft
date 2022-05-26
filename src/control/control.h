@@ -15,15 +15,15 @@
 #define WHEEL_PERIMETER 267.840f
 #define MM_TO_USTEPS 95238.0f
 
-#define PLANAR_VMAX 200.0f // 100 mm/s
+#define PLANAR_VMAX 200.0f // 200 mm/s
 #define PLANAR_FACTOR (0.007f * PLANAR_VMAX)
 #define PLANAR_RAMP                                                            \
-    (0.1f * PLANAR_VMAX * CONTROL_PERIOD_MS) // 1/0.2 seconds to reach vmax
+    (1.0f * PLANAR_VMAX * CONTROL_PERIOD_MS / 1000.0f) // 1/0.2 seconds to reach vmax
 
-#define ANGULAR_VMAX (0.5f * M_PI) // 0.1 rotation/s
+#define ANGULAR_VMAX (0.5f * M_PI) // 0.5 rotation/s
 #define ANGULAR_FACTOR (0.5f * ANGULAR_VMAX)
 #define ANGULAR_RAMP                                                           \
-    (0.1f * ANGULAR_VMAX * CONTROL_PERIOD_MS) // 1/0.2 seconds to reach vmax
+    (1.0f * ANGULAR_VMAX * CONTROL_PERIOD_MS / 1000.0f) // 1/0.1 seconds to reach vmax
 
 
 typedef struct omni3 {
