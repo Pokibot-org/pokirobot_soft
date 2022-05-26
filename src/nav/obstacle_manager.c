@@ -13,7 +13,7 @@ LOG_MODULE_REGISTER(obstacle_manager, 3);
 
 // DEFINES
 #define MAX_LIDAR_MESSAGE 6
-
+#define CHECK_IF_OBSTACLE_INSIDE_TABLE 0
 #define OBSTACLE_MANAGER_DECIMATION_FACTOR 4
 // TYPES
 
@@ -43,7 +43,7 @@ K_SEM_DEFINE(obsacle_holder_lock, 1, 1);
 #define CAMSENSE_CENTER_OFFSET_DEG                                             \
     (CAMSENSE_FACTORY_CENTER_OFFSET_DEG + CAMSENSE_OFFSET_IN_ROBOT)
 // #define LIDAR_COUNTER_CLOCKWISE
-#define LIDAR_DETECTION_DISTANCE_MM 200
+#define LIDAR_DETECTION_DISTANCE_MM 340
 // 360 == detecting obstacles even behind
 #define LIDAR_DETECTION_ANGLE 360
 // FUNC
@@ -109,7 +109,7 @@ uint8_t process_point(
     // tools/lidar_point_visualiser.py printk("<%hd:%hd>\n",
     // new_obstacle.data.circle.coordinates.x,
     // new_obstacle.data.circle.coordinates.y);
-
+    #if CHECK_IF_OBSTACLE_INSIDE_TABLE
     // REMOVE THE POINTS IF THERE ARE NOT IN THE TABLE!
     if (new_obstacle.data.circle.coordinates.x < 0 ||
         new_obstacle.data.circle.coordinates.x > 3000 ||
@@ -117,6 +117,7 @@ uint8_t process_point(
         new_obstacle.data.circle.coordinates.y > 2000) {
         return 2;
     }
+    #endif
     obstacle_holder_push(
         &obj->obstacles_holders[obj->current_obs_holder_index], &new_obstacle);
 
