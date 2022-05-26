@@ -62,7 +62,7 @@ void main(void)
             .completiton_callback = pokibrain_completion_put_smth
         }
         };
-    pokibrain_init(tasks, sizeof(tasks)/sizeof(tasks[0]), &world_context);
+    pokibrain_init(tasks, sizeof(tasks)/sizeof(tasks[0]), &world_context, NULL);
     pokibrain_start();
     while (1)
     {

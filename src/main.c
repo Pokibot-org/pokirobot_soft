@@ -8,6 +8,7 @@
 #include "kernel.h"
 #include "nav/obstacle_manager.h"
 #include "pokarm/pokarm.h"
+#include "pokibrain/pokibrain.h"
 #include "shared.h"
 #include "tirette/tirette.h"
 #include "tmc2209/tmc2209.h"
@@ -26,6 +27,15 @@ void collision_callback(bool collision) {
     shared_ctrl.brake = collision;
 }
 
+void end_game_callback(void) {
+    LOG_INF("MATCH IS OVER");
+    shared_ctrl.brake = true;
+    pokarm_up();
+    k_sleep(K_MSEC(100));
+    k_sched_lock();
+    while (1) {
+    }
+}
 
 void match_1() {
     LOG_INF("MATCH INIT");
@@ -66,6 +76,7 @@ void match_1() {
         goto exit;
     }
     pokarm_up();
+    pokibrain_init(NULL, 0, NULL, end_game_callback);
     LOG_INF("MATCH INIT DONE");
     LOG_INF("MATCH WAIT FOR TASKS");
     while (1) {
@@ -78,6 +89,7 @@ void match_1() {
     k_sleep(K_MSEC(1000));
     LOG_INF("MATCH WAIT FOR STARTER KEY");
     tirette_wait_until_released();
+    pokibrain_start();
     hmi_led_success();
     LOG_INF("MATCH START");
     k_sleep(K_MSEC(1000));
@@ -88,8 +100,8 @@ void match_1() {
     LOG_DBG("go to target 1");
     pos2_t dst_1 = {770.0f, 350.0f, 0.5f * M_PI};
     if (side == SIDE_YELLOW) {
-        dst_1.x = -dst_1.x; 
-        dst_1.a = -dst_1.a; 
+        dst_1.x = -dst_1.x;
+        dst_1.a = -dst_1.a;
     }
     control_set_target(&shared_ctrl, dst_1);
     for (int i = 0; i < 200; i++) {
@@ -100,8 +112,8 @@ void match_1() {
     LOG_DBG("go to target 2");
     pos2_t dst_2 = {770.0f, 640.0f, 0.5f * M_PI};
     if (side == SIDE_YELLOW) {
-        dst_2.x = -dst_2.x; 
-        dst_2.a = -dst_2.a; 
+        dst_2.x = -dst_2.x;
+        dst_2.a = -dst_2.a;
     }
     control_set_target(&shared_ctrl, dst_2);
     for (int i = 0; i < 40; i++) {
@@ -116,19 +128,13 @@ void match_1() {
     pos2_t dst_3 = {950.0f, 700.0f, 0.5f * M_PI};
     // pos2_t dst_3 = {0.0f, 0.0f, 100.0f * M_PI};
     if (side == SIDE_YELLOW) {
-        dst_3.x = -dst_3.x; 
-        dst_3.a = -dst_3.a; 
+        dst_3.x = -dst_3.x;
+        dst_3.a = -dst_3.a;
     }
     control_set_target(&shared_ctrl, dst_3);
     for (int i = 0; i < 200; i++) {
         gpio_pin_toggle(led.port, led.pin);
         k_sleep(K_MSEC(100));
-    }
-    shared_ctrl.brake = true;
-    pokarm_up();
-    k_sleep(K_MSEC(100));
-    k_sched_lock();
-    while (1) {
     }
 exit:
     LOG_INF("MATCH DONE (ret: %d)", ret);

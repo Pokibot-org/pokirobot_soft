@@ -31,6 +31,8 @@ typedef int32_t (*pokibrain_reward_calulation_t)(
 typedef uint8_t (*pokibrain_completion_callback_t)(
     pokibrain_callback_params_t* params);
 
+typedef void (*pokibrain_end_fo_game_callback_t)(void);
+
 typedef struct {
     pos2_t task_position;
     pokibrain_task_function_t task_process;
@@ -40,7 +42,7 @@ typedef struct {
 } pokibrain_task_t;
 
 void pokibrain_init(pokibrain_task_t* tasks, uint32_t number_of_tasks,
-    pokibrain_user_context_t* world_context);
+    pokibrain_user_context_t* world_context, pokibrain_end_fo_game_callback_t end_clbk);
 void pokibrain_start(void);
 void pokibrain_think_now(void);
 #endif
