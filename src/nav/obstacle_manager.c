@@ -5,7 +5,6 @@
 
 #include "control/control.h"
 #include "lidar/camsense_x1/camsense_x1.h"
-#include "obstacles/relative_obstacle_storing.h"
 #include "utils.h"
 #include <logging/log.h>
 
