@@ -84,7 +84,7 @@ void match() {
     shared_ctrl.start = true;
     int side = gpio_pin_get_dt(&sw_side);
     LOG_DBG("side= %d", side);
-    pos2_t dst_1 = {200.0f, 900.0f, 0.5f * M_PI};
+    pos2_t dst_1 = {0.0f, 1000.0f, 0.0f * M_PI};
     if (side == SIDE_YELLOW) {
         dst_1.y = -dst_1.y; 
         dst_1.a = -dst_1.a; 
