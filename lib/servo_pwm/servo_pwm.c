@@ -3,13 +3,11 @@
 #include <math.h>
 #include <zephyr.h>
 
+#include "utils.h"
 #include <drivers/pwm.h>
 #include <logging/log.h>
 
 LOG_MODULE_REGISTER(servo);
-
-#define M_PI 3.14159265358979323846
-
 
 int servo_pwm_set_angle(servo_pwm_t* obj, float angle_rad) {
     float angle_ratio = (angle_rad - obj->config.min_angle) /

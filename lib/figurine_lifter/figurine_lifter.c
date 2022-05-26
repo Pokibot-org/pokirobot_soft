@@ -54,12 +54,28 @@ int figurine_lifter_init(void) {
     return err;
 }
 
+int figurine_lifter_up(void) {
+    int err = 0;
+    err |= servo_pwm_set_angle(&obj.servo_1, 0);
+    return err;
+}
+
 int figurine_lifter_grab(void) {
     int err = 0;
+    err |= servo_pwm_set_angle(&obj.servo_1, M_PI / 2);
+    k_sleep(K_MSEC(100));
+    gpio_pin_set_dt(&obj.magnet_spec, 1);
+    k_sleep(K_MSEC(100));
+    figurine_lifter_up();
     return err;
 }
 
 int figurine_lifter_put(void) {
     int err = 0;
+    err |= servo_pwm_set_angle(&obj.servo_1, M_PI / 2);
+    k_sleep(K_MSEC(100));
+    gpio_pin_set_dt(&obj.magnet_spec, 0);
+    k_sleep(K_MSEC(100));
+    figurine_lifter_up();
     return err;
 }
