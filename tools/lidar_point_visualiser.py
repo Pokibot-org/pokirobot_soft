@@ -19,16 +19,17 @@ def update(i, ax, list_x, list_y):
 
 def read_points_from_serial(list_x, list_y):
     
-    with serial.Serial("/dev/ttyACM1", baudrate=115200) as ser:
+    with serial.Serial("/dev/ttyACM0", baudrate=115200) as ser:
         while True:
             try:
                 line = ser.read_until(b'\n').decode().replace("\n",'').replace("\r",'')
                 if not line.startswith("<") or not line.endswith(">"):
                     continue
-                x, y = [int(a) for a in line.replace(">", "").replace("<","").split(":")]
+                x, y = [float(a) for a in line.replace(">", "").replace("<","").split(":")]
                 mutex.acquire()
                 list_x.append(x) 
                 list_y.append(y)
+                # print(x,y)
                 mutex.release()
             except:
                 pass

@@ -38,12 +38,10 @@ K_MSGQ_DEFINE(obstacle_manager_msgq, sizeof(obstacle_manager_message_t), 10, 1);
 static obstacle_manager_t obs_man_obj = {0};
 K_SEM_DEFINE(obsacle_holder_lock, 1, 1);
 // PRIVATE DEF
-#define CAMSENSE_FACTORY_CENTER_OFFSET_DEG 16.0f
-#define CAMSENSE_OFFSET_IN_ROBOT (180.0f * 2 / 3)
-#define CAMSENSE_CENTER_OFFSET_DEG                                             \
-    (CAMSENSE_FACTORY_CENTER_OFFSET_DEG + CAMSENSE_OFFSET_IN_ROBOT)
+#define CAMSENSE_OFFSET_IN_ROBOT (-180.0f * 3.0f / 4.0f)
+#define CAMSENSE_CENTER_OFFSET_DEG (CAMSENSE_OFFSET_IN_ROBOT)
 // #define LIDAR_COUNTER_CLOCKWISE
-#define LIDAR_DETECTION_DISTANCE_MM 250
+#define LIDAR_DETECTION_DISTANCE_MM 220
 // 360 == detecting obstacles even behind
 #define LIDAR_DETECTION_ANGLE 360
 // FUNC
@@ -93,31 +91,33 @@ uint8_t process_point(
         return_code = 1;
     }
 
-    float point_angle_absolute =
-        ((point_angle * (M_PI / 180.0f)) + actual_robot_pos.a);
-    if (point_angle_absolute < -M_PI_2) {
-        point_angle_absolute += M_PI;
-    } else if (point_angle_absolute > M_PI_2) {
-        point_angle_absolute -= M_PI;
-    }
+    // Calculate point in robot frame of reference
+    float point_angle_rad = point_angle * (M_PI / 180.0f);
+    float point_x_local = cosf(point_angle_rad) * point_distance;
+    float point_y_local = sinf(point_angle_rad) * point_distance;
 
-    new_obstacle.data.circle.coordinates.x =
-        actual_robot_pos.x + sinf(point_angle_absolute) * point_distance;
-    new_obstacle.data.circle.coordinates.y =
-        actual_robot_pos.y + cosf(point_angle_absolute) * point_distance;
-    // Uncomment the following lines if you want to use
-    // tools/lidar_point_visualiser.py printk("<%hd:%hd>\n",
-    // new_obstacle.data.circle.coordinates.x,
-    // new_obstacle.data.circle.coordinates.y);
-    #if CHECK_IF_OBSTACLE_INSIDE_TABLE
+    float point_x_world =  actual_robot_pos.x + point_x_local * cos(actual_robot_pos.a)
+                          - point_y_local * sin(actual_robot_pos.a);
+    
+    float point_y_world =  actual_robot_pos.y + point_x_local * sin(actual_robot_pos.a)
+                          + point_y_local * cos(actual_robot_pos.a);
+    // Calculate point in table frame of reference
+    new_obstacle.data.circle.coordinates.x = point_x_world;
+    new_obstacle.data.circle.coordinates.y = point_y_world;
+
+#if CHECK_IF_OBSTACLE_INSIDE_TABLE
     // REMOVE THE POINTS IF THERE ARE NOT IN THE TABLE!
     if (new_obstacle.data.circle.coordinates.x < 0 ||
-        new_obstacle.data.circle.coordinates.x > 3000 ||
-        new_obstacle.data.circle.coordinates.y < 0 ||
-        new_obstacle.data.circle.coordinates.y > 2000) {
+        new_obstacle.data.circle.coordinates.x > 2000 ||
+        new_obstacle.data.circle.coordinates.y < -1500 ||
+        new_obstacle.data.circle.coordinates.y > 1500) {
         return 2;
     }
-    #endif
+#endif
+    // Uncomment the following lines if you want to use
+    // tools/lidar_point_visualiser.py
+    // printk("<%0.2f:%0.2f>\n", new_obstacle.data.circle.coordinates.x, new_obstacle.data.circle.coordinates.y);
+    //LOG_INF("Local %f %f %f", actual_robot_pos.x,actual_robot_pos.y,actual_robot_pos.a);
     obstacle_holder_push(
         &obj->obstacles_holders[obj->current_obs_holder_index], &new_obstacle);
 
@@ -164,15 +164,9 @@ uint8_t process_lidar_message(
                 360.0f - ((message->start_angle + step * i) +
                              (CAMSENSE_CENTER_OFFSET_DEG + 180.0f));
 #else
-            float point_angle = (message->start_angle + step * i) -
-                                (-CAMSENSE_CENTER_OFFSET_DEG + 180.0f);
+            float point_angle =
+                (message->start_angle + step * i) + CAMSENSE_CENTER_OFFSET_DEG;
 #endif
-            if (point_angle > 180.0f) {
-                point_angle -= 360.0f;
-            } else if (point_angle < -180.0f) {
-                point_angle += 360.0f;
-            }
-
             uint8_t err_code = process_point(
                 &obs_man_obj, message->points[i].distance, point_angle);
             if (err_code == 1) // 0 ok, 1 in front of robot, 2 outside table

@@ -94,9 +94,9 @@ uint8_t path_manager_find_path(
         return -2;
     }
 
-    // if(path_manager_tid != NULL){
-    //     k_thread_abort(path_manager_tid);
-    // }
+    if(path_manager_tid != NULL){
+        k_thread_abort(path_manager_tid);
+    }
     pm_obj.start = start;
     pm_obj.end = end;
     pm_obj.conf = config;
@@ -126,11 +126,11 @@ uint8_t path_manager_find_path(
 #endif
     pathfinding_configuration_t pathfinding_config;
     pathfinding_config.field_boundaries.min_x = 0;
-    pathfinding_config.field_boundaries.min_y = 0;
-    pathfinding_config.field_boundaries.max_x = 3000;            // 3m
-    pathfinding_config.field_boundaries.max_y = 2000;            // 2m
+    pathfinding_config.field_boundaries.min_y = -1500;
+    pathfinding_config.field_boundaries.max_x = 2000;            // 3m
+    pathfinding_config.field_boundaries.max_y = 1500;            // 2m
     pathfinding_config.delta_distance = 200;                     // jump of Xmm
-    pathfinding_config.radius_of_security = ROBOT_MAX_RADIUS_MM; // 300 mm
+    pathfinding_config.radius_of_security = ROBOT_MAX_RADIUS_MM;
     pathfinding_object_configure(&pm_obj.pathfinding_obj, &pathfinding_config);
 
     path_manager_tid = k_thread_create(&path_manager_thread_data,
