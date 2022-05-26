@@ -56,10 +56,13 @@ CONTROL_LOCKVAR_GETTER(target, pos2_t)
 
 
 int control_init(control_t* ctrl, tmc2209_t* m1, tmc2209_t* m2, tmc2209_t* m3) {
-    k_sleep(K_MSEC(1000));
+    k_sleep(K_MSEC(200));
     int ret = 0;
     ctrl->start = false;
     ctrl->brake = false;
+    ctrl->at_target = false;
+    ctrl->planar_target_sensivity = CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT;
+    ctrl->angular_target_sensivity = CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT;
     INIT_LOCKVAR(ctrl->pos);
     INIT_LOCKVAR(ctrl->target);
     control_set_pos(ctrl, (pos2_t){0.0f, 0.0f, 0.0f});
@@ -152,10 +155,23 @@ omni3_t omni_from_local_vel(vel2_t local_vel) {
 }
 
 
+void control_task_wait_ready() {
+    while (!shared_ctrl.ready) {
+        k_sleep(K_MSEC(10));
+    }
+}
+
+static void control_task_wait_start() {
+    while (!shared_ctrl.start) {
+        k_sleep(K_MSEC(10));
+    }
+}
+
+
 static int control_task(void) {
     LOG_INF("control task init");
     int ret = 0;
-    pos2_t pos = {.x = 0.0f, .y = 0.0f, .a= 0.0f};
+    pos2_t pos = {.x = 0.0f, .y = 0.0f, .a = 0.0f};
     vel2_t world_vel = { .vx = 0.0f, .vy = 0.0f, .w = 0.0f};
     vel2_t local_vel = { .vx = 0.0f, .vy = 0.0f, .w = 0.0f};
     omni3_t motors_v = { .v1 = 0.0f, .v2 = 0.0f, .v3 = 0.0f};
@@ -170,9 +186,7 @@ static int control_task(void) {
         ret = -1;
     }
     LOG_INF("control task wait");
-    while (!shared_ctrl.start) {
-        k_sleep(K_MSEC((uint64_t)CONTROL_PERIOD_MS));
-    }
+    control_task_wait_start();
     LOG_INF("control task start");
     while (1) {
         pos2_t target;
@@ -192,7 +206,14 @@ static int control_task(void) {
             motors_v = (omni3_t){.v1 = 0.0f, .v2 = 0.0f, .v3 = 0.0f};
         } else {
             control_get_target(&shared_ctrl, &target);
-            world_vel = world_vel_from_delta(pos2_diff(target, pos), world_vel);
+            pos2_t delta = pos2_diff(target, pos);
+            if (vec2_abs((vec2_t){delta.x, delta.y}) < CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT
+                    && delta.a < CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT) {
+                shared_ctrl.at_target = true;
+            } else {
+                shared_ctrl.at_target = false;
+            }
+            world_vel = world_vel_from_delta(delta, world_vel);
             local_vel = local_vel_from_world(pos, world_vel);
             motors_v = omni_from_local_vel(local_vel);
         }
