@@ -202,7 +202,7 @@ static int control_task(void) {
         // sleep
         // LOG_DBG("pos: %.2f %.2f %.2f", pos.x, pos.y, pos.a);
         // LOG_DBG("target: %.2f %.2f %.2f", target.x, target.y, target.a);
-        LOG_DBG("speed: %.2f %.2f %.2f", motors_v.v1, motors_v.v2, motors_v.v3);
+        // LOG_DBG("speed: %.2f %.2f %.2f", motors_v.v1, motors_v.v2, motors_v.v3);
         k_sleep(K_MSEC((uint64_t)CONTROL_PERIOD_MS));
     }
     LOG_INF("control task done (ret=%d)", ret);
