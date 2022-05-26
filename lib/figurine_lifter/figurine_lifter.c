@@ -54,28 +54,35 @@ int figurine_lifter_init(void) {
     return err;
 }
 
-int figurine_lifter_up(void) {
+int figurine_lifter_up_inside(void) {
     int err = 0;
     err |= servo_pwm_set_angle(&obj.servo_1, 0);
     return err;
 }
 
+int figurine_lifter_up_transport(void) {
+    int err = 0;
+    // err |= servo_pwm_set_angle(&obj.servo_1, M_PI * 0.1);
+    err |= servo_pwm_set_angle_ramp(&obj.servo_1, M_PI * 0.1, 2000);
+    return err;
+}
+
 int figurine_lifter_grab(void) {
     int err = 0;
-    err |= servo_pwm_set_angle(&obj.servo_1, M_PI / 2);
-    k_sleep(K_MSEC(100));
+    err |= servo_pwm_set_angle(&obj.servo_1, M_PI * 0.65);
+    k_sleep(K_MSEC(1000));
     gpio_pin_set_dt(&obj.magnet_spec, 1);
-    k_sleep(K_MSEC(100));
-    figurine_lifter_up();
+    k_sleep(K_MSEC(1000));
+    figurine_lifter_up_transport();
     return err;
 }
 
 int figurine_lifter_put(void) {
     int err = 0;
-    err |= servo_pwm_set_angle(&obj.servo_1, M_PI / 2);
-    k_sleep(K_MSEC(100));
+    err |= servo_pwm_set_angle(&obj.servo_1, M_PI * 0.65);
+    k_sleep(K_MSEC(1000));
     gpio_pin_set_dt(&obj.magnet_spec, 0);
-    k_sleep(K_MSEC(100));
-    figurine_lifter_up();
+    k_sleep(K_MSEC(1000));
+    figurine_lifter_up_inside();
     return err;
 }

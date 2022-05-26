@@ -15,8 +15,11 @@ typedef struct servo_pwm_config {
 typedef struct servo_pwm {
     struct pwm_dt_spec spec;
     servo_pwm_config_t config;
+    float current_angle;
 } servo_pwm_t;
 
 int servo_pwm_init(servo_pwm_t* obj);
 int servo_pwm_set_angle(servo_pwm_t* servo, float angle_rad);
+int servo_pwm_set_angle_ramp(
+    servo_pwm_t* obj, float angle_rad, uint32_t time_ms);
 #endif
