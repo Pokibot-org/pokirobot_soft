@@ -507,6 +507,13 @@ void match_3() {
     }
 end_carrefouille:
     pokarm_up();
+    k_sleep(K_MSEC(500));
+    target = TRANSFORM_SIDE(side, COORDS_CARREFOUILLE_A1);
+    control_set_target(&shared_ctrl, target);
+    at_target = control_task_wait_target_default(10000);
+    if (!at_target) {
+        LOG_INF("abort carrefouille a1");
+    }
 
     LOG_INF("go to statuette");
     target = TRANSFORM_SIDE(side, COORDS_STATUETTE);
@@ -518,9 +525,16 @@ end_carrefouille:
     }
     figurine_lifter_grab();
     LOG_INF("go to vitrine");
-    target = TRANSFORM_SIDE(side, COORDS_VITRINE);
+    target = TRANSFORM_SIDE(side, COORDS_VITRINE_B1);
     control_set_target(&shared_ctrl, target);
     at_target = control_task_wait_target_default(30000);
+    if (!at_target) {
+        LOG_INF("abort statuette target");
+        goto end_statuette;
+    }
+    target = TRANSFORM_SIDE(side, COORDS_VITRINE);
+    control_set_target(&shared_ctrl, target);
+    at_target = control_task_wait_target_default(10000);
     if (!at_target) {
         LOG_INF("abort statuette target");
         goto end_statuette;
@@ -533,10 +547,68 @@ end_statuette:
     target = TRANSFORM_SIDE(side, COORDS_HOME);
     control_set_target(&shared_ctrl, target);
     at_target = control_task_wait_target(50.0f, DEG_TO_RAD(20.0f), 20000);
+    while(1);
+
+exit:
+    end_game_callback();
+    LOG_INF("MATCH DONE (ret: %d)", ret);
+    return;
+}
+
+void test_match() {
+    int ret = 0;
+    static const struct gpio_dt_spec led =
+        GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
+    static const struct gpio_dt_spec sw_side =
+        GPIO_DT_SPEC_GET(DT_ALIAS(sw_side), gpios);
+    static const struct gpio_dt_spec sw_power =
+        GPIO_DT_SPEC_GET(DT_ALIAS(sw_power), gpios);
+
+    match_init();
+    match_wait_start();
+
+    LOG_INF("MATCH START");
+    pokibrain_start();
+    int side = gpio_pin_get_dt(&sw_side);
+    LOG_INF("side= %d", side);
+    pos2_t start_pos = TRANSFORM_SIDE(side, COORDS_START);
+    pos2_t target = start_pos;
+    bool at_target = false;
+    // control_set_pos(&shared_ctrl, (pos2_t){.x = 0.0f, .y = 0.0f, .a = 0.0f});
+    // control_set_target(&shared_ctrl, (pos2_t){.x = 0.0f, .y = 0.0f, .a = 0.0f});
+    control_set_pos(&shared_ctrl, start_pos);
+    control_set_target(&shared_ctrl, start_pos);
+
+    k_sleep(K_MSEC(500)); // delay before going away not to let the key halfway in
+    shared_ctrl.start = true;
+
+    LOG_INF("go to center");
+    pos2_t center = (pos2_t){.x = 0.0f, .y = 1000.0f + OFFSET_WHEEL_EXTERNAL_PROJECTION, .a = 0.0f};
+    target = TRANSFORM_SIDE(side, center);
+    control_set_target(&shared_ctrl, target);
+    at_target = control_task_wait_target_default(20000);
+    if (!at_target) {
+        LOG_INF("abort");
+        goto exit;
+    }
+    pos2_t origin = (pos2_t){.x = 0.0f, .y = 0.0f, .a = 0.0f};
+    target = TRANSFORM_SIDE(side, origin);
+    control_set_target(&shared_ctrl, target);
+    at_target = control_task_wait_target_default(10000);
+    if (!at_target) {
+        LOG_INF("abort");
+        goto exit;
+    }
+    target = TRANSFORM_SIDE(side, COORDS_START);
+    control_set_target(&shared_ctrl, target);
+    at_target = control_task_wait_target_default(10000);
+    if (!at_target) {
+        LOG_INF("abort");
+        goto exit;
+    }
 
 exit:
     pokarm_up();
-    figurine_lifter_put();
     figurine_lifter_up_inside();
     shared_ctrl.brake = true;
     k_sleep(K_MSEC(1000));
@@ -669,7 +741,8 @@ int main(void) {
 
     // match_1();
     // match_2();
-    // match_3();
+    match_3();
+    // test_match();
 
 exit:
     return ret;

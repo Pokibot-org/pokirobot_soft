@@ -29,7 +29,7 @@
 #define COORDS_HOME ((pos2_t){ \
         .x = 1300.0f - OFFSET_EDGE, \
         .y = 1300.0f + OFFSET_WHEEL_EXTERNAL_PROJECTION, \
-        .a = 0.5f * M_PI})
+        .a = -0.5f * M_PI})
 
 
 #define COORDS_CARREFOUILLE ((pos2_t){ \
@@ -38,12 +38,12 @@
         .a = 1.0f * M_PI})
 
 #define COORDS_CARREFOUILLE_B1 ((pos2_t){ \
-        .x = 510.0f, \
+        .x = 925.0f, \
         .y = 575.0f, \
         .a = 1.0f * M_PI})
 
 #define COORDS_CARREFOUILLE_B2 ((pos2_t){ \
-        .x = 510.0f, \
+        .x = 925.0f, \
         .y = 325.0f, \
         .a = 1.0f * M_PI})
 
@@ -52,17 +52,27 @@
         .y = 325.0f, \
         .a = 1.0f * M_PI})
 
+#define COORDS_CARREFOUILLE_A1 ((pos2_t){ \
+        .x = 647.5f, \
+        .y = 325.0f, \
+        .a = (1.0f/2.0f-(1.0f/3.0f+1.0/6.0f+1.0f/12.0f)) * M_PI})
+
 
 #define COORDS_VITRINE ((pos2_t){ \
-        .x = 1135.0f, \
+        .x = 1500.0f - 325.0f - 130.0f, \
         .y = 2000.0f - OFFSET_WHEEL_EXTERNAL_FLAT, \
-        .a = 0.0f * M_PI})
+        .a = -(-1.0f/3.0f-1.0f/6.0f) * M_PI})
+
+#define COORDS_VITRINE_B1 ((pos2_t){ \
+        .x = 1500.0f - 325.0f, \
+        .y = 2000.0f - OFFSET_WHEEL_EXTERNAL_FLAT, \
+        .a = -(-1.0f/3.0f-1.0f/6.0f) * M_PI})
 
 
 #define COORDS_STATUETTE ((pos2_t){ \
         .x = 1191.0f + OFFSET_WHEEL_EXTERNAL_PROJECTION, \
         .y = 251.0f - OFFSET_WHEEL_EXTERNAL_PROJECTION, \
-        .a = 5.0f/4.0f * M_PI})
+        .a = (1.0f/2.0f-(1.0f/3.0f+1.0/6.0f+1.0f/12.0f)) * M_PI})
 
 
 #endif // COORDS_H

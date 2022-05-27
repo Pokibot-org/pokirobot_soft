@@ -21,7 +21,7 @@
     (0.5f * PLANAR_VMAX * CONTROL_PERIOD_MS / 1000.0f) // 2 seconds to reach vmax
 
 #define ANGULAR_VMAX (0.5f * M_PI) // 0.5 rotation/s
-#define ANGULAR_FACTOR (0.2f * ANGULAR_VMAX)
+#define ANGULAR_FACTOR (0.5f * ANGULAR_VMAX)
 #define ANGULAR_RAMP                                                           \
     (1.0f * ANGULAR_VMAX * CONTROL_PERIOD_MS / 1000.0f) // 1 seconds to reach vmax
 

@@ -128,8 +128,8 @@ vel2_t world_vel_from_local(pos2_t pos, vel2_t local_vel) {
 
 vel2_t local_vel_from_world(pos2_t pos, vel2_t world_vel) {
     vel2_t local_vel = {
-        .vx = cosf(pos.a) * world_vel.vx - sinf(pos.a) * world_vel.vy,
-        .vy = sinf(pos.a) * world_vel.vx + cosf(pos.a) * world_vel.vy,
+        .vx = cosf(pos.a) * world_vel.vx + sinf(pos.a) * world_vel.vy,
+        .vy = - sinf(pos.a) * world_vel.vx + cosf(-pos.a) * world_vel.vy,
         .w = -world_vel.w,
     };
     return local_vel;
