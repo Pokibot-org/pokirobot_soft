@@ -32,9 +32,11 @@ void collision_callback(bool collision) {
 
 void end_game_callback(void) {
     LOG_INF("MATCH IS OVER");
+    camsense_x1_kill();
+    obstacle_manager_kill();
     shared_ctrl.brake = true;
     pokarm_up();
-    camsense_x1_kill();
+    figurine_lifter_up_inside();
     k_sleep(K_MSEC(100));
     k_sched_lock();
     while (1) {

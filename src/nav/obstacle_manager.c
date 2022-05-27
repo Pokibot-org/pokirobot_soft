@@ -224,3 +224,9 @@ void obstacle_manager_init(obstacle_manager_collision_clbk fun) {
     k_thread_start(obstacle_manager_thread);
     LOG_INF("Init done");
 }
+
+void obstacle_manager_kill(void)
+{
+    k_thread_suspend(obstacle_manager_thread);
+    k_msgq_purge(&obs_man_obj.lidar_msgq);
+}

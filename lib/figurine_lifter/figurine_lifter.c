@@ -57,6 +57,7 @@ int figurine_lifter_init(void) {
 int figurine_lifter_up_inside(void) {
     int err = 0;
     err |= servo_pwm_set_angle(&obj.servo_1, 0);
+    gpio_pin_set_dt(&obj.magnet_spec, 0);
     return err;
 }
 
