@@ -11,7 +11,7 @@
 #include "pokutils/robot_utils.h"
 #include "zephyr.h"
 
-LOG_MODULE_REGISTER(PATHFINDING);
+LOG_MODULE_REGISTER(PATHFINDING, 1);
 
 #define DEBUG_TAB_SIZE_X 120
 #define DEBUG_TAB_SIZE_Y 40
