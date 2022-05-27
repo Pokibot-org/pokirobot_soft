@@ -7,7 +7,7 @@
 #include "pathfinding/pathfinding.h"
 #include "string.h"
 
-LOG_MODULE_REGISTER(path_manager, 2);
+LOG_MODULE_REGISTER(path_manager, 4);
 
 typedef struct path_manager_object {
     point2_t start;
@@ -63,6 +63,7 @@ static void path_manager_task(void* p0, void* p1, void* p2) {
     path_manager_object_t* pm_obj = (path_manager_object_t*)p0;
     path_node_t* pn_end;
 
+    LOG_INF("path_manager_task start");
     int err = pathfinding_find_path(&pm_obj->pathfinding_obj,
         &pm_obj->obstacle_hold, &pm_obj->start, &pm_obj->end, &pn_end);
     if (err) {
@@ -127,9 +128,9 @@ uint8_t path_manager_find_path(
     pathfinding_configuration_t pathfinding_config;
     pathfinding_config.field_boundaries.min_x = 0;
     pathfinding_config.field_boundaries.min_y = -1500;
-    pathfinding_config.field_boundaries.max_x = 2000;            // 3m
-    pathfinding_config.field_boundaries.max_y = 1500;            // 2m
-    pathfinding_config.delta_distance = 200;                     // jump of Xmm
+    pathfinding_config.field_boundaries.max_x = 2000;
+    pathfinding_config.field_boundaries.max_y = 1500;
+    pathfinding_config.delta_distance = 200.0f;                     // jump of Xmm
     pathfinding_config.radius_of_security = ROBOT_MAX_RADIUS_MM;
     pathfinding_object_configure(&pm_obj.pathfinding_obj, &pathfinding_config);
 
@@ -154,19 +155,21 @@ uint8_t path_manager_find_path(
  * @param end_node end node found by the pathfinding
  * @return int16_t return the copied path length
  */
-int16_t path_manager_retrieve_path(point2_t* array, uint32_t array_size,
-    point2_t** ptr_array_start, path_node_t* end_node) {
-    path_node_t* current_node = end_node;
-    for (int32_t i = array_size - 1; i >= 0; i--) {
+uint16_t path_manager_retrieve_path(point2_t* array, uint32_t array_size,
+    point2_t** ptr_array_start, const path_node_t* end_node) {
+    LOG_DBG("Retreiving path from end node");
+    const path_node_t* current_node = end_node;
+    for (uint16_t i = 0; i < array_size; i++) {
         array[i] = (point2_t){
             .x = current_node->coordinate.x, .y = current_node->coordinate.y};
+        LOG_DBG("Node x: %f, y: %f", array[i].x,  array[i].y);
         if (current_node->parent_node == NULL) {
             if (ptr_array_start) {
                 *ptr_array_start = &array[i];
             }
-            return array_size - i;
+            return i;
         }
         current_node = current_node->parent_node;
     }
-    return -1;
+    return 0;
 }

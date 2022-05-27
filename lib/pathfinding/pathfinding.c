@@ -6,8 +6,12 @@
 #include <string.h>
 
 #include "kdtree.h"
+#include "logging/log.h"
 #include "obstacles/obstacle.h"
 #include "pokutils/robot_utils.h"
+#include "zephyr.h"
+
+LOG_MODULE_REGISTER(PATHFINDING);
 
 #define DEBUG_TAB_SIZE_X 120
 #define DEBUG_TAB_SIZE_Y 40
@@ -190,8 +194,7 @@ uint8_t check_collision(const pathfinding_object_t* obj,
     const obstacle_holder_t* ob_hold, const point2_t* pt_seg_a,
     const point2_t* pt_seg_b) {
     point2_t obstacle_checked_crd;
-    for (size_t index_obstacle = 0;
-         index_obstacle < OBSTACLE_HOLDER_MAX_NUMBER_OF_OBSTACLE;
+    for (size_t index_obstacle = 0; index_obstacle < ob_hold->write_head;
          index_obstacle++) {
         const obstacle_t* current_ob = &ob_hold->obstacles[index_obstacle];
         if (current_ob->type != obstacle_type_none) {
@@ -214,10 +217,14 @@ point2_t pathfinding_generate_rand_coordinates(
     if (new_crd_on_goal) {
         rand_coordinates = *end;
     } else {
-        rand_coordinates.x =
-            utils_get_rand32() % obj->config.field_boundaries.max_x;
-        rand_coordinates.y =
-            utils_get_rand32() % obj->config.field_boundaries.max_y;
+        rand_coordinates.x = obj->config.field_boundaries.min_x +
+                             (int32_t)(utils_get_rand32() %
+                                       (obj->config.field_boundaries.max_x -
+                                           obj->config.field_boundaries.min_x));
+        rand_coordinates.y = obj->config.field_boundaries.min_y +
+                             (int32_t)(utils_get_rand32() %
+                                       (obj->config.field_boundaries.max_y -
+                                           obj->config.field_boundaries.min_y));
     }
     return rand_coordinates;
 }
@@ -263,6 +270,8 @@ int pathfinding_cache_waypoint(
 
 int pathfinding_find_path(pathfinding_object_t* obj, obstacle_holder_t* ob_hold,
     const point2_t* start, const point2_t* end, path_node_t** end_node) {
+    LOG_INF("Stating pathfinding at node x:%f, y%f towards x:%f, y%f ",
+        start->x, start->y, end->x, end->y);
     *end_node = NULL;
     // TODO: Check input validity, must be between 0 and pathfinding_boundaries
     // Init start node
@@ -285,8 +294,10 @@ int pathfinding_find_path(pathfinding_object_t* obj, obstacle_holder_t* ob_hold,
         path_node_t* current_node = &obj->nodes[obj->next_free_node_nb];
         point2_t rand_coordinates =
             pathfinding_generate_rand_coordinates(obj, end);
+        LOG_INF("Random coordinates generated : x:%f y:%f", rand_coordinates.x,
+            rand_coordinates.y);
         path_node_t* closest_node_p = get_closest_node(obj, &rand_coordinates);
-
+        LOG_INF("Closest node %p", closest_node_p);
         int err = check_collision(
             obj, ob_hold, &rand_coordinates, &closest_node_p->coordinate);
         if (err) {

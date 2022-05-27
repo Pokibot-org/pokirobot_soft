@@ -239,8 +239,8 @@ static int control_task(void) {
         tmc2209_set_speed(shared_ctrl.m3,
             (int32_t)(motors_v.v3 * MM_TO_USTEPS / WHEEL_PERIMETER));
         // sleep
-        // LOG_DBG("pos: %.2f %.2f %.2f", pos.x, pos.y, pos.a);
-        // LOG_DBG("target: %.2f %.2f %.2f", target.x, target.y, target.a);
+        LOG_DBG("pos: %.2f %.2f %.2f", pos.x, pos.y, pos.a);
+        LOG_DBG("target: %.2f %.2f %.2f", target.x, target.y, target.a);
         // LOG_DBG("speed: %.2f %.2f %.2f", motors_v.v1, motors_v.v2, motors_v.v3);
         k_sleep(K_MSEC((uint64_t)CONTROL_PERIOD_MS));
     }
