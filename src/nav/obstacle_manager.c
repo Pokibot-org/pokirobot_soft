@@ -102,20 +102,20 @@ uint8_t process_point(
                           + point_y_local * cos(actual_robot_pos.a);
     // Calculate point in table frame of reference
     new_obstacle.data.circle.coordinates.x = point_x_world;
-    new_obstacle.data.circle.coordinates.y = point_y_world;
+    new_obstacle.data.circle.coordinates.y = - point_y_world;
 
 #if CHECK_IF_OBSTACLE_INSIDE_TABLE
     // REMOVE THE POINTS IF THERE ARE NOT IN THE TABLE!
-    if (new_obstacle.data.circle.coordinates.x < 0 ||
-        new_obstacle.data.circle.coordinates.x > 2000 ||
-        new_obstacle.data.circle.coordinates.y < -1500 ||
-        new_obstacle.data.circle.coordinates.y > 1500) {
+    if (new_obstacle.data.circle.coordinates.x < -1500 ||
+        new_obstacle.data.circle.coordinates.x > 1500 ||
+        new_obstacle.data.circle.coordinates.y < 0 ||
+        new_obstacle.data.circle.coordinates.y > 2000) {
         return 2;
     }
 #endif
     // Uncomment the following lines if you want to use
     // tools/lidar_point_visualiser.py
-    // printk("<%0.2f:%0.2f>\n", new_obstacle.data.circle.coordinates.x, new_obstacle.data.circle.coordinates.y);
+    printk("<%0.2f:%0.2f>\n", new_obstacle.data.circle.coordinates.x, new_obstacle.data.circle.coordinates.y);
     //LOG_INF("Local %f %f %f", actual_robot_pos.x,actual_robot_pos.y,actual_robot_pos.a);
     obstacle_holder_push(
         &obj->obstacles_holders[obj->current_obs_holder_index], &new_obstacle);
@@ -159,12 +159,13 @@ uint8_t process_lidar_message(
         if (message->points[i].quality != 0) // Filter some noisy data
         {
 #ifdef LIDAR_COUNTER_CLOCKWISE
-            float point_angle =
-                360.0f - ((message->start_angle + step * i) +
-                             (CAMSENSE_CENTER_OFFSET_DEG + 180.0f));
+            // float point_angle =
+            //     360.0f - ((message->start_angle + step * i) +
+            //                  (CAMSENSE_CENTER_OFFSET_DEG + 180.0f));
+            #error FIXME
 #else
             float point_angle =
-                (message->start_angle + step * i) + CAMSENSE_CENTER_OFFSET_DEG;
+                (message->start_angle + step * i) + CAMSENSE_CENTER_OFFSET_DEG + 180.0f;
 #endif
             uint8_t err_code = process_point(
                 &obs_man_obj, message->points[i].distance, point_angle);

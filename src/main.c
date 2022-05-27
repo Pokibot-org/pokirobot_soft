@@ -33,6 +33,7 @@ void end_game_callback(void) {
     LOG_INF("MATCH IS OVER");
     shared_ctrl.brake = true;
     pokarm_up();
+    camsense_x1_kill();
     k_sleep(K_MSEC(100));
     k_sched_lock();
     while (1) {
@@ -380,7 +381,7 @@ void match_3() {
     int side = gpio_pin_get_dt(&sw_side);
     LOG_DBG("side= %d", side);
 
-    pos2_t start_pos = {1000.0f, 1500.0f - 155.0f, M_PI / 2};
+    pos2_t start_pos = {1500.0f - 155.0f, 1000.0f, M_PI / 2};
     if (side == SIDE_YELLOW) {
         start_pos.y = -start_pos.y;
         start_pos.a = -start_pos.a;
@@ -468,8 +469,7 @@ point2_t path[MAX_PATH_SIZE];
 uint16_t path_size = 0;
 void path_found_clbk(const path_node_t* node, void* user_data) {
     path_size = path_manager_retrieve_path(path, MAX_PATH_SIZE, NULL, node);
-    if (path_size == 0)
-    {
+    if (path_size == 0) {
         LOG_ERR("Path not correctly retrived");
     }
 }
@@ -542,19 +542,24 @@ void _test_pathfinding() {
     tirette_wait_until_released();
     LOG_INF("MATCH START");
     pokibrain_start();
-    k_sleep(K_MSEC(1000)); // delay before going away not to let the key halfway in
+    // delay before going away not to let the key halfway in
+    k_sleep(K_MSEC(1000)); 
     int side = gpio_pin_get_dt(&sw_side);
     LOG_DBG("side= %d", side);
 
-    pos2_t start_pos = {1000.0f, 1500.0f - 155.0f, M_PI / 2};
+    pos2_t start_pos = {1500.0f - 155.0f, 1000.0f, M_PI / 2};
     pos2_t end_pos;
-    end_pos.y = -start_pos.y;
-    end_pos.x = start_pos.x;
-    end_pos.a = -start_pos.a;
+    end_pos.x = -start_pos.x;
+    end_pos.y = start_pos.y;
+    end_pos.a = start_pos.a;
 
     control_set_pos(&shared_ctrl, start_pos);
     shared_ctrl.start = true;
-
+    while (1)
+    {
+        k_sleep(K_MSEC(100));
+    }
+    
     point2_t start;
     start.x = start_pos.x;
     start.y = start_pos.y;
@@ -567,28 +572,28 @@ void _test_pathfinding() {
     path_config.found_path_clbk = path_found_clbk;
     LOG_INF("Lauching pathfinding");
     uint8_t err = path_manager_find_path(start, end, path_config);
-    if (err)
-    {
+    if (err) {
         LOG_ERR("problem when launching pathfinding %u", err);
         goto exit;
     }
     LOG_INF("Waiting for path to be found");
-    while (path_size == 0)
-    {
+    while (path_size == 0) {
         k_sleep(K_MSEC(100));
     }
     LOG_INF("Path found of size %u", path_size);
 
-    for (int16_t i = path_size - 1; i >= 0; i--)
-    {
+    for (int16_t i = path_size - 1; i >= 0; i--) {
         pos2_t next_pos = start_pos;
         next_pos.x = path[i].x;
         next_pos.y = path[i].y;
         LOG_INF("Go to point %d, x: %f, y: %f", i, next_pos.x, next_pos.y);
         control_set_target(&shared_ctrl, next_pos);
-        k_sleep(K_MSEC(5000));
+        control_task_wait_target(50.0f, M_PI / 4.0f, 10000);
     }
-    
+    LOG_INF("Before last moove");
+    control_task_wait_target(CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT,
+        CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 10000);
+    LOG_INF("At target");
 exit:
     LOG_INF("MATCH DONE (ret: %d)", ret);
     return;

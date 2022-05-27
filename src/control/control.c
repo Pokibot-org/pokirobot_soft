@@ -170,6 +170,7 @@ bool control_task_wait_target(float planar_sensivity, float angular_sensivity,
         if (shared_ctrl.at_target) {
             break;
         }
+        k_sleep(K_MSEC(1));
     }
     return shared_ctrl.at_target;
 }
@@ -203,6 +204,7 @@ static int control_task(void) {
     LOG_INF("control task start");
     while (1) {
         pos2_t target;
+        control_get_pos(&shared_ctrl, &pos);
         // update pos
         // control_get_motors_v(&shared_ctrl, &motors_v);
         // local_vel = local_vel_from_omni(motors_v);
@@ -239,8 +241,8 @@ static int control_task(void) {
         tmc2209_set_speed(shared_ctrl.m3,
             (int32_t)(motors_v.v3 * MM_TO_USTEPS / WHEEL_PERIMETER));
         // sleep
-        LOG_DBG("pos: %.2f %.2f %.2f", pos.x, pos.y, pos.a);
-        LOG_DBG("target: %.2f %.2f %.2f", target.x, target.y, target.a);
+        // LOG_DBG("pos: %.2f %.2f %.2f", pos.x, pos.y, pos.a);
+        // LOG_DBG("target: %.2f %.2f %.2f", target.x, target.y, target.a);
         // LOG_DBG("speed: %.2f %.2f %.2f", motors_v.v1, motors_v.v2, motors_v.v3);
         k_sleep(K_MSEC((uint64_t)CONTROL_PERIOD_MS));
     }

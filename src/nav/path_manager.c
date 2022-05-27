@@ -126,10 +126,10 @@ uint8_t path_manager_find_path(
     obstacle_manager_get_obstacle_snapshot(&pm_obj.obstacle_hold);
 #endif
     pathfinding_configuration_t pathfinding_config;
-    pathfinding_config.field_boundaries.min_x = 0;
-    pathfinding_config.field_boundaries.min_y = -1500;
-    pathfinding_config.field_boundaries.max_x = 2000;
-    pathfinding_config.field_boundaries.max_y = 1500;
+    pathfinding_config.field_boundaries.min_x = -1500;
+    pathfinding_config.field_boundaries.min_y = 0;
+    pathfinding_config.field_boundaries.max_x = 1500;
+    pathfinding_config.field_boundaries.max_y = 2000;
     pathfinding_config.delta_distance = 200.0f;                     // jump of Xmm
     pathfinding_config.radius_of_security = ROBOT_MAX_RADIUS_MM;
     pathfinding_object_configure(&pm_obj.pathfinding_obj, &pathfinding_config);
