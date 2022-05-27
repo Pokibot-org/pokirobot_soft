@@ -161,7 +161,7 @@ void control_task_wait_ready() {
     }
 }
 
-void control_task_wait_target(float planar_sensivity, float angular_sensivity,
+bool control_task_wait_target(float planar_sensivity, float angular_sensivity,
         uint32_t timeout_ms) {
     shared_ctrl.planar_target_sensivity = planar_sensivity;
     shared_ctrl.angular_target_sensivity = angular_sensivity;
@@ -344,6 +344,7 @@ void _test_calibration() {
 #if !(CONFIG_CONTROL_TASK)
     LOG_ERR("control task not launched");
 #endif
+    shared_ctrl.start_init = true;
     while (1) {
         if (!shared_ctrl.ready) {
             k_sleep(K_MSEC(100));
@@ -377,4 +378,27 @@ void _test_calibration() {
     // k_sleep(K_MSEC(5000));
     // LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y, shared_ctrl.pos.val.a);
     // LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.target.val.x, shared_ctrl.target.val.y, shared_ctrl.target.val.a);
+}
+
+void _test_connerie() {
+    LOG_INF("_test_connerie");
+    shared_init();
+#if !(CONFIG_CONTROL_TASK)
+    LOG_ERR("control task not launched");
+#endif
+    shared_ctrl.start_init = true;
+    while (1) {
+        if (!shared_ctrl.ready) {
+            k_sleep(K_MSEC(100));
+            continue;
+        }
+        break;
+    }
+    shared_ctrl.start = true;
+    LOG_DBG("alive");
+    // gpio_pin_toggle(led.port, led.pin);
+    control_set_pos(&shared_ctrl, (pos2_t){0.0f, 0.0f, 0.0f});
+    control_set_target(&shared_ctrl, (pos2_t){0.0f, 0.0f, 100.0f});
+    k_sleep(K_MSEC(15000));
+    shared_ctrl.brake = true;
 }

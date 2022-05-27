@@ -15,8 +15,8 @@
 #define WHEEL_PERIMETER 267.840f
 #define MM_TO_USTEPS 95238.0f
 
-#define PLANAR_VMAX 200.0f // 200 mm/s
-#define PLANAR_FACTOR (0.007f * PLANAR_VMAX)
+#define PLANAR_VMAX 300.0f // 200 mm/s
+#define PLANAR_FACTOR (0.01f * PLANAR_VMAX)
 #define PLANAR_RAMP                                                            \
     (1.0f * PLANAR_VMAX * CONTROL_PERIOD_MS / 1000.0f) // 1/0.2 seconds to reach vmax
 
@@ -71,11 +71,13 @@ omni3_t omni_from_local_vel(vel2_t local_vel);
 vel2_t local_vel_from_omni(omni3_t omni);
 
 void control_task_wait_ready();
-void control_task_wait_target();
+bool control_task_wait_target(float planar_sensivity, float angular_sensivity,
+        uint32_t timeout_ms);
 
 void _test_gconf();
 void _test_motor_cmd();
 void _test_target();
 void _test_calibration();
+void _test_connerie();
 
 #endif

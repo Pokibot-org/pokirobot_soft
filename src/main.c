@@ -475,9 +475,10 @@ int main(void) {
     // _test_motor_cmd();
     // _test_target();
     // _test_calibration();
+    // _test_connerie();
     // match_1();
     // match_2();
-    match_3();
+    // match_3();
 exit:
     return ret;
 }

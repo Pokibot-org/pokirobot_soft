@@ -24,9 +24,6 @@
 #define M_SQRT1_2 0.70710678118654752440
 #define M_SQRT3 1.73205080756887729352
 
-#define SIDE_YELLOW 1
-#define SIDE_PURPLE 0
-
 #define LOCKVAR(_type)                                                         \
     struct {                                                                   \
         struct k_mutex lock;                                                   \
