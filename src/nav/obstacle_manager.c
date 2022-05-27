@@ -42,7 +42,7 @@ K_SEM_DEFINE(obsacle_holder_lock, 1, 1);
 // #define LIDAR_COUNTER_CLOCKWISE
 #define LIDAR_DETECTION_DISTANCE_MM 220
 // 360 == detecting obstacles even behind
-#define LIDAR_DETECTION_ANGLE 360
+// #define LIDAR_DETECTION_ANGLE UNUSED
 // FUNC
 
 void obstacle_manager_send_message(const obstacle_manager_message_t* msg) {
@@ -74,17 +74,14 @@ uint8_t process_point(
     // LOG_INF("IN PROCESS POINT: angle: %f, distance: %d", point_angle,
     // point_distance);
 
-    if (((point_distance < ROBOT_MAX_RADIUS_MM) &&
-            (fabsf(point_angle) > LIDAR_DETECTION_ANGLE / 2)) ||
-        (point_distance < ROBOT_MIN_RADIUS_MM)) // in robot do nothing
+    if (point_distance < ROBOT_MAX_RADIUS_MM) // in robot do nothing
     {
         // LOG_INF("Point in robot");
         return 0;
     }
 
     // if it is a near obstacle change return code
-    if ((point_distance < ROBOT_MAX_RADIUS_MM + LIDAR_DETECTION_DISTANCE_MM) &&
-        (fabs(point_angle) < LIDAR_DETECTION_ANGLE / 2)) {
+    if ((point_distance < ROBOT_MAX_RADIUS_MM + LIDAR_DETECTION_DISTANCE_MM)) {
         LOG_DBG("Obstacle detected | angle: %.3hi, distance: %.5hu",
             (int16_t)(point_angle), point_distance);
         return_code = 1;

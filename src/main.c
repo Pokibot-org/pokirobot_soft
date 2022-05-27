@@ -55,6 +55,7 @@ int go_to_with_pathfinding(pos2_t end_pos) {
     LOG_INF("Lauching pathfinding");
     path_manager_config_t path_config;
     path_config.found_path_clbk = path_found_clbk;
+    path_config.nb_node_optimisation = 50;
     path_size = 0;
     pos2_t start_pos;
     control_get_pos(&shared_ctrl, &start_pos);
@@ -86,14 +87,14 @@ int go_to_with_pathfinding(pos2_t end_pos) {
     }
 
     LOG_INF("Path found of size %u", path_size);
-
     for (int16_t i = path_size - 1; i >= 0; i--) {
-        pos2_t next_pos = start_pos;
+        pos2_t next_pos;
+        next_pos.a = start_pos.a;
         next_pos.x = path[i].x;
         next_pos.y = path[i].y;
         LOG_INF("Go to point %d, x: %f, y: %f", i, next_pos.x, next_pos.y);
         control_set_target(&shared_ctrl, next_pos);
-        control_task_wait_target(50.0f, M_PI / 4.0f, 10000);
+        control_task_wait_target(100.0f, M_PI / 4.0f, 10000);
     }
     control_task_wait_target(CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT,
         CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 10000);
@@ -597,7 +598,7 @@ void _test_pathfinding() {
     int side = gpio_pin_get_dt(&sw_side);
     LOG_DBG("side= %d", side);
 
-    pos2_t start_pos = {1500.0f - 155.0f, 1000.0f, M_PI / 2};
+    pos2_t start_pos = {1000.0f, 1000.0f, M_PI / 2};
     if (side == SIDE_YELLOW) {
         start_pos.x = -start_pos.x;
         start_pos.a = -start_pos.a;

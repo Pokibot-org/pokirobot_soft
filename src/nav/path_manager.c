@@ -71,6 +71,14 @@ static void path_manager_task(void* p0, void* p1, void* p2) {
     } else {
         LOG_INF("Path found");
     }
+
+    if (pm_obj->conf.nb_node_optimisation != 0) {
+        err = pathfinding_optimize_path(&pm_obj->pathfinding_obj,
+            &pm_obj->obstacle_hold, pn_end, pm_obj->conf.nb_node_optimisation);
+        if (err) {
+            LOG_WRN("Err in path optimize %d", err);
+        }
+    }
     // TODO: handle err code
     // pbd(&pm_obj->pathfinding_obj);
 
@@ -95,7 +103,7 @@ uint8_t path_manager_find_path(
         return -2;
     }
 
-    if(path_manager_tid != NULL){
+    if (path_manager_tid != NULL) {
         k_thread_abort(path_manager_tid);
     }
     pm_obj.start = start;
@@ -130,8 +138,8 @@ uint8_t path_manager_find_path(
     pathfinding_config.field_boundaries.min_y = 0;
     pathfinding_config.field_boundaries.max_x = 1500;
     pathfinding_config.field_boundaries.max_y = 2000;
-    pathfinding_config.delta_distance = 200.0f;                     // jump of Xmm
-    pathfinding_config.radius_of_security = ROBOT_MAX_RADIUS_MM;
+    pathfinding_config.delta_distance = 300.0f; // jump of Xmm
+    pathfinding_config.radius_of_security = ROBOT_MAX_RADIUS_MM + 100.0f;
     pathfinding_object_configure(&pm_obj.pathfinding_obj, &pathfinding_config);
 
     path_manager_tid = k_thread_create(&path_manager_thread_data,
