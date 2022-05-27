@@ -3,9 +3,11 @@
 #include <zephyr.h>
 
 #include "control/control.h"
+#include "coords.h"
 #include "figurine_lifter/figurine_lifter.h"
 #include "hmi/hmi_led.h"
 #include "kernel.h"
+#include "lidar/camsense_x1/camsense_x1.h"
 #include "nav/obstacle_manager.h"
 #include "nav/path_manager.h"
 #include "pokarm/pokarm.h"
@@ -14,7 +16,6 @@
 #include "tirette/tirette.h"
 #include "tmc2209/tmc2209.h"
 #include "utils.h"
-#include "coords.h"
 #include <drivers/gpio.h>
 #include <logging/log.h>
 
@@ -39,6 +40,66 @@ void end_game_callback(void) {
     while (1) {
     }
 }
+
+#define MAX_PATH_SIZE 1000
+point2_t path[MAX_PATH_SIZE];
+uint16_t path_size = 0;
+void path_found_clbk(const path_node_t* node, void* user_data) {
+    path_size = path_manager_retrieve_path(path, MAX_PATH_SIZE, NULL, node);
+    if (path_size == 0) {
+        LOG_ERR("Path not correctly retrived");
+    }
+}
+
+int go_to_with_pathfinding(pos2_t end_pos) {
+    LOG_INF("Lauching pathfinding");
+    path_manager_config_t path_config;
+    path_config.found_path_clbk = path_found_clbk;
+    path_size = 0;
+    pos2_t start_pos;
+    control_get_pos(&shared_ctrl, &start_pos);
+    point2_t start;
+    start.x = start_pos.x;
+    start.y = start_pos.y;
+
+    point2_t end;
+    end.x = end_pos.x;
+    end.y = end_pos.y;
+
+    LOG_INF("From x:%f, y:%f |To x:%f, y:%f", start.x, start.y, end.x, end.y);
+
+    uint8_t err = path_manager_find_path(start, end, path_config);
+    if (err) {
+        LOG_ERR("problem when launching pathfinding %u", err);
+        return -1;
+    }
+    LOG_INF("Waiting for path to be found");
+    for (size_t i = 0; i < 20000; i++) {
+        k_sleep(K_MSEC(1));
+        if (path_size != 0) {
+            break;
+        }
+    }
+    if (path_size == 0) {
+        LOG_WRN("No path found");
+        return -2;
+    }
+
+    LOG_INF("Path found of size %u", path_size);
+
+    for (int16_t i = path_size - 1; i >= 0; i--) {
+        pos2_t next_pos = start_pos;
+        next_pos.x = path[i].x;
+        next_pos.y = path[i].y;
+        LOG_INF("Go to point %d, x: %f, y: %f", i, next_pos.x, next_pos.y);
+        control_set_target(&shared_ctrl, next_pos);
+        control_task_wait_target(50.0f, M_PI / 4.0f, 10000);
+    }
+    control_task_wait_target(CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT,
+        CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 10000);
+    return 0;
+}
+
 
 void match_1() {
     LOG_INF("MATCH INIT");
@@ -463,17 +524,6 @@ exit:
     return;
 }
 
-
-#define MAX_PATH_SIZE 1000
-point2_t path[MAX_PATH_SIZE];
-uint16_t path_size = 0;
-void path_found_clbk(const path_node_t* node, void* user_data) {
-    path_size = path_manager_retrieve_path(path, MAX_PATH_SIZE, NULL, node);
-    if (path_size == 0) {
-        LOG_ERR("Path not correctly retrived");
-    }
-}
-
 void _test_pathfinding() {
     LOG_INF("MATCH INIT");
     // hmi_led_init();
@@ -543,11 +593,15 @@ void _test_pathfinding() {
     LOG_INF("MATCH START");
     pokibrain_start();
     // delay before going away not to let the key halfway in
-    k_sleep(K_MSEC(1000)); 
+    k_sleep(K_MSEC(1000));
     int side = gpio_pin_get_dt(&sw_side);
     LOG_DBG("side= %d", side);
 
     pos2_t start_pos = {1500.0f - 155.0f, 1000.0f, M_PI / 2};
+    if (side == SIDE_YELLOW) {
+        start_pos.x = -start_pos.x;
+        start_pos.a = -start_pos.a;
+    }
     pos2_t end_pos;
     end_pos.x = -start_pos.x;
     end_pos.y = start_pos.y;
@@ -555,41 +609,15 @@ void _test_pathfinding() {
 
     control_set_pos(&shared_ctrl, start_pos);
     shared_ctrl.start = true;
-    
-    point2_t start;
-    start.x = start_pos.x;
-    start.y = start_pos.y;
 
-    point2_t end;
-    end.x = end_pos.x;
-    end.y = end_pos.y;
+    for (size_t i = 0; i < 10; i++) {
+        if (i % 2) {
+            go_to_with_pathfinding(end_pos);
+        } else {
+            go_to_with_pathfinding(start_pos);
+        }
+    }
 
-    path_manager_config_t path_config;
-    path_config.found_path_clbk = path_found_clbk;
-    LOG_INF("Lauching pathfinding");
-    uint8_t err = path_manager_find_path(start, end, path_config);
-    if (err) {
-        LOG_ERR("problem when launching pathfinding %u", err);
-        goto exit;
-    }
-    LOG_INF("Waiting for path to be found");
-    while (path_size == 0) {
-        k_sleep(K_MSEC(100));
-    }
-    LOG_INF("Path found of size %u", path_size);
-
-    for (int16_t i = path_size - 1; i >= 0; i--) {
-        pos2_t next_pos = start_pos;
-        next_pos.x = path[i].x;
-        next_pos.y = path[i].y;
-        LOG_INF("Go to point %d, x: %f, y: %f", i, next_pos.x, next_pos.y);
-        control_set_target(&shared_ctrl, next_pos);
-        control_task_wait_target(50.0f, M_PI / 4.0f, 10000);
-    }
-    LOG_INF("Before last moove");
-    control_task_wait_target(CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT,
-        CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 10000);
-    LOG_INF("At target");
 exit:
     LOG_INF("MATCH DONE (ret: %d)", ret);
     return;

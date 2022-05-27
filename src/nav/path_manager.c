@@ -157,17 +157,15 @@ uint8_t path_manager_find_path(
  */
 uint16_t path_manager_retrieve_path(point2_t* array, uint32_t array_size,
     point2_t** ptr_array_start, const path_node_t* end_node) {
-    LOG_DBG("Retreiving path from end node");
     const path_node_t* current_node = end_node;
     for (uint16_t i = 0; i < array_size; i++) {
         array[i] = (point2_t){
             .x = current_node->coordinate.x, .y = current_node->coordinate.y};
-        LOG_DBG("Node x: %f, y: %f", array[i].x,  array[i].y);
         if (current_node->parent_node == NULL) {
             if (ptr_array_start) {
                 *ptr_array_start = &array[i];
             }
-            return i;
+            return i + 1;
         }
         current_node = current_node->parent_node;
     }
