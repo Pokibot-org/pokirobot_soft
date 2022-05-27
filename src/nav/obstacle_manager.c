@@ -115,7 +115,7 @@ uint8_t process_point(
 #endif
     // Uncomment the following lines if you want to use
     // tools/lidar_point_visualiser.py
-    printk("<%0.2f:%0.2f>\n", new_obstacle.data.circle.coordinates.x, new_obstacle.data.circle.coordinates.y);
+    // printk("<%0.2f:%0.2f>\n", new_obstacle.data.circle.coordinates.x, new_obstacle.data.circle.coordinates.y);
     //LOG_INF("Local %f %f %f", actual_robot_pos.x,actual_robot_pos.y,actual_robot_pos.a);
     obstacle_holder_push(
         &obj->obstacles_holders[obj->current_obs_holder_index], &new_obstacle);
