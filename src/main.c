@@ -555,10 +555,6 @@ void _test_pathfinding() {
 
     control_set_pos(&shared_ctrl, start_pos);
     shared_ctrl.start = true;
-    while (1)
-    {
-        k_sleep(K_MSEC(100));
-    }
     
     point2_t start;
     start.x = start_pos.x;
