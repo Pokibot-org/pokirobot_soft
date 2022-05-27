@@ -121,7 +121,7 @@ vel2_t world_vel_from_local(pos2_t pos, vel2_t local_vel) {
     vel2_t world_vel = {
         .vx = cosf(pos.a) * local_vel.vx - sinf(pos.a) * local_vel.vy,
         .vy = sinf(pos.a) * local_vel.vx + cosf(pos.a) * local_vel.vy,
-        .w = local_vel.w,
+        .w = -local_vel.w,
     };
     return world_vel;
 }
@@ -130,7 +130,7 @@ vel2_t local_vel_from_world(pos2_t pos, vel2_t world_vel) {
     vel2_t local_vel = {
         .vx = cosf(pos.a) * world_vel.vx - sinf(pos.a) * world_vel.vy,
         .vy = sinf(pos.a) * world_vel.vx + cosf(pos.a) * world_vel.vy,
-        .w = world_vel.w,
+        .w = -world_vel.w,
     };
     return local_vel;
 }
@@ -191,7 +191,7 @@ static int control_task(void) {
     omni3_t motors_v = { .v1 = 0.0f, .v2 = 0.0f, .v3 = 0.0f};
     while (!shared_ctrl.start_init)
     {
-        k_sleep(K_MSEC(1));
+        k_sleep(K_MSEC((uint64_t)CONTROL_PERIOD_MS));
     }
     
     if (control_init(
@@ -337,7 +337,7 @@ void _test_target() {
     }
 }
 
-void _test_calibration() {
+void _test_calibration_distance() {
     LOG_INF("_test_calibration");
     shared_init();
     // static const struct gpio_dt_spec led =
@@ -354,32 +354,86 @@ void _test_calibration() {
         }
         break;
     }
-    shared_ctrl.start = true;
     LOG_DBG("alive");
     // gpio_pin_toggle(led.port, led.pin);
     control_set_pos(&shared_ctrl, (pos2_t){0.0f, 0.0f, 0.0f});
     control_set_target(&shared_ctrl, (pos2_t){0.0f, 0.0f, 0.0f});
-    k_sleep(K_MSEC(2000));
     LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y, shared_ctrl.pos.val.a);
     LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.target.val.x, shared_ctrl.target.val.y, shared_ctrl.target.val.a);
+    k_sleep(K_MSEC(1000));
+    shared_ctrl.start = true;
     // gpio_pin_toggle(led.port, led.pin);
-    control_set_target(&shared_ctrl, (pos2_t){0.0f, 0.0f, 10.0f * M_PI});
+    control_set_target(&shared_ctrl, (pos2_t){0.0f, 1300.0f, 0.0f * M_PI});
+    LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y, shared_ctrl.pos.val.a);
+    LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.target.val.x, shared_ctrl.target.val.y, shared_ctrl.target.val.a);
+    k_sleep(K_MSEC(15000));
+}
+
+void _test_calibration_angle() {
+    LOG_INF("_test_calibration");
+    shared_init();
+    // static const struct gpio_dt_spec led =
+    //     GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
+    // int ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
+#if !(CONFIG_CONTROL_TASK)
+    LOG_ERR("control task not launched");
+#endif
+    shared_ctrl.start_init = true;
+    while (1) {
+        if (!shared_ctrl.ready) {
+            k_sleep(K_MSEC(100));
+            continue;
+        }
+        break;
+    }
+    LOG_DBG("alive");
+    // gpio_pin_toggle(led.port, led.pin);
+    control_set_pos(&shared_ctrl, (pos2_t){0.0f, 0.0f, 0.0f});
+    control_set_target(&shared_ctrl, (pos2_t){0.0f, 0.0f, 0.0f});
+    LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y, shared_ctrl.pos.val.a);
+    LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.target.val.x, shared_ctrl.target.val.y, shared_ctrl.target.val.a);
+    k_sleep(K_MSEC(1000));
+    shared_ctrl.start = true;
+    // gpio_pin_toggle(led.port, led.pin);
+    control_set_target(&shared_ctrl, (pos2_t){0.0f, 0.0f, 20.0f * M_PI});
     k_sleep(K_MSEC(15000));
     LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y, shared_ctrl.pos.val.a);
     LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.target.val.x, shared_ctrl.target.val.y, shared_ctrl.target.val.a);
+}
+
+void _test_calibration_mix() {
+    LOG_INF("_test_calibration");
+    shared_init();
+    // static const struct gpio_dt_spec led =
+    //     GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
+    // int ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
+#if !(CONFIG_CONTROL_TASK)
+    LOG_ERR("control task not launched");
+#endif
+    shared_ctrl.start_init = true;
+    while (1) {
+        if (!shared_ctrl.ready) {
+            k_sleep(K_MSEC(100));
+            continue;
+        }
+        break;
+    }
+    LOG_DBG("alive");
     // gpio_pin_toggle(led.port, led.pin);
-    // control_set_target(&shared_ctrl, (pos2_t){0.0f, 1000.0f, 0.0f * M_PI});
-    // k_sleep(K_MSEC(10000));
-    // LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y, shared_ctrl.pos.val.a);
-    // LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.target.val.x, shared_ctrl.target.val.y, shared_ctrl.target.val.a);
-    // control_set_target(&shared_ctrl, (pos2_t){0.0f, 1000.0f, 0.5f * M_PI});
-    // k_sleep(K_MSEC(5000));
-    // LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y, shared_ctrl.pos.val.a);
-    // LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.target.val.x, shared_ctrl.target.val.y, shared_ctrl.target.val.a);
-    // control_set_target(&shared_ctrl, (pos2_t){1000.0f, 1000.0f, 0.5f * M_PI});
-    // k_sleep(K_MSEC(5000));
-    // LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y, shared_ctrl.pos.val.a);
-    // LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.target.val.x, shared_ctrl.target.val.y, shared_ctrl.target.val.a);
+    control_set_pos(&shared_ctrl, (pos2_t){0.0f, 0.0f, 0.0f});
+    control_set_target(&shared_ctrl, (pos2_t){0.0f, 0.0f, 0.0f});
+    LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y, shared_ctrl.pos.val.a);
+    LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.target.val.x, shared_ctrl.target.val.y, shared_ctrl.target.val.a);
+    k_sleep(K_MSEC(1000));
+    shared_ctrl.start = true;
+    control_set_target(&shared_ctrl, (pos2_t){0.0f, 0.0f, 1.0f * M_PI});
+    k_sleep(K_MSEC(5000));
+    LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y, shared_ctrl.pos.val.a);
+    LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.target.val.x, shared_ctrl.target.val.y, shared_ctrl.target.val.a);
+    control_set_target(&shared_ctrl, (pos2_t){0.0f, 1000.0f, 1.0f * M_PI});
+    k_sleep(K_MSEC(5000));
+    LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y, shared_ctrl.pos.val.a);
+    LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.target.val.x, shared_ctrl.target.val.y, shared_ctrl.target.val.a);
 }
 
 void _test_connerie() {

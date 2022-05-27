@@ -661,7 +661,9 @@ int main(void) {
     // _test_gconf();
     // _test_motor_cmd();
     // _test_target();
-    // _test_calibration();
+    // _test_calibration_distance();
+    // _test_calibration_angle();
+    // _test_calibration_mix();
     // _test_connerie();
     // _test_pathfinding();
 

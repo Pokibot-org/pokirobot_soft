@@ -11,19 +11,19 @@
 #define CONTROL_MUTEX_TIMEOUT (K_MSEC(30))
 
 #define CONTROL_PERIOD_MS 2.0f
-#define ROBOT_L 137.6f
+#define ROBOT_L 139.5f
 #define WHEEL_PERIMETER 267.840f
-#define MM_TO_USTEPS 95238.0f
+#define MM_TO_USTEPS 74574.0f
 
 #define PLANAR_VMAX 300.0f // 200 mm/s
 #define PLANAR_FACTOR (0.01f * PLANAR_VMAX)
 #define PLANAR_RAMP                                                            \
-    (1.0f * PLANAR_VMAX * CONTROL_PERIOD_MS / 1000.0f) // 1/0.2 seconds to reach vmax
+    (0.5f * PLANAR_VMAX * CONTROL_PERIOD_MS / 1000.0f) // 2 seconds to reach vmax
 
 #define ANGULAR_VMAX (0.5f * M_PI) // 0.5 rotation/s
-#define ANGULAR_FACTOR (0.5f * ANGULAR_VMAX)
+#define ANGULAR_FACTOR (0.2f * ANGULAR_VMAX)
 #define ANGULAR_RAMP                                                           \
-    (1.0f * ANGULAR_VMAX * CONTROL_PERIOD_MS / 1000.0f) // 1/0.1 seconds to reach vmax
+    (1.0f * ANGULAR_VMAX * CONTROL_PERIOD_MS / 1000.0f) // 1 seconds to reach vmax
 
 #define CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT 5.0f // 5mm
 #define CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT DEG_TO_RAD(3.0f) // 3 deg
@@ -82,7 +82,9 @@ bool control_task_wait_target(float planar_sensivity, float angular_sensivity,
 void _test_gconf();
 void _test_motor_cmd();
 void _test_target();
-void _test_calibration();
+void _test_calibration_distance();
+void _test_calibration_angle();
+void _test_calibration_mix();
 void _test_connerie();
 
 #endif
