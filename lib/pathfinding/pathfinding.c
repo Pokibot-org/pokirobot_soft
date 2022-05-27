@@ -243,10 +243,14 @@ point2_t pathfinding_generate_rebuild_rand_coordinates(
         rand_coordinates = obj->coordinate_cache[(rand_num >> 24) %
                                                  obj->nb_of_coordinate_cached];
     } else {
-        rand_coordinates.x =
-            utils_get_rand32() % obj->config.field_boundaries.max_x;
-        rand_coordinates.y =
-            utils_get_rand32() % obj->config.field_boundaries.max_y;
+        rand_coordinates.x = obj->config.field_boundaries.min_x +
+                             (int32_t)(utils_get_rand32() %
+                                       (obj->config.field_boundaries.max_x -
+                                           obj->config.field_boundaries.min_x));
+        rand_coordinates.y = obj->config.field_boundaries.min_y +
+                             (int32_t)(utils_get_rand32() %
+                                       (obj->config.field_boundaries.max_y -
+                                           obj->config.field_boundaries.min_y));
     }
     return rand_coordinates;
 }
@@ -294,20 +298,21 @@ int pathfinding_find_path(pathfinding_object_t* obj, obstacle_holder_t* ob_hold,
         path_node_t* current_node = &obj->nodes[obj->next_free_node_nb];
         point2_t rand_coordinates =
             pathfinding_generate_rand_coordinates(obj, end);
-        LOG_INF("Random coordinates generated : x:%f y:%f", rand_coordinates.x,
+        LOG_DBG("Random coordinates generated : x:%f y:%f", rand_coordinates.x,
             rand_coordinates.y);
         path_node_t* closest_node_p = get_closest_node(obj, &rand_coordinates);
-        LOG_INF("Closest node %p", closest_node_p);
+        LOG_DBG("Closest node %p", closest_node_p);
         int err = check_collision(
             obj, ob_hold, &rand_coordinates, &closest_node_p->coordinate);
         if (err) {
+            LOG_DBG("Collison, dumping node"); 
             obj->next_free_node_nb -= 1;
             continue;
         }
         point2_t new_coordinates;
         get_new_valid_coordinates(obj, &(closest_node_p->coordinate),
             &rand_coordinates, &new_coordinates);
-
+        LOG_DBG("New valid coordinates generated : x:%f y:%f", new_coordinates.x, new_coordinates.y);
         // Remaping nodes for RRT*
         path_node_t* to_be_remaped_nodes
             [PATHFINDING_GET_ARRAY_OF_CLOSEST_NODES_MAX_NUM] = {0};
@@ -325,9 +330,10 @@ int pathfinding_find_path(pathfinding_object_t* obj, obstacle_holder_t* ob_hold,
         remap_nodes_to_new_node_if_closer_to_start(obj, ob_hold,
             to_be_remaped_nodes, nb_of_to_be_remaped_nodes, current_node);
 
-        if ((rand_coordinates.x == end->x) && (rand_coordinates.y == end->y)) {
+        if ((new_coordinates.x == end->x) && (new_coordinates.y == end->y)) {
             *end_node = current_node;
             err = pathfinding_cache_waypoint(obj, current_node);
+            LOG_DBG("End of pathfinding");
             if (err) {
                 return PATHFINDING_ERROR_NOT_ENOUGH_CACHE;
             }
@@ -391,7 +397,7 @@ int pathfinding_rebuild(pathfinding_object_t* obj, obstacle_holder_t* ob_hold,
         remap_nodes_to_new_node_if_closer_to_start(obj, ob_hold,
             to_be_remaped_nodes, nb_of_to_be_remaped_nodes, current_node);
 
-        if ((rand_coordinates.x == end->x) && (rand_coordinates.y == end->y)) {
+        if ((new_coordinates.x == end->x) && (new_coordinates.y == end->y)) {
             *end_node = current_node;
             return PATHFINDING_ERROR_NONE;
         }

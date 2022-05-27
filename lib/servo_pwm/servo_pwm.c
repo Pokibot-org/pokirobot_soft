@@ -7,7 +7,7 @@
 #include <drivers/pwm.h>
 #include <logging/log.h>
 
-LOG_MODULE_REGISTER(servo);
+LOG_MODULE_REGISTER(servo, 2);
 
 int servo_pwm_set_angle(servo_pwm_t* obj, float angle_rad) {
     obj->current_angle = angle_rad;
