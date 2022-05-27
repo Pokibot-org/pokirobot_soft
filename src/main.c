@@ -13,6 +13,7 @@
 #include "tirette/tirette.h"
 #include "tmc2209/tmc2209.h"
 #include "utils.h"
+#include "coords.h"
 #include <drivers/gpio.h>
 #include <logging/log.h>
 
