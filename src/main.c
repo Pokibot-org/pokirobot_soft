@@ -104,6 +104,85 @@ int go_to_with_pathfinding(pos2_t end_pos) {
 }
 
 
+void match_init() {
+    LOG_INF("MATCH INIT");
+    // hmi_led_init();
+    // hmi_led_error();
+    static const struct gpio_dt_spec led =
+        GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
+    static const struct gpio_dt_spec sw_side =
+        GPIO_DT_SPEC_GET(DT_ALIAS(sw_side), gpios);
+    static const struct gpio_dt_spec sw_power =
+        GPIO_DT_SPEC_GET(DT_ALIAS(sw_power), gpios);
+        
+    obstacle_manager_init(collision_callback);
+    int ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
+    if (ret < 0) {
+        LOG_ERR("failed to init led");
+        goto exit;
+    }
+    ret = gpio_pin_configure_dt(&sw_power, GPIO_INPUT);
+    if (ret < 0) {
+        LOG_ERR("failed to init led");
+        goto exit;
+    }
+    if (shared_init()) {
+        LOG_ERR("failed to init shared objects");
+        ret = -1;
+        goto exit;
+    }
+    if (tirette_init()) {
+        LOG_ERR("failed to init tirette");
+        ret = -1;
+        goto exit;
+    }
+    if (pokarm_init()) {
+        LOG_ERR("failed to init pokarm");
+        ret = -1;
+        goto exit;
+    }
+    if (figurine_lifter_init()) {
+        LOG_ERR("failed to init figurine_lifter");
+        ret = -1;
+        goto exit;
+    }
+    if (!device_is_ready(led.port)) {
+        LOG_ERR("failed to init led");
+        goto exit;
+    }
+    pokarm_up();
+    figurine_lifter_up_inside();
+    pokibrain_init(NULL, 0, NULL, end_game_callback);
+    LOG_INF("MATCH INIT DONE");
+exit:
+    return;
+}
+
+void match_wait_start() {
+    LOG_INF("MATCH WAIT FOR TASKS AND POWER");
+    static const struct gpio_dt_spec led =
+        GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
+    static const struct gpio_dt_spec sw_side =
+        GPIO_DT_SPEC_GET(DT_ALIAS(sw_side), gpios);
+    static const struct gpio_dt_spec sw_power =
+        GPIO_DT_SPEC_GET(DT_ALIAS(sw_power), gpios);
+    while (!gpio_pin_get_dt(&sw_power))
+    {
+        k_sleep(K_MSEC(1));
+    }
+    LOG_INF("POWER IS UP!");
+    shared_ctrl.start_init = true;
+
+    LOG_INF("MATCH WAIT FOR TASKS");
+    control_task_wait_ready();
+
+    k_sleep(K_MSEC(500));
+    hmi_led_success();
+
+    LOG_INF("MATCH WAIT FOR STARTER KEY");
+    tirette_wait_until_released();
+}
+
 void match_1() {
     LOG_INF("MATCH INIT");
     // hmi_led_init();
@@ -176,9 +255,9 @@ void match_1() {
         K_MSEC(1000)); // delay before going away not to let the key halfway in
     shared_ctrl.start = true;
     int side = gpio_pin_get_dt(&sw_side);
-    LOG_DBG("side= %d", side);
+    LOG_INF("side= %d", side);
 
-    LOG_DBG("go to target 1");
+    LOG_INF("go to target 1");
     pos2_t dst_1 = {770.0f, 350.0f, 0.5f * M_PI};
     if (side == SIDE_YELLOW) {
         dst_1.x = -dst_1.x;
@@ -190,7 +269,7 @@ void match_1() {
         k_sleep(K_MSEC(100));
     }
 
-    LOG_DBG("go to target 2");
+    LOG_INF("go to target 2");
     pos2_t dst_2 = {770.0f, 640.0f, 0.5f * M_PI};
     if (side == SIDE_YELLOW) {
         dst_2.x = -dst_2.x;
@@ -201,11 +280,11 @@ void match_1() {
         gpio_pin_toggle(led.port, led.pin);
         k_sleep(K_MSEC(100));
     }
-    LOG_DBG("sending pokarm out");
+    LOG_INF("sending pokarm out");
     pokarm_pos_put_haxagone_display();
     k_sleep(K_MSEC(1000));
 
-    LOG_DBG("go to target 3");
+    LOG_INF("go to target 3");
     pos2_t dst_3 = {950.0f, 700.0f, 0.5f * M_PI};
     // pos2_t dst_3 = {0.0f, 0.0f, 100.0f * M_PI};
     if (side == SIDE_YELLOW) {
@@ -294,9 +373,9 @@ void match_2() {
         K_MSEC(1000)); // delay before going away not to let the key halfway in
     shared_ctrl.start = true;
     int side = gpio_pin_get_dt(&sw_side);
-    LOG_DBG("side= %d", side);
+    LOG_INF("side= %d", side);
 
-    LOG_DBG("go to target 1");
+    LOG_INF("go to target 1");
     pos2_t dst_1 = {770.0f, 350.0f, 0.5f * M_PI};
     if (side == SIDE_YELLOW) {
         dst_1.x = -dst_1.x;
@@ -308,7 +387,7 @@ void match_2() {
         k_sleep(K_MSEC(100));
     }
 
-    LOG_DBG("go to target 2");
+    LOG_INF("go to target 2");
     pos2_t dst_2 = {770.0f, 640.0f, 0.5f * M_PI};
     if (side == SIDE_YELLOW) {
         dst_2.x = -dst_2.x;
@@ -319,11 +398,11 @@ void match_2() {
         gpio_pin_toggle(led.port, led.pin);
         k_sleep(K_MSEC(100));
     }
-    LOG_DBG("sending pokarm out");
+    LOG_INF("sending pokarm out");
     pokarm_pos_put_haxagone_display();
     k_sleep(K_MSEC(1000));
 
-    LOG_DBG("go to target 3");
+    LOG_INF("go to target 3");
     pos2_t dst_3 = {955.0f, 700.0f, 0.5f * M_PI};
     if (side == SIDE_YELLOW) {
         dst_3.x = -dst_3.x;
@@ -335,7 +414,7 @@ void match_2() {
         k_sleep(K_MSEC(100));
     }
 
-    LOG_DBG("go back to target 2");
+    LOG_INF("go back to target 2");
     pokarm_up();
     control_set_target(&shared_ctrl, dst_2);
     for (int i = 0; i < 100; i++) {
@@ -343,14 +422,14 @@ void match_2() {
         k_sleep(K_MSEC(100));
     }
 
-    LOG_DBG("go back to target 1");
+    LOG_INF("go back to target 1");
     control_set_target(&shared_ctrl, dst_1);
     for (int i = 0; i < 100; i++) {
         gpio_pin_toggle(led.port, led.pin);
         k_sleep(K_MSEC(100));
     }
 
-    LOG_DBG("go back to home");
+    LOG_INF("go back to home");
     pos2_t dst_home = {-60.0f, 0.0f, 0.0f * M_PI};
     if (side == SIDE_YELLOW) {
         dst_home.x = -dst_home.x;
@@ -372,9 +451,7 @@ exit:
 }
 
 void match_3() {
-    LOG_INF("MATCH INIT");
-    // hmi_led_init();
-    // hmi_led_error();
+    int ret = 0;
     static const struct gpio_dt_spec led =
         GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
     static const struct gpio_dt_spec sw_side =
@@ -382,148 +459,91 @@ void match_3() {
     static const struct gpio_dt_spec sw_power =
         GPIO_DT_SPEC_GET(DT_ALIAS(sw_power), gpios);
 
-    obstacle_manager_init(collision_callback);
-    int ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
-    if (ret < 0) {
-        LOG_ERR("failed to init led");
-        goto exit;
-    }
-    ret = gpio_pin_configure_dt(&sw_power, GPIO_INPUT);
-    if (ret < 0) {
-        LOG_ERR("failed to init led");
-        goto exit;
-    }
-    if (shared_init()) {
-        LOG_ERR("failed to init shared objects");
-        ret = -1;
-        goto exit;
-    }
-    if (tirette_init()) {
-        LOG_ERR("failed to init tirette");
-        ret = -1;
-        goto exit;
-    }
-    if (pokarm_init()) {
-        LOG_ERR("failed to init pokarm");
-        ret = -1;
-        goto exit;
-    }
-    if (figurine_lifter_init()) {
-        LOG_ERR("failed to init figurine_lifter");
-        ret = -1;
-        goto exit;
-    }
-    if (!device_is_ready(led.port)) {
-        LOG_ERR("failed to init led");
-        goto exit;
-    }
-    pokarm_up();
-    figurine_lifter_up_inside();
-    pokibrain_init(NULL, 0, NULL, end_game_callback);
-    LOG_INF("MATCH INIT DONE");
-    LOG_INF("MATCH WAIT FOR TASKS AND POWER");
+    match_init();
+    match_wait_start();
 
-    while (!gpio_pin_get_dt(&sw_power)) {
-        k_sleep(K_MSEC(1));
-    }
-    LOG_INF("POWER IS UP!");
-    shared_ctrl.start_init = true;
-
-    LOG_INF("MATCH WAIT FOR TASKS");
-    control_task_wait_ready();
-
-    k_sleep(K_MSEC(500));
-    hmi_led_success();
-
-    LOG_INF("MATCH WAIT FOR STARTER KEY");
-    tirette_wait_until_released();
     LOG_INF("MATCH START");
     pokibrain_start();
-    k_sleep(
-        K_MSEC(1000)); // delay before going away not to let the key halfway in
-    shared_ctrl.start = true;
     int side = gpio_pin_get_dt(&sw_side);
-    LOG_DBG("side= %d", side);
-
-    pos2_t start_pos = {1500.0f - 155.0f, 1000.0f, M_PI / 2};
-    if (side == SIDE_YELLOW) {
-        start_pos.y = -start_pos.y;
-        start_pos.a = -start_pos.a;
-    }
+    LOG_INF("side= %d", side);
+    pos2_t start_pos = TRANSFORM_SIDE(side, COORDS_START);
+    pos2_t target = start_pos;
+    bool at_target = false;
     control_set_pos(&shared_ctrl, start_pos);
+    control_set_target(&shared_ctrl, start_pos);
 
-    LOG_DBG("go to target 1");
-    pos2_t dst_1 = {770.0f, 350.0f, 0.5f * M_PI};
-    if (side == SIDE_YELLOW) {
-        dst_1.x = -dst_1.x;
-        dst_1.a = -dst_1.a;
-    }
-    control_set_target(&shared_ctrl, dst_1);
-    for (int i = 0; i < 100; i++) {
-        gpio_pin_toggle(led.port, led.pin);
-        k_sleep(K_MSEC(100));
-    }
+    k_sleep(K_MSEC(500)); // delay before going away not to let the key halfway in
+    shared_ctrl.start = true;
 
-    LOG_DBG("go to target 2");
-    pos2_t dst_2 = {770.0f, 640.0f, 0.5f * M_PI};
-    if (side == SIDE_YELLOW) {
-        dst_2.x = -dst_2.x;
-        dst_2.a = -dst_2.a;
+    LOG_INF("go to carre de fouille");
+    target = TRANSFORM_SIDE(side, COORDS_CARREFOUILLE_B1);
+    control_set_target(&shared_ctrl, target);
+    at_target = control_task_wait_target(30.0f, DEG_TO_RAD(10.0f), 20000);
+    if (!at_target) {
+        LOG_INF("abort carrefouille b1");
+        goto end_carrefouille;
     }
-    control_set_target(&shared_ctrl, dst_2);
-    for (int i = 0; i < 40; i++) {
-        gpio_pin_toggle(led.port, led.pin);
-        k_sleep(K_MSEC(100));
+    target = TRANSFORM_SIDE(side, COORDS_CARREFOUILLE_B2);
+    control_set_target(&shared_ctrl, target);
+    at_target = control_task_wait_target(30.0f, DEG_TO_RAD(10.0f), 10000);
+    if (!at_target) {
+        LOG_INF("abort carrefouille b2");
+        goto end_carrefouille;
     }
-    LOG_DBG("sending pokarm out");
+    target = TRANSFORM_SIDE(side, COORDS_CARREFOUILLE_B3);
+    control_set_target(&shared_ctrl, target);
+    at_target = control_task_wait_target(30.0f, DEG_TO_RAD(10.0f), 10000);
+    if (!at_target) {
+        LOG_INF("abort carrefouille b3");
+        goto end_carrefouille;
+    }
     pokarm_pos_put_haxagone_display();
-    k_sleep(K_MSEC(1000));
-
-    LOG_DBG("go to target 3");
-    pos2_t dst_3 = {955.0f, 700.0f, 0.5f * M_PI};
-    if (side == SIDE_YELLOW) {
-        dst_3.x = -dst_3.x;
-        dst_3.a = -dst_3.a;
+    target = TRANSFORM_SIDE(side, COORDS_CARREFOUILLE);
+    control_set_target(&shared_ctrl, target);
+    at_target = control_task_wait_target_default(10000);
+    if (!at_target) {
+        LOG_INF("abort carrefouille target");
+        goto end_carrefouille;
     }
-    control_set_target(&shared_ctrl, dst_3);
-    for (int i = 0; i < 100; i++) {
-        gpio_pin_toggle(led.port, led.pin);
-        k_sleep(K_MSEC(100));
-    }
-
-    LOG_DBG("go back to target 2");
+end_carrefouille:
     pokarm_up();
-    control_set_target(&shared_ctrl, dst_2);
-    for (int i = 0; i < 100; i++) {
-        gpio_pin_toggle(led.port, led.pin);
-        k_sleep(K_MSEC(100));
-    }
 
-    LOG_DBG("go back to target 1");
-    control_set_target(&shared_ctrl, dst_1);
-    for (int i = 0; i < 100; i++) {
-        gpio_pin_toggle(led.port, led.pin);
-        k_sleep(K_MSEC(100));
+    LOG_INF("go to statuette");
+    target = TRANSFORM_SIDE(side, COORDS_STATUETTE);
+    control_set_target(&shared_ctrl, target);
+    at_target = control_task_wait_target_default(20000);
+    if (!at_target) {
+        LOG_INF("abort statuette target");
+        goto end_statuette;
     }
+    figurine_lifter_grab();
+    LOG_INF("go to vitrine");
+    target = TRANSFORM_SIDE(side, COORDS_VITRINE);
+    control_set_target(&shared_ctrl, target);
+    at_target = control_task_wait_target_default(30000);
+    if (!at_target) {
+        LOG_INF("abort statuette target");
+        goto end_statuette;
+    }
+end_statuette:
+    figurine_lifter_put();
+    figurine_lifter_up_inside();
 
-    LOG_DBG("go back to home");
-    pos2_t dst_home = {-60.0f, 0.0f, 0.0f * M_PI};
-    if (side == SIDE_YELLOW) {
-        dst_home.x = -dst_home.x;
-        dst_home.a = -dst_home.a;
-    }
-    control_set_target(&shared_ctrl, dst_home);
-    for (int i = 0; i < 100; i++) {
-        gpio_pin_toggle(led.port, led.pin);
-        k_sleep(K_MSEC(100));
-    }
+    LOG_INF("go to home");
+    target = TRANSFORM_SIDE(side, COORDS_HOME);
+    control_set_target(&shared_ctrl, target);
+    at_target = control_task_wait_target(50.0f, DEG_TO_RAD(20.0f), 20000);
+
+exit:
+    pokarm_up();
+    figurine_lifter_put();
+    figurine_lifter_up_inside();
     shared_ctrl.brake = true;
-    k_sleep(K_MSEC(100));
+    k_sleep(K_MSEC(1000));
     k_sched_lock();
+    LOG_INF("MATCH DONE (ret: %d)", ret);
     while (1) {
     }
-exit:
-    LOG_INF("MATCH DONE (ret: %d)", ret);
     return;
 }
 
@@ -643,11 +663,12 @@ int main(void) {
     // _test_target();
     // _test_calibration();
     // _test_connerie();
+    // _test_pathfinding();
+
     // match_1();
     // match_2();
     // match_3();
 
-    _test_pathfinding();
 exit:
     return ret;
 }

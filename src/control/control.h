@@ -26,7 +26,7 @@
     (1.0f * ANGULAR_VMAX * CONTROL_PERIOD_MS / 1000.0f) // 1/0.1 seconds to reach vmax
 
 #define CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT 5.0f // 5mm
-#define CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT (3.0f * M_PI / 180.0f) // 3 deg
+#define CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT DEG_TO_RAD(3.0f) // 3 deg
 
 
 typedef struct omni3 {
@@ -73,6 +73,11 @@ vel2_t local_vel_from_omni(omni3_t omni);
 void control_task_wait_ready();
 bool control_task_wait_target(float planar_sensivity, float angular_sensivity,
         uint32_t timeout_ms);
+#define control_task_wait_target_default(_timeout_ms) \
+    control_task_wait_target( \
+            CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT, \
+            CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT, \
+            _timeout_ms)
 
 void _test_gconf();
 void _test_motor_cmd();

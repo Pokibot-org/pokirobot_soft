@@ -24,6 +24,8 @@
 #define M_SQRT1_2 0.70710678118654752440
 #define M_SQRT3 1.73205080756887729352
 
+#define DEG_TO_RAD(_rad) (_rad*180.0f/M_PI)
+
 #define LOCKVAR(_type)                                                         \
     struct {                                                                   \
         struct k_mutex lock;                                                   \
