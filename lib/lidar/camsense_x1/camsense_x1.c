@@ -223,4 +223,9 @@ float camsense_x1_get_sensor_speed() {
     return obj.current_speed;
 }
 
+void camsense_x1_kill(void)
+{
+    uart_irq_rx_disable(obj.uart_dev);
+}
+
 #endif

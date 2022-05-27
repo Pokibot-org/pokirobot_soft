@@ -9,5 +9,6 @@ typedef void (*camsense_x1_msg_clbk)(
 
 uint8_t camsense_x1_init(camsense_x1_msg_clbk fun, void* user_data);
 float camsense_x1_get_sensor_speed(void);
+void camsense_x1_stop();
 
 #endif
