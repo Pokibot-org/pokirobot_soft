@@ -59,19 +59,19 @@
 
 
 #define COORDS_VITRINE ((pos2_t){ \
-        .x = 1500.0f - 325.0f - 130.0f, \
+        .x = 1500.0f - 345.0f - 130.0f, \
         .y = 2000.0f - OFFSET_WHEEL_EXTERNAL_FLAT, \
         .a = -(-1.0f/3.0f-1.0f/6.0f) * M_PI})
 
 #define COORDS_VITRINE_B1 ((pos2_t){ \
-        .x = 1500.0f - 325.0f, \
+        .x = 1500.0f - 345.0f, \
         .y = 2000.0f - OFFSET_WHEEL_EXTERNAL_FLAT, \
         .a = -(-1.0f/3.0f-1.0f/6.0f) * M_PI})
 
 
 #define COORDS_STATUETTE ((pos2_t){ \
         .x = 1191.0f + OFFSET_WHEEL_EXTERNAL_PROJECTION, \
-        .y = 251.0f - OFFSET_WHEEL_EXTERNAL_PROJECTION, \
+        .y = 251.0f + OFFSET_WHEEL_EXTERNAL_PROJECTION, \
         .a = (1.0f/2.0f-(1.0f/3.0f+1.0/6.0f+1.0f/12.0f)) * M_PI})
 
 

@@ -37,7 +37,12 @@ void end_game_callback(void) {
     shared_ctrl.brake = true;
     pokarm_up();
     figurine_lifter_up_inside();
-    k_sleep(K_MSEC(100));
+    for (int i = 0; i < 10; i++) {
+        tmc2209_set_speed(&train_motor_1, 0);
+        tmc2209_set_speed(&train_motor_2, 0);
+        tmc2209_set_speed(&train_motor_3, 0);
+    }
+    k_sleep(K_MSEC(1000));
     k_sched_lock();
     while (1) {
     }
@@ -498,6 +503,7 @@ void match_3() {
         goto end_carrefouille;
     }
     pokarm_pos_put_haxagone_display();
+    k_sleep(K_MSEC(500));
     target = TRANSFORM_SIDE(side, COORDS_CARREFOUILLE);
     control_set_target(&shared_ctrl, target);
     at_target = control_task_wait_target_default(10000);
@@ -517,6 +523,9 @@ end_carrefouille:
 
     LOG_INF("go to statuette");
     target = TRANSFORM_SIDE(side, COORDS_STATUETTE);
+    if (side == SIDE_YELLOW) {
+        target.a -= 2.0f / 3.0f * M_PI;
+    }
     control_set_target(&shared_ctrl, target);
     at_target = control_task_wait_target_default(20000);
     if (!at_target) {
@@ -524,8 +533,12 @@ end_carrefouille:
         goto end_statuette;
     }
     figurine_lifter_grab();
+    k_sleep(K_MSEC(500));
     LOG_INF("go to vitrine");
     target = TRANSFORM_SIDE(side, COORDS_VITRINE_B1);
+    if (side == SIDE_YELLOW) {
+        target.a -= 2.0f / 3.0f * M_PI;
+    }
     control_set_target(&shared_ctrl, target);
     at_target = control_task_wait_target_default(30000);
     if (!at_target) {
@@ -533,6 +546,9 @@ end_carrefouille:
         goto end_statuette;
     }
     target = TRANSFORM_SIDE(side, COORDS_VITRINE);
+    if (side == SIDE_YELLOW) {
+        target.a -= 2.0f / 3.0f * M_PI;
+    }
     control_set_target(&shared_ctrl, target);
     at_target = control_task_wait_target_default(10000);
     if (!at_target) {
@@ -541,13 +557,14 @@ end_carrefouille:
     }
 end_statuette:
     figurine_lifter_put();
+    k_sleep(K_MSEC(500));
     figurine_lifter_up_inside();
+    k_sleep(K_MSEC(500));
 
     LOG_INF("go to home");
     target = TRANSFORM_SIDE(side, COORDS_HOME);
     control_set_target(&shared_ctrl, target);
     at_target = control_task_wait_target(50.0f, DEG_TO_RAD(20.0f), 20000);
-    while(1);
 
 exit:
     end_game_callback();
