@@ -1,0 +1,7 @@
+tests:
+  # section.subsection
+  obstacles.testing.ztest:
+    platform_allow: native_posix
+    integration_platforms:
+      - native_posix
+    tags: testing

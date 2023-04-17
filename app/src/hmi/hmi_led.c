@@ -1,11 +1,11 @@
 #include "hmi_led.h"
 
-#include <device.h>
-#include <zephyr.h>
+#include <zephyr/device.h>
+#include <zephyr/kernel.h>
 
 #include "led_pwm/led_pwm.h"
-#include <drivers/pwm.h>
-#include <logging/log.h>
+#include <zephyr/drivers/pwm.h>
+#include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(led_control);
 

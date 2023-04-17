@@ -1,8 +1,8 @@
 #ifndef TMC2209_H
 #define TMC2209_H
 
-#include <device.h>
-#include <zephyr.h>
+#include <zephyr/device.h>
+#include <zephyr/kernel.h>
 
 #include "uart_hdb/uart_hdb.h"
 

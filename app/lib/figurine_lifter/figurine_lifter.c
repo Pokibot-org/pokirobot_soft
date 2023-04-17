@@ -1,12 +1,12 @@
 #include "figurine_lifter.h"
 
-#include <device.h>
-#include <devicetree.h>
-#include <zephyr.h>
+#include <zephyr/device.h>
+#include <zephyr/devicetree.h>
+#include <zephyr/kernel.h>
 
 #include "utils.h"
-#include <drivers/gpio.h>
-#include <logging/log.h>
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/logging/log.h>
 #include <servo_pwm/servo_pwm.h>
 
 LOG_MODULE_REGISTER(figurine_lifter);

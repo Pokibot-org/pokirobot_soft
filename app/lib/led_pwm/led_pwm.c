@@ -1,8 +1,8 @@
 #include "led_pwm.h"
 
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 
-#include <drivers/pwm.h>
+#include <zephyr/drivers/pwm.h>
 
 int led_set(led_t* led, uint8_t val) {
     uint32_t pulse = val * (LED_PWM_PERIOD_NS / 255);

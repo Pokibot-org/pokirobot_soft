@@ -1,7 +1,7 @@
-#include <zephyr.h>
-#include <device.h>
-#include <devicetree.h>
-#include <logging/log.h>
+#include <zephyr/kernel.h>
+#include <zephyr/device.h>
+#include <zephyr/devicetree.h>
+#include <zephyr/logging/log.h>
 #include "pokibrain.h"
 
 LOG_MODULE_REGISTER(main);

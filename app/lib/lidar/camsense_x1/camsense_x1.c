@@ -1,11 +1,11 @@
 #include "camsense_x1.h"
 
-#include <device.h>
-#include <devicetree.h>
-#include <zephyr.h>
+#include <zephyr/device.h>
+#include <zephyr/devicetree.h>
+#include <zephyr/kernel.h>
 
-#include <drivers/uart.h>
-#include <logging/log.h>
+#include <zephyr/drivers/uart.h>
+#include <zephyr/logging/log.h>
 
 #ifndef CONFIG_UART_INTERRUPT_DRIVEN
 #error CONFIG_UART_INTERRUPT_DRIVEN must be enabled
@@ -194,7 +194,7 @@ uint8_t camsense_x1_init(camsense_x1_msg_clbk fun, void* user_data) {
         return 1;
     }
     // CONFIG UART
-    obj.uart_dev = device_get_binding(DT_LABEL(CAMSENSE_X1_NODE));
+    obj.uart_dev = device_get_binding(DEVICE_DT_NAME(CAMSENSE_X1_NODE));
     if (obj.uart_dev == NULL) {
         LOG_ERR("Cant get the uart device binding");
         return 1;

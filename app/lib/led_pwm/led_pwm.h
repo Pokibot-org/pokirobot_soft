@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include <drivers/pwm.h>
+#include <zephyr/drivers/pwm.h>
 
 #define LED_PWM_PERIOD_NS 10000000 // 10ms - 100Hz
 

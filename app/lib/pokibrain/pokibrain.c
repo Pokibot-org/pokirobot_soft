@@ -1,8 +1,7 @@
 #include "pokibrain.h"
 
-#include <zephyr.h>
-
-#include <logging/log.h>
+#include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(pokibrain, POKIBRAIN_LOG_LEVEL);
 

@@ -1,9 +1,9 @@
 #ifndef UART_HDB_H
 #define UART_HDB_H
 
-#include <device.h>
-#include <devicetree.h>
-#include <zephyr.h>
+#include <zephyr/device.h>
+#include <zephyr/devicetree.h>
+#include <zephyr/kernel.h>
 
 #define UART_HDB_STACK_SIZE 1024
 #define UART_HDB_THREAD_PRIORITY 1

@@ -7,6 +7,8 @@
 
 typedef struct path_node {
     struct path_node* parent_node;
+    struct path_node* son_node;
+    struct path_node* son_node_next;
     point2_t coordinate;
     uint8_t is_used;
     float distance_to_start;
@@ -19,10 +21,10 @@ typedef struct path_node {
  * boundaries.y = 2000;
  */
 typedef struct boundaries {
-    int32_t max_x;
-    int32_t max_y;
-    int32_t min_x;
-    int32_t min_y;
+    float max_x;
+    float max_y;
+    float min_x;
+    float min_y;
 } boundaries_t;
 
 #endif

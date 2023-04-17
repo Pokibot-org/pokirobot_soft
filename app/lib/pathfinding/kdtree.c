@@ -2,8 +2,8 @@
 
 #include "string.h"
 #ifdef CONFIG_KERNEL_BIN_NAME
-#include "logging/log.h"
-#include "zephyr.h"
+#include <zephyr/logging/log.h>
+#include <zephyr/kernel.h>
 LOG_MODULE_REGISTER(kdtree_lib);
 #define KDTREE_PRINT_ERR(format, ...) LOG_ERR(format, ##__VA_ARGS__)
 #define KDTREE_PRINT_INF(format, ...) LOG_INF(format, ##__VA_ARGS__)

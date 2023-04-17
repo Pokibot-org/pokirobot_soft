@@ -1,0 +1,31 @@
+menu "Zephyr"
+source "Kconfig.zephyr"
+endmenu
+
+menu "PokiSettings"
+
+config CONTROL_TASK
+    bool "enable control task"
+    default y
+config CONTROL_THREAD_STACK
+    int "stack size"
+    default 1024
+config CONTROL_THREAD_PRIORITY
+    int "thread priority"
+    default 5
+
+config OBSTACLE_MANAGER_THREAD_STACK
+    int "Stack size"
+    default 1024
+config OBSTACLE_MANAGER_THREAD_PRIORITY
+    int "Thread priority"
+    default 10
+
+config PATH_MANAGER_THREAD_STACK
+    int "Stack size"
+    default 4096
+config PATH_MANAGER_THREAD_PRIORITY
+    int "Thread priority"
+    default 14
+
+endmenu

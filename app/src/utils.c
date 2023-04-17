@@ -1,9 +1,9 @@
 #include "utils.h"
 
 #include <math.h>
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 
 
 LOG_MODULE_REGISTER(utils);

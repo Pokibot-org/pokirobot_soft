@@ -3,7 +3,7 @@ Soft du robot pokibot utilisé pour la coupe de france de robotique.
 
 ```sh
 # create a new west workspace and pull the firmware
-west init -m https://github.com/Pokibot-org/pokirobot_soft.git west-workspace
+west init -m https://github.com/Pokibot-org/pokirobot_soft west-workspace
 cd west-workspace/pokirobot_soft
 
 # pull Zephyr upstream repository and modules (may take a while)

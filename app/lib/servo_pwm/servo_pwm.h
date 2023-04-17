@@ -2,7 +2,7 @@
 #define SERVO_PWM_H
 #include <stdint.h>
 
-#include <drivers/pwm.h>
+#include <zephyr/drivers/pwm.h>
 
 typedef struct servo_pwm_config {
     uint32_t period;

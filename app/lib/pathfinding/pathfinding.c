@@ -5,11 +5,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "kdtree.h"
-#include "logging/log.h"
+#include <zephyr/logging/log.h>
+#include <zephyr/kernel.h>
 #include "obstacles/obstacle.h"
 #include "pokutils/robot_utils.h"
-#include "zephyr.h"
 
 LOG_MODULE_REGISTER(PATHFINDING, 1);
 
@@ -44,7 +43,7 @@ int pathfinding_object_configure(
             obj->config.field_boundaries.max_y) &&
         (obj->config.field_boundaries.max_x == 0)) {
         obj->config.field_boundaries =
-            (boundaries_t){INT32_MAX, INT32_MAX, INT32_MIN, INT32_MIN};
+            (boundaries_t){__FLT_MAX__, __FLT_MAX__, __FLT_MIN__, __FLT_MIN__};
     }
     if (!obj->config.delta_distance) {
         obj->config.delta_distance = (obj->config.field_boundaries.max_x +
@@ -217,14 +216,8 @@ point2_t pathfinding_generate_rand_coordinates(
     if (new_crd_on_goal) {
         rand_coordinates = *end;
     } else {
-        rand_coordinates.x = obj->config.field_boundaries.min_x +
-                             (int32_t)(utils_get_rand32() %
-                                       (obj->config.field_boundaries.max_x -
-                                           obj->config.field_boundaries.min_x));
-        rand_coordinates.y = obj->config.field_boundaries.min_y +
-                             (int32_t)(utils_get_rand32() %
-                                       (obj->config.field_boundaries.max_y -
-                                           obj->config.field_boundaries.min_y));
+        rand_coordinates.x = utils_get_randf_in_range(obj->config.field_boundaries.min_x, obj->config.field_boundaries.max_x);
+        rand_coordinates.y = utils_get_randf_in_range(obj->config.field_boundaries.min_y, obj->config.field_boundaries.max_y);
     }
     return rand_coordinates;
 }
@@ -243,14 +236,8 @@ point2_t pathfinding_generate_rebuild_rand_coordinates(
         rand_coordinates = obj->coordinate_cache[(rand_num >> 24) %
                                                  obj->nb_of_coordinate_cached];
     } else {
-        rand_coordinates.x = obj->config.field_boundaries.min_x +
-                             (int32_t)(utils_get_rand32() %
-                                       (obj->config.field_boundaries.max_x -
-                                           obj->config.field_boundaries.min_x));
-        rand_coordinates.y = obj->config.field_boundaries.min_y +
-                             (int32_t)(utils_get_rand32() %
-                                       (obj->config.field_boundaries.max_y -
-                                           obj->config.field_boundaries.min_y));
+        rand_coordinates.x = utils_get_randf_in_range(obj->config.field_boundaries.min_x, obj->config.field_boundaries.max_x);
+        rand_coordinates.y = utils_get_randf_in_range(obj->config.field_boundaries.min_y, obj->config.field_boundaries.max_y);
     }
     return rand_coordinates;
 }
@@ -429,14 +416,8 @@ int pathfinding_optimize_path(pathfinding_object_t* obj,
         // optimise all existing nodes and not stop to the first unused nodes
         // when nb_of_nodes_to_add = 0
         point2_t rand_coordinates;
-        rand_coordinates.x =
-            obj->config.field_boundaries.min_x +
-            utils_get_rand32() % (obj->config.field_boundaries.max_x -
-                                     obj->config.field_boundaries.min_x);
-        rand_coordinates.y =
-            obj->config.field_boundaries.min_y +
-            utils_get_rand32() % (obj->config.field_boundaries.max_y -
-                                     obj->config.field_boundaries.min_y);
+        rand_coordinates.x = utils_get_randf_in_range(obj->config.field_boundaries.min_x, obj->config.field_boundaries.max_x);
+        rand_coordinates.y = utils_get_randf_in_range(obj->config.field_boundaries.min_y, obj->config.field_boundaries.max_y);
         path_node_t* closest_node_p = get_closest_node(obj, &rand_coordinates);
         // printf("rand crd x:%d y:%d\n Closest node x:%d y:%d\n",
         // rand_coordinates.x, rand_coordinates.y, closest_node_p->coordinate.x,
@@ -476,7 +457,7 @@ int pathfinding_optimize_path(pathfinding_object_t* obj,
 }
 
 // DEBUG FUNCTIONS
-
+#if 0
 void pathfinding_debug_print(pathfinding_object_t* obj) {
     uint8_t tab[DEBUG_TAB_SIZE_Y][DEBUG_TAB_SIZE_X] = {0};
     for (size_t i = 0; i < PATHFINDING_MAX_NUM_OF_NODES; i++) {
@@ -544,7 +525,7 @@ void pathfinding_debug_write_found_path(
         return;
     }
     FILE* fd = fopen(file_path, "w+");
-    uint8_t(*tab)[obj->config.field_boundaries.max_x] =
+    uint8_t(*tab)[(int)obj->config.field_boundaries.max_x] =
         malloc(obj->config.field_boundaries.max_y *
                obj->config.field_boundaries.max_x * sizeof(uint8_t));
     uint8_t path_valid = 0;
@@ -604,3 +585,4 @@ void pathfinding_debug_write_found_path_list(
     fprintf(fd, "]");
     fclose(fd);
 };
+#endif

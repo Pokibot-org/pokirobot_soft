@@ -1,12 +1,12 @@
-#include <device.h>
-#include <devicetree.h>
-#include <zephyr.h>
+#include <zephyr/device.h>
+#include <zephyr/devicetree.h>
+#include <zephyr/kernel.h>
 
 #include "control/control.h"
 #include "coords.h"
 #include "figurine_lifter/figurine_lifter.h"
 #include "hmi/hmi_led.h"
-#include "kernel.h"
+#include <zephyr/kernel.h>
 #include "lidar/camsense_x1/camsense_x1.h"
 #include "nav/obstacle_manager.h"
 #include "nav/path_manager.h"
@@ -16,8 +16,8 @@
 #include "tirette/tirette.h"
 #include "tmc2209/tmc2209.h"
 #include "utils.h"
-#include <drivers/gpio.h>
-#include <logging/log.h>
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(main);
 

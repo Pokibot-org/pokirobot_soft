@@ -1,7 +1,7 @@
 #ifndef POKIBRAIN_H
 #define POKIBRAIN_H
 #include <stdint.h>
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 
 #include "user_context.h"
 #include "utils.h"

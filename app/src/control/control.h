@@ -1,7 +1,7 @@
 #ifndef CONTROL_H
 #define CONTROL_H
 
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 
 #include "tmc2209/tmc2209.h"
 #include "uart_hdb/uart_hdb.h"

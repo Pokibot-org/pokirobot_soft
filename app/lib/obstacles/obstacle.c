@@ -1,9 +1,8 @@
 #include "obstacles/obstacle.h"
 
+#include <zephyr/kernel.h>
 #include <math.h>
-#include <zephyr.h>
-
-#include "utils.h"
+#include <stdlib.h>
 
 #define OBSTACLE_COLLISION_NB_MAX_SIDES 8
 

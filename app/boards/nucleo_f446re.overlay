@@ -96,12 +96,9 @@
     status = "okay";
 
     pwm1: pwm {
-        compatible = "st,stm32-pwm";
         status = "okay";
         pinctrl-0 = <&tim1_ch1_pa8>;
         pinctrl-names = "default";
-		label = "PWMS_1";
-		#pwm-cells = <3>;
     };
 };
 
@@ -110,12 +107,9 @@
     status = "okay";
 
 	pwm2: pwm {
-        compatible = "st,stm32-pwm";
 		status = "okay";
 		pinctrl-0 = <&tim2_ch1_pb8 &tim2_ch2_pb9 &tim2_ch3_pb10>;
 		pinctrl-names = "default";
-		label = "PWMS_2";
-		#pwm-cells = <3>;
 	};
 };
 
@@ -124,12 +118,9 @@
     status = "okay";
 
     pwm3: pwm {
-        compatible = "st,stm32-pwm";
         status = "okay";
         pinctrl-0 = <&tim3_ch1_pb4 &tim3_ch2_pb5 &tim3_ch4_pc9>;
         pinctrl-names = "default";
-		label = "PWMS_3";
-		#pwm-cells = <3>;
     };
 };
 

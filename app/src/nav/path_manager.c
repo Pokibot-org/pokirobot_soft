@@ -1,8 +1,8 @@
 #include "path_manager.h"
 
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 
-#include "logging/log.h"
+#include <zephyr/logging/log.h>
 #include "obstacle_manager.h"
 #include "pathfinding/pathfinding.h"
 #include "string.h"

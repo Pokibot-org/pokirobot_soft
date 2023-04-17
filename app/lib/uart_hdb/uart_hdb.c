@@ -1,10 +1,10 @@
 #include "uart_hdb.h"
 
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 
-#include "kernel.h"
-#include <drivers/uart.h>
-#include <logging/log.h>
+#include <zephyr/kernel.h>
+#include <zephyr/drivers/uart.h>
+#include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(uart_hdb);
 
@@ -17,7 +17,7 @@ int uart_hdb_read(const uart_hdb_t* dev, uint8_t* buf, size_t len) {
 }
 
 void uart_hdb_thread(void* arg1, void* arg2, void* arg3) {
-    const uint8_t min_wait_in_bit_time = 8;
+    // const uint8_t min_wait_in_bit_time = 8;
     uart_hdb_t* device = (uart_hdb_t*)arg1;
     LOG_INF("uart_hdb thread launched");
     while (1) {

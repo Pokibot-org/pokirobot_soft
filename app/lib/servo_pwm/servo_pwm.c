@@ -1,11 +1,11 @@
 #include "servo_pwm.h"
 
 #include <math.h>
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 
 #include "utils.h"
-#include <drivers/pwm.h>
-#include <logging/log.h>
+#include <zephyr/drivers/pwm.h>
+#include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(servo, 2);
 

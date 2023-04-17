@@ -1,17 +1,17 @@
 #include "control.h"
 
-#include <kernel.h>
+#include <zephyr/kernel.h>
 #include <math.h>
 #include <stdint.h>
-#include <zephyr.h>
-#include <devicetree.h>
-#include <drivers/gpio.h>
+#include <zephyr/kernel.h>
+#include <zephyr/devicetree.h>
+#include <zephyr/drivers/gpio.h>
 
 #include "shared.h"
 #include "tmc2209/tmc2209.h"
 #include "utils.h"
-#include <logging/log.h>
-#include <sys/util.h>
+#include <zephyr/logging/log.h>
+#include <zephyr/sys/util.h>
 
 LOG_MODULE_REGISTER(control);
 

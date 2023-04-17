@@ -1,10 +1,10 @@
 #include "shared.h"
 
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 
 #include "uart_hdb/uart_hdb.h"
 #include "utils.h"
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 
 
 LOG_MODULE_REGISTER(shared);

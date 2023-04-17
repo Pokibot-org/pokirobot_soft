@@ -1,11 +1,11 @@
 #include "tmc2209.h"
 
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 
-#include "sys/util.h"
+#include <zephyr/sys/util.h>
 #include "uart_hdb/uart_hdb.h"
-#include <drivers/uart.h>
-#include <logging/log.h>
+#include <zephyr/drivers/uart.h>
+#include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(tmc2209);
 

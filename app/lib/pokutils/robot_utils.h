@@ -4,5 +4,6 @@
 
 #define SQUARE(a) ((a) * (a))
 uint32_t utils_get_rand32();
-
+float utils_get_randf(void);
+float utils_get_randf_in_range(float min, float max);
 #endif

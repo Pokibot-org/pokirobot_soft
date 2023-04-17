@@ -2,7 +2,7 @@
 #define UTILS_H
 
 
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 
 
 // needed with newlib
