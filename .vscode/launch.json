@@ -1,0 +1,45 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "name": "Debug native_posix",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/zephyr/zephyr.elf",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "Debug stm32wl55jc",
+            "device": "stm32wl55jc",
+            "gdbPath": "arm-none-eabi-gdb",
+            "cwd": "${workspaceRoot}",
+            "executable": "${workspaceRoot}/build/zephyr/zephyr.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "svdFile": "${workspaceRoot}/STM32WL5x_CM4.svd",
+            // "runToEntryPoint": "main",
+            // "postRestartCommands": [
+            //   "break main",
+            //   "continue"
+            // ],
+            "configFiles": [
+                "${workspaceRoot}/../zephyr/boards/arm/nucleo_wl55jc/support/openocd.cfg"
+            ]
+        }
+    ]
+}

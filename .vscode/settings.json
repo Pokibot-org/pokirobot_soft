@@ -1,0 +1,7 @@
+{
+    "editor.defaultFormatter": "xaver.clang-format",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 4,
+    "cSpell.language": "en",
+    "cSpell.enabled": true,
+}

@@ -1,6 +1,10 @@
 build*/
 .ccls-cache/
-.vscode/
 .cache/
 *.sw*
 twister-*
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json

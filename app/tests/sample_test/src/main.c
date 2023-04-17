@@ -6,7 +6,6 @@
 
 #include <ztest.h>
 
-
 /**
  * @brief Test Asserts
  *
@@ -25,9 +24,7 @@ static void test_assert(void)
 
 void test_main(void)
 {
-	ztest_test_suite(framework_tests,
-		ztest_unit_test(test_assert)
-	);
+	ztest_test_suite(framework_tests, ztest_unit_test(test_assert));
 
 	ztest_run_test_suite(framework_tests);
 }
