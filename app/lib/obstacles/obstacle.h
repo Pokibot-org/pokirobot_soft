@@ -16,23 +16,23 @@
 
 typedef struct circle {
 	point2_t coordinates;
-	uint16_t radius;
+	float radius;
 } circle_t;
 
 typedef struct rectangle {
 	point2_t coordinates;
-	uint16_t width;
-	uint16_t height;
+	float width;
+	float height;
 } rectangle_t;
 
 typedef enum {
 	obstacle_type_none,
 	obstacle_type_circle,
 	obstacle_type_rectangle
-} Obstacle_type_t;
+} obstacle_type_t;
 
 typedef struct obstacle {
-	Obstacle_type_t type: 2;
+	obstacle_type_t type;
 	union {
 		rectangle_t rectangle;
 		circle_t circle;
