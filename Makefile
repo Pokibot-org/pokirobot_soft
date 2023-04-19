@@ -10,6 +10,12 @@ help:
 build:
 	west build -b nucleo_f446re app
 
+build_pc_app:
+	west build -b native_posix pc_app --build-dir build-pc-app
+
+run_pc_app:
+	./build-pc-app/zephyr/zephyr.elf
+
 rebuild:
 	west build -b nucleo_f446re app --pristine
 

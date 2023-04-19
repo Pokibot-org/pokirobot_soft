@@ -1,12 +1,15 @@
 cmake_minimum_required(VERSION 3.20.0)
 
-find_package(Zephyr)
-project(PokiRobotSoft)
+find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
+project(pokirobot_soft)
 
 target_include_directories(app PRIVATE 
-src 
-../lib/pokibrain/
-../lib/robot_utils/
+    src 
+    ../app/lib
+    ../app/src
 )
 
-target_sources(app PRIVATE src/main.c ../lib/pokibrain/pokibrain.c)
+target_sources(app PRIVATE 
+    src/main.c 
+    ../app/lib/pokibrain/pokibrain.c
+)
