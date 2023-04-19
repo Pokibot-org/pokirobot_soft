@@ -1,5 +1,5 @@
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef POKUTILS_H
+#define POKUTILS_H
 
 #include <zephyr/kernel.h>
 

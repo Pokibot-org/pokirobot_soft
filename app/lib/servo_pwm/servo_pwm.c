@@ -3,7 +3,7 @@
 #include <math.h>
 #include <zephyr/kernel.h>
 
-#include "utils.h"
+#include "pokutils.h"
 #include <zephyr/drivers/pwm.h>
 #include <zephyr/logging/log.h>
 

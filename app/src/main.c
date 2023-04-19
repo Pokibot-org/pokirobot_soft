@@ -15,7 +15,7 @@
 #include "shared.h"
 #include "tirette/tirette.h"
 #include "tmc2209/tmc2209.h"
-#include "utils.h"
+#include "pokutils.h"
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
 

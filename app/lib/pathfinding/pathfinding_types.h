@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include "utils.h"
+#include "pokutils.h"
 
 typedef struct path_node {
 	struct path_node *parent_node;

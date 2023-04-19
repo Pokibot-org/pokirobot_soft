@@ -5,7 +5,7 @@
 
 #include "control/control.h"
 #include "lidar/camsense_x1/camsense_x1.h"
-#include "utils.h"
+#include "pokutils.h"
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(obstacle_manager, 3);

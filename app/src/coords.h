@@ -1,7 +1,7 @@
 #ifndef COORDS_H
 #define COORDS_H
 
-#include "utils.h"
+#include "pokutils.h"
 
 #define SIDE_YELLOW 0
 #define SIDE_PURPLE 1

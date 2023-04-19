@@ -9,7 +9,7 @@
 
 #include "shared.h"
 #include "tmc2209/tmc2209.h"
-#include "utils.h"
+#include "pokutils.h"
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/util.h>
 

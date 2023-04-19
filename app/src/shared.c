@@ -3,7 +3,7 @@
 #include <zephyr/kernel.h>
 
 #include "uart_hdb/uart_hdb.h"
-#include "utils.h"
+#include "pokutils.h"
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(shared);

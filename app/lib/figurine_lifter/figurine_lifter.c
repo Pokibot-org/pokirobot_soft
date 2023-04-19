@@ -4,7 +4,7 @@
 #include <zephyr/devicetree.h>
 #include <zephyr/kernel.h>
 
-#include "utils.h"
+#include "pokutils.h"
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
 #include <servo_pwm/servo_pwm.h>

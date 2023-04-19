@@ -3,7 +3,8 @@
 #include <stdint.h>
 
 #include "pokutils/robot_utils.h"
-#include "utils.h"
+#include "pokutils.h"
+
 // TODO: How much point we need for a 360 lidar scan?
 #define OBSTACLE_HOLDER_MAX_NUMBER_OF_OBSTACLE	420
 #define OBSTACLE_HOLDER_ERROR_NONE				0
