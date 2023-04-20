@@ -21,8 +21,8 @@ LOG_MODULE_REGISTER(PATHFINDING, 1);
 
 static uint8_t get_closest_point_of_collision(const pathfinding_object_t *obj,
 											  const obstacle_holder_t *ob_hold,
-											  const point2_t *rand_coordinates,
-											  const point2_t *closest_node_coordinates,
+											  const point2_t rand_coordinates,
+											  const point2_t closest_node_coordinates,
 											  point2_t *out_crd);
 
 // FUNCTIONS
@@ -111,8 +111,8 @@ void remap_nodes_to_new_node_if_closer_to_start(pathfinding_object_t *obj,
 {
 	for (size_t i = 0; i < nb_nodes; i++) {
 		point2_t out_crd;
-		int err = get_closest_point_of_collision(obj, ob_hold, &new_node->coordinate,
-												 &nodes[i]->coordinate, &out_crd);
+		int err = get_closest_point_of_collision(obj, ob_hold, new_node->coordinate,
+												 nodes[i]->coordinate, &out_crd);
 		if (err) {
 			continue;
 		}
@@ -147,11 +147,10 @@ int get_new_valid_coordinates(pathfinding_object_t *obj, point2_t *crd_tree_node
  *
  */
 uint8_t get_closest_point_of_collision(const pathfinding_object_t *obj,
-									   const obstacle_holder_t *ob_hold,
-									   const point2_t *rand_coordinates,
-									   const point2_t *closest_node_coordinates, point2_t *out_crd)
+									   const obstacle_holder_t *ob_hold, point2_t rand_coordinates,
+									   point2_t closest_node_coordinates, point2_t *out_crd)
 {
-	*out_crd = *rand_coordinates;
+	*out_crd = rand_coordinates;
 	point2_t obstacle_checked_crd = {0};
 	uint8_t collision_happened = 0;
 	float closest_obstacle = MAXFLOAT;
@@ -165,7 +164,7 @@ uint8_t get_closest_point_of_collision(const pathfinding_object_t *obj,
 			if (status == 1) {
 				collision_happened = 1;
 				// FIXME: check if it is the closest intersection point
-				float dist = vec2_abs(point2_diff(obstacle_checked_crd, *rand_coordinates));
+				float dist = vec2_abs(point2_diff(obstacle_checked_crd, rand_coordinates));
 				if (dist < closest_obstacle) {
 					*out_crd = obstacle_checked_crd;
 				}
@@ -187,7 +186,7 @@ uint8_t get_closest_point_of_collision(const pathfinding_object_t *obj,
  *
  */
 uint8_t check_collision(const pathfinding_object_t *obj, const obstacle_holder_t *ob_hold,
-						const point2_t *pt_seg_a, const point2_t *pt_seg_b)
+						point2_t pt_seg_a, point2_t pt_seg_b)
 {
 	point2_t obstacle_checked_crd;
 	for (size_t index_obstacle = 0; index_obstacle < ob_hold->write_head; index_obstacle++) {
@@ -283,7 +282,7 @@ int pathfinding_find_path(pathfinding_object_t *obj, obstacle_holder_t *ob_hold,
 		LOG_DBG("Random coordinates generated : x:%f y:%f", rand_coordinates.x, rand_coordinates.y);
 		path_node_t *closest_node_p = get_closest_node(obj, &rand_coordinates);
 		LOG_DBG("Closest node %p", closest_node_p);
-		int err = check_collision(obj, ob_hold, &rand_coordinates, &closest_node_p->coordinate);
+		int err = check_collision(obj, ob_hold, rand_coordinates, closest_node_p->coordinate);
 		if (err) {
 			LOG_DBG("Collison, dumping node");
 			obj->next_free_node_nb -= 1;
@@ -348,7 +347,7 @@ int pathfinding_rebuild(pathfinding_object_t *obj, obstacle_holder_t *ob_hold,
 		point2_t rand_coordinates = pathfinding_generate_rebuild_rand_coordinates(obj, end);
 		path_node_t *closest_node_p = get_closest_node(obj, &rand_coordinates);
 
-		int err = check_collision(obj, ob_hold, &rand_coordinates, &closest_node_p->coordinate);
+		int err = check_collision(obj, ob_hold, rand_coordinates, closest_node_p->coordinate);
 		if (err) {
 			obj->next_free_node_nb -= 1;
 			continue;
@@ -411,8 +410,8 @@ int pathfinding_optimize_path(pathfinding_object_t *obj, obstacle_holder_t *ob_h
 		// closest_node_p->coordinate.y);
 
 		point2_t path_free_crd;
-		int err = get_closest_point_of_collision(obj, ob_hold, &rand_coordinates,
-												 &closest_node_p->coordinate, &path_free_crd);
+		int err = get_closest_point_of_collision(obj, ob_hold, rand_coordinates,
+												 closest_node_p->coordinate, &path_free_crd);
 		if (err) {
 			continue;
 		}

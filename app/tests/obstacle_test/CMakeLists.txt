@@ -8,7 +8,7 @@ target_compile_definitions(app PRIVATE UNIT_TEST)
 
 target_sources(app PRIVATE 
     ${CMAKE_SOURCE_DIR}/../../lib/obstacles/obstacle.c
-    ${CMAKE_SOURCE_DIR}/../../src/utils.c
+    ${CMAKE_SOURCE_DIR}/../../src/pokutils.c
     src/main.c
 )
 target_include_directories(app PRIVATE 

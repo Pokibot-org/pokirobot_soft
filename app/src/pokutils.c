@@ -16,6 +16,16 @@ vec2_t point2_diff(const point2_t terminal, const point2_t initial)
 	return delta;
 }
 
+vec2_t vec2_normalize(vec2_t vec)
+{
+	float length = vec2_abs(vec);
+	if (length > 0) {
+		vec.dx /= length;
+		vec.dy /= length;
+	}
+	return vec;
+}
+
 float vec2_abs(vec2_t vec)
 {
 	return sqrtf(vec.dx * vec.dx + vec.dy * vec.dy);

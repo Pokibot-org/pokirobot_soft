@@ -75,22 +75,22 @@ ZTEST(obstacles_test, test_object_collision_with_seg_and_circle)
 
 	obstacle_t ob = {
 		.type = obstacle_type_circle,
-		.data.circle.coordinates = {.x = 10, .y = 500},
+		.data.circle.coordinates = {.x = 21, .y = 500},
 		.data.circle.radius = 10,
 	};
 
 	float robot_radius = 10;
 	point2_t intersection_pt = {0};
-	int rcode = obstacle_get_point_of_collision_with_segment(&start, &end, &ob, robot_radius,
+	int rcode = obstacle_get_point_of_collision_with_segment(start, end, &ob, robot_radius,
 															 &intersection_pt);
-	zassert_equal(1, rcode, "Intersection not found");
+	zassert_equal(1, rcode, "Intersection not found, rcode %d", rcode);
 
-	ob.data.circle.coordinates.x = 8;
+	ob.data.circle.coordinates.x = 10;
 	// FIXME: current method is aproximate even working with
 	// ob.data.circle.coordinates.x -= 1
-	rcode = obstacle_get_point_of_collision_with_segment(&start, &end, &ob, robot_radius,
+	rcode = obstacle_get_point_of_collision_with_segment(start, end, &ob, robot_radius,
 														 &intersection_pt);
-	zassert_equal(0, rcode, "Intersection found");
+	zassert_equal(0, rcode, "Intersection found, rcode %d", rcode);
 }
 
 ZTEST(obstacles_test, test_object_collision_with_seg_and_rectangle)
@@ -113,14 +113,14 @@ ZTEST(obstacles_test, test_object_collision_with_seg_and_rectangle)
 
 	float robot_radius = 10;
 	point2_t intersection_pt = {0};
-	int rcode = obstacle_get_point_of_collision_with_segment(&start, &end, &ob, robot_radius,
+	int rcode = obstacle_get_point_of_collision_with_segment(start, end, &ob, robot_radius,
 															 &intersection_pt);
 	zassert_equal(1, rcode, "Intersection not found");
 
 	ob.data.rectangle.coordinates.x = end.x + ob.data.rectangle.width / 2 + robot_radius + 1;
 	// FIXME: current method is aproximate even working with
 	// ob.data.circle.coordinates.x -= 1
-	rcode = obstacle_get_point_of_collision_with_segment(&start, &end, &ob, robot_radius,
+	rcode = obstacle_get_point_of_collision_with_segment(start, end, &ob, robot_radius,
 														 &intersection_pt);
 	zassert_equal(0, rcode, "Intersection found");
 }
@@ -143,7 +143,7 @@ ZTEST(obstacles_test, test_get_point_collision_two_segments)
 
 	expected_out.x = 50;
 	expected_out.y = 40;
-	uint8_t rcode = check_seg_collision(&a1, &a2, &b1, &b2, &out);
+	uint8_t rcode = check_seg_collision(a1, a2, b1, b2, &out);
 	zassert_equal(1, rcode, "The collision was not found...");
 	zassert_equal(expected_out.x, out.x, "Wrongly calculated collision point x");
 	zassert_equal(expected_out.y, out.y, "Wrongly calculated collision point y");
@@ -164,7 +164,7 @@ ZTEST(obstacles_test, test_get_point_collision_two_segments)
 
 	expected_out.x = 50;
 	expected_out.y = 50;
-	rcode = check_seg_collision(&a1, &a2, &b1, &b2, &out);
+	rcode = check_seg_collision(a1, a2, b1, b2, &out);
 	zassert_equal(1, rcode, "The collision was not found...");
 	zassert_equal(expected_out.x, out.x, "Wrongly calculated collision point x");
 	zassert_equal(expected_out.y, out.y, "Wrongly calculated collision point y");
