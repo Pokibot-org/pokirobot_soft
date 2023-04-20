@@ -64,6 +64,8 @@ ZTEST(obstacles_test, test_object_holder)
 
 ZTEST(obstacles_test, test_object_collision_with_seg_and_circle)
 {
+	const float precision = 0.01;
+
 	point2_t start = {
 		.x = 0,
 		.y = 0,
@@ -87,19 +89,46 @@ ZTEST(obstacles_test, test_object_collision_with_seg_and_circle)
 
 	ob.data.circle.coordinates.x = 0;
 	ob.data.circle.coordinates.y = 15;
-	// FIXME: current method is aproximate even working with
-	// ob.data.circle.coordinates.x -= 1
 	rcode = obstacle_get_point_of_collision_with_segment(start, end, &ob, robot_radius,
 														 &intersection_pt);
 	zassert_equal(0, rcode, "Intersection found, rcode %d", rcode);
 
 	ob.data.circle.coordinates.x = -5;
 	ob.data.circle.coordinates.y = 0;
-	// FIXME: current method is aproximate even working with
-	// ob.data.circle.coordinates.x -= 1
 	rcode = obstacle_get_point_of_collision_with_segment(start, end, &ob, robot_radius,
 														 &intersection_pt);
 	zassert_equal(0, rcode, "Intersection found, rcode %d", rcode);
+
+	ob.data.circle.coordinates.x = 20;
+	ob.data.circle.coordinates.y = 10;
+	rcode = obstacle_get_point_of_collision_with_segment(start, end, &ob, robot_radius,
+														 &intersection_pt);
+	zassert_equal(0, rcode, "Intersection found, rcode %d", rcode);
+
+	zassert_between_inclusive(intersection_pt.x, 0 - precision, 0 + precision, "got %f",
+							  intersection_pt.x);
+	zassert_between_inclusive(intersection_pt.y, 10 - precision, 10 + precision, "got %f",
+							  intersection_pt.y);
+
+	ob.data.circle.coordinates.x = 21;
+	ob.data.circle.coordinates.y = 10;
+	rcode = obstacle_get_point_of_collision_with_segment(start, end, &ob, robot_radius,
+														 &intersection_pt);
+	zassert_equal(1, rcode, "Intersection not found, rcode %d", rcode);
+
+	ob.data.circle.coordinates.x = 0;
+	ob.data.circle.coordinates.y = 10;
+	ob.data.circle.radius = 5;
+	robot_radius = 0;
+
+	rcode = obstacle_get_point_of_collision_with_segment(start, end, &ob, robot_radius,
+														 &intersection_pt);
+	zassert_equal(0, rcode, "Intersection found, rcode %d", rcode);
+
+	zassert_between_inclusive(intersection_pt.x, 0 - precision, 0 + precision, "got %f",
+							  intersection_pt.x);
+	zassert_between_inclusive(intersection_pt.y, 2.5f - precision, 2.5f + precision, "got %f",
+							  intersection_pt.y);
 }
 
 ZTEST(obstacles_test, test_object_collision_with_seg_and_rectangle)
