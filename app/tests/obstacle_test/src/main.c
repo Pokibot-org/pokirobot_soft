@@ -70,12 +70,12 @@ ZTEST(obstacles_test, test_object_collision_with_seg_and_circle)
 	};
 	point2_t end = {
 		.x = 0,
-		.y = 1000,
+		.y = 20,
 	};
 
 	obstacle_t ob = {
 		.type = obstacle_type_circle,
-		.data.circle.coordinates = {.x = 21, .y = 500},
+		.data.circle.coordinates = {.x = 0, .y = 500},
 		.data.circle.radius = 10,
 	};
 
@@ -85,7 +85,16 @@ ZTEST(obstacles_test, test_object_collision_with_seg_and_circle)
 															 &intersection_pt);
 	zassert_equal(1, rcode, "Intersection not found, rcode %d", rcode);
 
-	ob.data.circle.coordinates.x = 10;
+	ob.data.circle.coordinates.x = 0;
+	ob.data.circle.coordinates.y = 15;
+	// FIXME: current method is aproximate even working with
+	// ob.data.circle.coordinates.x -= 1
+	rcode = obstacle_get_point_of_collision_with_segment(start, end, &ob, robot_radius,
+														 &intersection_pt);
+	zassert_equal(0, rcode, "Intersection found, rcode %d", rcode);
+
+	ob.data.circle.coordinates.x = -5;
+	ob.data.circle.coordinates.y = 0;
 	// FIXME: current method is aproximate even working with
 	// ob.data.circle.coordinates.x -= 1
 	rcode = obstacle_get_point_of_collision_with_segment(start, end, &ob, robot_radius,

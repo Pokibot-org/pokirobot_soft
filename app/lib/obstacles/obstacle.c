@@ -250,10 +250,8 @@ static uint8_t obstacle_get_point_of_collision_with_circle(const point2_t start,
 	vec2_t closest_circle_vec = point2_diff(closest_point, circle->coordinates);
 	float distance = vec2_abs(closest_circle_vec);
 	if (distance <= circle->radius + seg_radius) {
-		if (out_crd != NULL) {
-			out_crd->x = closest_point.x;
-			out_crd->y = closest_point.y;
-		}
+		out_crd->x = closest_point.x;
+		out_crd->y = closest_point.y;
 		return 0;
 	} else {
 		return 1;
