@@ -483,7 +483,7 @@ void pathfinding_debug_print(pathfinding_object_t *obj, obstacle_holder_t *obs_h
 							.x = x * obj->config.field_boundaries.max_x / DEBUG_TAB_SIZE_X,
 							.y = y * obj->config.field_boundaries.max_y / DEBUG_TAB_SIZE_Y,
 						},
-					.radius = DEBUG_TAB_SIZE_Y}};
+					.radius = obj->config.radius_of_security}};
 			char b = '.';
 			if (check_obstacle_collision(obj, obs_holder, &obs) == OBSTACLE_COLLISION_DETECTED) {
 				b = '^';
@@ -534,7 +534,7 @@ void pathfinding_debug_print_found_path(pathfinding_object_t *obj, obstacle_hold
 							.x = x * obj->config.field_boundaries.max_x / DEBUG_TAB_SIZE_X,
 							.y = y * obj->config.field_boundaries.max_y / DEBUG_TAB_SIZE_Y,
 						},
-					.radius = DEBUG_TAB_SIZE_Y}};
+					.radius = obj->config.radius_of_security}};
 
 			char b = '.';
 			if (check_obstacle_collision(obj, obs_holder, &obs) == OBSTACLE_COLLISION_DETECTED) {

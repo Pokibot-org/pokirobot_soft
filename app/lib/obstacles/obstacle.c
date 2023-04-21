@@ -254,38 +254,6 @@ obstacle_get_point_of_collision_with_rectangle(const point2_t start_point, const
 
 	return status;
 }
-// vec2_t diff = point2_diff(end_point, start_point);
-// vec2_t norm = vec2_normalize(diff);
-// float abs = vec2_abs(diff);
-// float dot = vec2_dot(point2_diff(rectangle->coordinates, start_point), norm);
-// float angle = vec2_angle(point2_diff(rectangle->coordinates, start_point), norm);
-
-// if (dot < -seg_radius || dot > abs + seg_radius) {
-// 	return OBSTACLE_COLLISION_NONE;
-// }
-
-// float dist = vec2_abs(point2_diff(rectangle->coordinates, start_point)) * sin(angle);
-
-// if (dist > seg_radius / 2) {
-// 	return OBSTACLE_COLLISION_NONE;
-// }
-
-// out_crd->x = start_point.x + norm.dx * dot;
-// out_crd->y = start_point.y + norm.dy * dot;
-
-// if (out_crd->x < rectangle->coordinates.x) {
-// 	out_crd->x = rectangle->coordinates.x;
-// } else if (out_crd->x > rectangle->coordinates.x + rectangle->width) {
-// 	out_crd->x = rectangle->coordinates.x + rectangle->width;
-// }
-
-// if (out_crd->y < rectangle->coordinates.y) {
-// 	out_crd->y = rectangle->coordinates.y;
-// } else if (out_crd->y > rectangle->coordinates.y + rectangle->height) {
-// 	out_crd->y = rectangle->coordinates.y + rectangle->height;
-// }
-
-// return OBSTACLE_COLLISION_DETECTED;
 
 static enum obstacle_collision_status
 obstacle_get_point_of_collision_with_circle(const point2_t start, const point2_t end,
