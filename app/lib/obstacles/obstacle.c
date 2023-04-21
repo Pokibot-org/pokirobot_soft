@@ -235,27 +235,39 @@ static uint8_t obstacle_get_point_of_collision_with_circle(const point2_t start,
 														   const float seg_radius,
 														   point2_t *out_crd)
 {
-	vec2_t line = point2_diff(end, start);
-	vec2_t circle_vec = point2_diff(circle->coordinates, start);
-	float line_length = vec2_abs(line);
-	vec2_t line_unit = vec2_normalize(line);
-	float projection = vec2_dot(circle_vec, line_unit);
-	if (projection < 0) {
-		projection = 0;
-	} else if (projection > line_length) {
-		projection = line_length;
-	}
-	point2_t closest_point = {start.x + projection * line_unit.dx,
-							  start.y + projection * line_unit.dy};
-	vec2_t closest_circle_vec = point2_diff(closest_point, circle->coordinates);
-	float distance = vec2_abs(closest_circle_vec);
-	if (distance <= circle->radius + seg_radius) {
-		out_crd->x = closest_point.x;
-		out_crd->y = closest_point.y;
-		return 0;
-	} else {
+	// Calculer le vecteur directionnel du segment de ligne
+	vec2_t d = point2_diff(end, start);
+	// Calculer le vecteur entre le centre du cercle et le point de départ du segment de ligne
+	vec2_t f = point2_diff(start, circle->coordinates);
+	// Résoudre l'équation quadratique pour trouver t
+	float a = vec2_dot(d, d);
+	float b = 2 * vec2_dot(f, d);
+	float c = vec2_dot(f, f) - (circle->radius + seg_radius) * (circle->radius + seg_radius);
+	float discriminant = b * b - 4 * a * c;
+	// Si le discriminant est négatif, il n'y a pas d'intersection
+	if (discriminant < 0) {
 		return 1;
 	}
+	// Sinon, il y a au moins une intersection
+	discriminant = sqrt(discriminant);
+	float t1 = (-b - discriminant) / (2 * a);
+	float t2 = (-b + discriminant) / (2 * a);
+	// Vérifier si t1 est une intersection valide
+	if (t1 >= 0 && t1 <= 1) {
+		// Trouver les coordonnées du point d'intersection
+		out_crd->x = start.x + t1 * d.dx;
+		out_crd->y = start.y + t1 * d.dy;
+		return 0;
+	}
+	// Vérifier si t2 est une intersection valide
+	if (t2 >= 0 && t2 <= 1) {
+		// Trouver les coordonnées du point d'intersection
+		out_crd->x = start.x + t2 * d.dx;
+		out_crd->y = start.y + t2 * d.dy;
+		return 0;
+	}
+	// Sinon, il n'y a pas d'intersection valide
+	return 1;
 }
 
 uint8_t obstacle_get_point_of_collision_with_segment(const point2_t start_point,
