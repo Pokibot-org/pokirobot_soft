@@ -484,13 +484,12 @@ void pathfinding_debug_print(pathfinding_object_t *obj, obstacle_holder_t *obs_h
 							.y = y * obj->config.field_boundaries.max_y / DEBUG_TAB_SIZE_Y,
 						},
 					.radius = DEBUG_TAB_SIZE_Y}};
-
+			char b = '.';
 			if (check_obstacle_collision(obj, obs_holder, &obs) == OBSTACLE_COLLISION_DETECTED) {
-				printf("^");
-			} else {
-				char c = tab[y][x] ? 'X' : '.';
-				printf("%c", c);
+				b = '^';
 			}
+			char c = tab[y][x] ? 'X' : b;
+			printf("%c", c);
 		}
 		printf("\n");
 	}
@@ -537,12 +536,12 @@ void pathfinding_debug_print_found_path(pathfinding_object_t *obj, obstacle_hold
 						},
 					.radius = DEBUG_TAB_SIZE_Y}};
 
+			char b = '.';
 			if (check_obstacle_collision(obj, obs_holder, &obs) == OBSTACLE_COLLISION_DETECTED) {
-				printf("^");
-			} else {
-				char c = tab[y][x] ? 'X' : '.';
-				printf("%c", c);
+				b = '^';
 			}
+			char c = tab[y][x] ? 'X' : b;
+			printf("%c", c);
 		}
 		printf("\n");
 	}

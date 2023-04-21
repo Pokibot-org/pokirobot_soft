@@ -150,17 +150,17 @@ ZTEST(obstacles_test, test_object_collision_with_seg_and_circle)
 ZTEST(obstacles_test, test_object_collision_with_seg_and_rectangle)
 {
 	point2_t start = {
-		.x = 10,
-		.y = 10,
+		.x = 0,
+		.y = 0,
 	};
 	point2_t end = {
-		.x = 10,
+		.x = 0,
 		.y = 1000,
 	};
 
 	obstacle_t ob = {
 		.type = obstacle_type_rectangle,
-		.data.rectangle.coordinates = {.x = 10, .y = 500},
+		.data.rectangle.coordinates = {.x = 0, .y = 500},
 		.data.rectangle.width = 10,
 		.data.rectangle.height = 10,
 	};
@@ -169,6 +169,12 @@ ZTEST(obstacles_test, test_object_collision_with_seg_and_rectangle)
 	point2_t intersection_pt = {0};
 	int rcode = obstacle_get_point_of_collision_with_segment(start, end, &ob, robot_radius,
 															 &intersection_pt);
+
+	end.y = ob.data.rectangle.coordinates.y;
+	zassert_equal(OBSTACLE_COLLISION_DETECTED, rcode, "Intersection not found");
+
+	rcode = obstacle_get_point_of_collision_with_segment(start, end, &ob, robot_radius,
+														 &intersection_pt);
 	zassert_equal(OBSTACLE_COLLISION_DETECTED, rcode, "Intersection not found");
 
 	ob.data.rectangle.coordinates.x = end.x + ob.data.rectangle.width / 2 + robot_radius + 1;

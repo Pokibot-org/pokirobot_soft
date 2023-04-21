@@ -71,7 +71,6 @@ typedef struct vel2 {
 vec2_t point2_diff(const point2_t terminal, const point2_t initial);
 vec2_t vec2_normalize(vec2_t vec);
 float vec2_abs(vec2_t vec);
-float vec2_fast_abs(vec2_t vec);
 float vec2_dot(vec2_t a, vec2_t b);
 float vec2_angle(vec2_t a, vec2_t b);
 
