@@ -122,11 +122,11 @@ ZTEST_F(pf_suite, test_in_free_space_path_must_be_found_simple_config)
 	};
 	int err = pathfinding_find_path(&fixture->pathfinding_obj, &ob_hold, start, end, &end_node);
 	if (FORCE_PRINT_CONSTANT || err) {
-		pathfinding_debug_print(&fixture->pathfinding_obj);
+		pathfinding_debug_print(&fixture->pathfinding_obj, &ob_hold);
 	}
 	zassert_equal(PATHFINDING_ERROR_NONE, err);
 	if (FORCE_PRINT_CONSTANT || err) {
-		pathfinding_debug_print_found_path(&fixture->pathfinding_obj, end_node);
+		pathfinding_debug_print_found_path(&fixture->pathfinding_obj, &ob_hold, end_node);
 		printf("Found in %d nodes!\n",
 			   pathfinding_get_number_of_used_nodes(&fixture->pathfinding_obj));
 	}
@@ -146,28 +146,30 @@ ZTEST_F(pf_suite, test_in_free_space_path_must_be_found_hard_config)
 	};
 	int err = pathfinding_find_path(&fixture->pathfinding_obj, &ob_hold, start, end, &end_node);
 	if (FORCE_PRINT_CONSTANT || err) {
-		pathfinding_debug_print(&fixture->pathfinding_obj);
+		pathfinding_debug_print(&fixture->pathfinding_obj, &ob_hold);
 	}
 	zassert_equal(PATHFINDING_ERROR_NONE, err);
 	if (FORCE_PRINT_CONSTANT || err) {
-		pathfinding_debug_print_found_path(&fixture->pathfinding_obj, end_node);
+		pathfinding_debug_print_found_path(&fixture->pathfinding_obj, &ob_hold, end_node);
 		printf("Found in %d nodes!\n Now optimizing path : \n",
 			   pathfinding_get_number_of_used_nodes(&fixture->pathfinding_obj));
 		pathfinding_optimize_path(&fixture->pathfinding_obj, &ob_hold, end_node,
 								  PATHFINDING_MAX_NUM_OF_NODES);
-		pathfinding_debug_print_found_path(&fixture->pathfinding_obj, end_node);
+		pathfinding_debug_print_found_path(&fixture->pathfinding_obj, &ob_hold, end_node);
 	}
 }
 
 ZTEST_F(pf_suite, test_with_obstacle_path_must_be_found_hard_config)
 {
 	obstacle_holder_t ob_hold = {0};
-	obstacle_t rec = {.type = obstacle_type_rectangle,
-					  .data.rectangle = {
-						  .coordinates = {.x = 600, .y = 500},
-						  .height = 1000,
-						  .width = 200,
-					  }};
+	obstacle_t rec = {
+		.type = obstacle_type_rectangle,
+		.data.rectangle = {
+			.coordinates = {.x = fixture->pathfinding_obj.config.field_boundaries.max_x / 2,
+							.y = 500},
+			.height = 1000,
+			.width = 200,
+		}};
 	obstacle_holder_push(&ob_hold, &rec);
 	path_node_t *end_node;
 	point2_t start = {
@@ -182,11 +184,11 @@ ZTEST_F(pf_suite, test_with_obstacle_path_must_be_found_hard_config)
 	int err = pathfinding_find_path(&fixture->pathfinding_obj, &ob_hold, start, end, &end_node);
 	clock_t end_clk = clock();
 	if (FORCE_PRINT_CONSTANT || err) {
-		pathfinding_debug_print(&fixture->pathfinding_obj);
+		pathfinding_debug_print(&fixture->pathfinding_obj, &ob_hold);
 	}
 	zassert_equal(PATHFINDING_ERROR_NONE, err);
 	if (FORCE_PRINT_CONSTANT || err) {
-		pathfinding_debug_print_found_path(&fixture->pathfinding_obj, end_node);
+		pathfinding_debug_print_found_path(&fixture->pathfinding_obj, &ob_hold, end_node);
 		float time_spent = (float)(end_clk - begin_clk) / CLOCKS_PER_SEC * 1000;
 		printf("Found in %d nodes! Time : %f ms | Len : %f\n Now optimizing: \n",
 			   pathfinding_get_number_of_used_nodes(&fixture->pathfinding_obj), time_spent,
@@ -195,7 +197,7 @@ ZTEST_F(pf_suite, test_with_obstacle_path_must_be_found_hard_config)
 		pathfinding_optimize_path(&fixture->pathfinding_obj, &ob_hold, end_node,
 								  PATHFINDING_MAX_NUM_OF_NODES);
 		end_clk = clock();
-		pathfinding_debug_print_found_path(&fixture->pathfinding_obj, end_node);
+		pathfinding_debug_print_found_path(&fixture->pathfinding_obj, &ob_hold, end_node);
 
 		time_spent = (float)(end_clk - begin_clk) / CLOCKS_PER_SEC * 1000;
 		printf("Optimized with total of %d nodes! Time : %f ms | Len : %f\n Now optimizing: \n",
@@ -243,11 +245,11 @@ ZTEST_F(pf_suite, test_with_lidar_obstacle_path_must_be_found)
 				end_node->distance_to_start);
 	}
 	if (FORCE_PRINT_CONSTANT || err) {
-		pathfinding_debug_print(&fixture->pathfinding_obj);
+		pathfinding_debug_print(&fixture->pathfinding_obj, &ob_hold);
 	}
 	zassert_equal(PATHFINDING_ERROR_NONE, err);
 	if (FORCE_PRINT_CONSTANT || err) {
-		pathfinding_debug_print_found_path(&fixture->pathfinding_obj, end_node);
+		pathfinding_debug_print_found_path(&fixture->pathfinding_obj, &ob_hold, end_node);
 		printf("Found in %d nodes! Time : %f ms | Len : %f\n Now optimizing: \n",
 			   pathfinding_get_number_of_used_nodes(&fixture->pathfinding_obj), time_spent,
 			   end_node->distance_to_start);
@@ -255,7 +257,7 @@ ZTEST_F(pf_suite, test_with_lidar_obstacle_path_must_be_found)
 		pathfinding_optimize_path(&fixture->pathfinding_obj, &ob_hold, end_node,
 								  PATHFINDING_MAX_NUM_OF_NODES);
 		end_clk = clock();
-		pathfinding_debug_print_found_path(&fixture->pathfinding_obj, end_node);
+		pathfinding_debug_print_found_path(&fixture->pathfinding_obj, &ob_hold, end_node);
 
 		time_spent = (float)(end_clk - begin_clk) / CLOCKS_PER_SEC * 1000;
 		printf("Optimized with total of %d nodes! Time : %f ms | Len : %f\n Now optimizing: \n",

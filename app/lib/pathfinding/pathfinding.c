@@ -200,6 +200,22 @@ enum obstacle_collision_status check_collision(const pathfinding_object_t *obj,
 	return OBSTACLE_COLLISION_NONE;
 }
 
+enum obstacle_collision_status check_obstacle_collision(const pathfinding_object_t *obj,
+														const obstacle_holder_t *ob_hold,
+														const obstacle_t *obstacle)
+{
+	for (size_t index_obstacle = 0; index_obstacle < ob_hold->write_head; index_obstacle++) {
+		const obstacle_t *current_ob = &ob_hold->obstacles[index_obstacle];
+		if (current_ob->type != obstacle_type_none) {
+			uint8_t status = obstacle_are_they_colliding(current_ob, obstacle);
+			if (status == OBSTACLE_COLLISION_DETECTED) {
+				return OBSTACLE_COLLISION_DETECTED;
+			}
+		}
+	}
+	return OBSTACLE_COLLISION_NONE;
+}
+
 point2_t pathfinding_generate_rand_coordinates(const pathfinding_object_t *obj, point2_t end)
 {
 	uint8_t new_crd_on_goal = (utils_get_rand32() & 0x000000FF) < obj->config.rand_goal_probability;
@@ -441,7 +457,7 @@ int pathfinding_optimize_path(pathfinding_object_t *obj, obstacle_holder_t *ob_h
 #ifdef UNIT_TEST
 #include <stdio.h>
 
-void pathfinding_debug_print(pathfinding_object_t *obj)
+void pathfinding_debug_print(pathfinding_object_t *obj, obstacle_holder_t *obs_holder)
 {
 	uint8_t tab[DEBUG_TAB_SIZE_Y][DEBUG_TAB_SIZE_X] = {0};
 	for (size_t i = 0; i < PATHFINDING_MAX_NUM_OF_NODES; i++) {
@@ -459,14 +475,29 @@ void pathfinding_debug_print(pathfinding_object_t *obj)
 	// obj->config.field_boundaries.y);
 	for (size_t y = 0; y < DEBUG_TAB_SIZE_Y; y++) {
 		for (size_t x = 0; x < DEBUG_TAB_SIZE_X; x++) {
-			char c = tab[y][x] ? 'X' : '.';
-			printf("%c", c);
+			obstacle_t obs = (obstacle_t){
+				.type = obstacle_type_circle,
+				.data.circle = (circle_t){
+					.coordinates =
+						{
+							.x = x * obj->config.field_boundaries.max_x / DEBUG_TAB_SIZE_X,
+							.y = y * obj->config.field_boundaries.max_y / DEBUG_TAB_SIZE_Y,
+						},
+					.radius = DEBUG_TAB_SIZE_Y}};
+
+			if (check_obstacle_collision(obj, obs_holder, &obs) == OBSTACLE_COLLISION_DETECTED) {
+				printf("^");
+			} else {
+				char c = tab[y][x] ? 'X' : '.';
+				printf("%c", c);
+			}
 		}
 		printf("\n");
 	}
 };
 
-void pathfinding_debug_print_found_path(pathfinding_object_t *obj, path_node_t *end_node)
+void pathfinding_debug_print_found_path(pathfinding_object_t *obj, obstacle_holder_t *obs_holder,
+										path_node_t *end_node)
 {
 	printf("\n================================================================================\n");
 	if (end_node == NULL) {
@@ -496,8 +527,22 @@ void pathfinding_debug_print_found_path(pathfinding_object_t *obj, path_node_t *
 	// obj->config.field_boundaries.y);
 	for (size_t y = 0; y < DEBUG_TAB_SIZE_Y; y++) {
 		for (size_t x = 0; x < DEBUG_TAB_SIZE_X; x++) {
-			char c = tab[y][x] ? 'X' : '.';
-			printf("%c", c);
+			obstacle_t obs = (obstacle_t){
+				.type = obstacle_type_circle,
+				.data.circle = (circle_t){
+					.coordinates =
+						{
+							.x = x * obj->config.field_boundaries.max_x / DEBUG_TAB_SIZE_X,
+							.y = y * obj->config.field_boundaries.max_y / DEBUG_TAB_SIZE_Y,
+						},
+					.radius = DEBUG_TAB_SIZE_Y}};
+
+			if (check_obstacle_collision(obj, obs_holder, &obs) == OBSTACLE_COLLISION_DETECTED) {
+				printf("^");
+			} else {
+				char c = tab[y][x] ? 'X' : '.';
+				printf("%c", c);
+			}
 		}
 		printf("\n");
 	}
