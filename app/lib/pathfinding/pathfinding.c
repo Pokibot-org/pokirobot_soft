@@ -442,132 +442,136 @@ int pathfinding_optimize_path(pathfinding_object_t *obj, obstacle_holder_t *ob_h
 }
 
 // DEBUG FUNCTIONS
-#if 0
-void pathfinding_debug_print(pathfinding_object_t* obj) {
-    uint8_t tab[DEBUG_TAB_SIZE_Y][DEBUG_TAB_SIZE_X] = {0};
-    for (size_t i = 0; i < PATHFINDING_MAX_NUM_OF_NODES; i++) {
-        if (obj->nodes[i].is_used) {
-            uint16_t y = obj->nodes[i].coordinate.y * DEBUG_TAB_SIZE_Y /
-                         obj->config.field_boundaries.max_y;
-            uint16_t x = obj->nodes[i].coordinate.x * DEBUG_TAB_SIZE_X /
-                         obj->config.field_boundaries.max_x;
-            // printf("%d %d | %d %d\n", y, x, obj->nodes[i].coordinate.y,
-            // obj->nodes[i].coordinate.x);
-            tab[y][x] = 1;
-        }
-    }
-    // printf("FB: %d %d\n", obj->config.field_boundaries.x,
-    // obj->config.field_boundaries.y);
-    for (size_t y = 0; y < DEBUG_TAB_SIZE_Y; y++) {
-        for (size_t x = 0; x < DEBUG_TAB_SIZE_X; x++) {
-            char c = tab[y][x] ? 'X' : '.';
-            printf("%c", c);
-        }
-        printf("\n");
-    }
+#ifdef UNIT_TEST
+#include <stdio.h>
+
+void pathfinding_debug_print(pathfinding_object_t *obj)
+{
+	uint8_t tab[DEBUG_TAB_SIZE_Y][DEBUG_TAB_SIZE_X] = {0};
+	for (size_t i = 0; i < PATHFINDING_MAX_NUM_OF_NODES; i++) {
+		if (obj->nodes[i].is_used) {
+			uint16_t y =
+				obj->nodes[i].coordinate.y * DEBUG_TAB_SIZE_Y / obj->config.field_boundaries.max_y;
+			uint16_t x =
+				obj->nodes[i].coordinate.x * DEBUG_TAB_SIZE_X / obj->config.field_boundaries.max_x;
+			// printf("%d %d | %d %d\n", y, x, obj->nodes[i].coordinate.y,
+			// obj->nodes[i].coordinate.x);
+			tab[y][x] = 1;
+		}
+	}
+	// printf("FB: %d %d\n", obj->config.field_boundaries.x,
+	// obj->config.field_boundaries.y);
+	for (size_t y = 0; y < DEBUG_TAB_SIZE_Y; y++) {
+		for (size_t x = 0; x < DEBUG_TAB_SIZE_X; x++) {
+			char c = tab[y][x] ? 'X' : '.';
+			printf("%c", c);
+		}
+		printf("\n");
+	}
 };
 
-void pathfinding_debug_print_found_path(
-    pathfinding_object_t* obj, path_node_t* end_node) {
-    if (end_node == NULL) {
-        printf("end_node is NULL! \n");
-        return;
-    }
-    uint8_t tab[DEBUG_TAB_SIZE_Y][DEBUG_TAB_SIZE_X] = {0};
-    uint8_t path_valid = 0;
-    path_node_t* current_node = end_node;
-    for (size_t i = 0; i < PATHFINDING_MAX_NUM_OF_NODES; i++) {
-        uint16_t y = current_node->coordinate.y * DEBUG_TAB_SIZE_Y /
-                     obj->config.field_boundaries.max_y;
-        uint16_t x = current_node->coordinate.x * DEBUG_TAB_SIZE_X /
-                     obj->config.field_boundaries.max_x;
-        tab[y][x] = 1;
-        if (current_node->parent_node == NULL) {
-            path_valid = 1;
-            break;
-        }
-        current_node = current_node->parent_node;
-    }
-    if (!path_valid) {
-        printf("Not a valid path!\n");
-        return;
-    }
-    // printf("FB: %d %d\n", obj->config.field_boundaries.x,
-    // obj->config.field_boundaries.y);
-    for (size_t y = 0; y < DEBUG_TAB_SIZE_Y; y++) {
-        for (size_t x = 0; x < DEBUG_TAB_SIZE_X; x++) {
-            char c = tab[y][x] ? 'X' : '.';
-            printf("%c", c);
-        }
-        printf("\n");
-    }
+void pathfinding_debug_print_found_path(pathfinding_object_t *obj, path_node_t *end_node)
+{
+	if (end_node == NULL) {
+		printf("end_node is NULL! \n");
+		return;
+	}
+	uint8_t tab[DEBUG_TAB_SIZE_Y][DEBUG_TAB_SIZE_X] = {0};
+	uint8_t path_valid = 0;
+	path_node_t *current_node = end_node;
+	for (size_t i = 0; i < PATHFINDING_MAX_NUM_OF_NODES; i++) {
+		uint16_t y =
+			current_node->coordinate.y * DEBUG_TAB_SIZE_Y / obj->config.field_boundaries.max_y;
+		uint16_t x =
+			current_node->coordinate.x * DEBUG_TAB_SIZE_X / obj->config.field_boundaries.max_x;
+		tab[y][x] = 1;
+		if (current_node->parent_node == NULL) {
+			path_valid = 1;
+			break;
+		}
+		current_node = current_node->parent_node;
+	}
+	if (!path_valid) {
+		printf("Not a valid path!\n");
+		return;
+	}
+	// printf("FB: %d %d\n", obj->config.field_boundaries.x,
+	// obj->config.field_boundaries.y);
+	for (size_t y = 0; y < DEBUG_TAB_SIZE_Y; y++) {
+		for (size_t x = 0; x < DEBUG_TAB_SIZE_X; x++) {
+			char c = tab[y][x] ? 'X' : '.';
+			printf("%c", c);
+		}
+		printf("\n");
+	}
 };
 
-void pathfinding_debug_write_found_path(
-    pathfinding_object_t* obj, path_node_t* end_node, char* file_path) {
-    if (end_node == NULL) {
-        printf("end_node is NULL! \n");
-        return;
-    }
-    FILE* fd = fopen(file_path, "w+");
-    uint8_t(*tab)[(int)obj->config.field_boundaries.max_x] =
-        malloc(obj->config.field_boundaries.max_y *
-               obj->config.field_boundaries.max_x * sizeof(uint8_t));
-    uint8_t path_valid = 0;
-    path_node_t* current_node = end_node;
-    for (size_t i = 0; i < PATHFINDING_MAX_NUM_OF_NODES; i++) {
-        uint16_t y = current_node->coordinate.y;
-        uint16_t x = current_node->coordinate.x;
-        tab[y][x] = 1;
-        if (current_node->parent_node == NULL) {
-            path_valid = 1;
-            break;
-        }
-        current_node = current_node->parent_node;
-    }
-    if (!path_valid) {
-        fprintf(fd, "Not a valid path!\n");
-        fclose(fd);
-        free(tab);
-        return;
-    }
-    // printf("FB: %d %d\n", obj->config.field_boundaries.x,
-    // obj->config.field_boundaries.y);
-    for (size_t y = 0; y < obj->config.field_boundaries.max_y; y++) {
-        for (size_t x = 0; x < obj->config.field_boundaries.max_x; x++) {
-            char c = tab[y][x] ? 'X' : '.';
-            fprintf(fd, "%c", c);
-        }
-        fprintf(fd, "\n");
-    }
+void pathfinding_debug_write_found_path(pathfinding_object_t *obj, path_node_t *end_node,
+										char *file_path)
+{
+	if (end_node == NULL) {
+		printf("end_node is NULL! \n");
+		return;
+	}
+	FILE *fd = fopen(file_path, "w+");
+	uint8_t(*tab)[(int)obj->config.field_boundaries.max_x] = malloc(
+		obj->config.field_boundaries.max_y * obj->config.field_boundaries.max_x * sizeof(uint8_t));
+	uint8_t path_valid = 0;
+	path_node_t *current_node = end_node;
+	for (size_t i = 0; i < PATHFINDING_MAX_NUM_OF_NODES; i++) {
+		uint16_t y = current_node->coordinate.y;
+		uint16_t x = current_node->coordinate.x;
+		tab[y][x] = 1;
+		if (current_node->parent_node == NULL) {
+			path_valid = 1;
+			break;
+		}
+		current_node = current_node->parent_node;
+	}
+	if (!path_valid) {
+		fprintf(fd, "Not a valid path!\n");
+		fclose(fd);
+		free(tab);
+		return;
+	}
+	// printf("FB: %d %d\n", obj->config.field_boundaries.x,
+	// obj->config.field_boundaries.y);
+	for (size_t y = 0; y < obj->config.field_boundaries.max_y; y++) {
+		for (size_t x = 0; x < obj->config.field_boundaries.max_x; x++) {
+			char c = tab[y][x] ? 'X' : '.';
+			fprintf(fd, "%c", c);
+		}
+		fprintf(fd, "\n");
+	}
 
-    fclose(fd);
-    free(tab);
+	fclose(fd);
+	free(tab);
 };
 
-void pathfinding_debug_write_found_path_list(
-    pathfinding_object_t* obj, path_node_t* end_node, char* file_path) {
-    if (end_node == NULL) {
-        printf("end_node is NULL! \n");
-        return;
-    }
-    FILE* fd = fopen(file_path, "w+");
-    uint8_t path_valid = 0;
-    path_node_t* current_node = end_node;
-    fprintf(fd, "[");
-    for (size_t i = 0; i < PATHFINDING_MAX_NUM_OF_NODES; i++) {
-        uint16_t y = current_node->coordinate.y;
-        uint16_t x = current_node->coordinate.x;
-        fprintf(fd, "(%d,%d)", x, y);
-        if (current_node->parent_node == NULL) {
-            path_valid = 1;
-            break;
-        }
-        fprintf(fd, ",");
-        current_node = current_node->parent_node;
-    }
+void pathfinding_debug_write_found_path_list(pathfinding_object_t *obj, path_node_t *end_node,
+											 char *file_path)
+{
+	if (end_node == NULL) {
+		printf("end_node is NULL! \n");
+		return;
+	}
+	FILE *fd = fopen(file_path, "w+");
+	uint8_t path_valid = 0;
+	path_node_t *current_node = end_node;
+	fprintf(fd, "[");
+	for (size_t i = 0; i < PATHFINDING_MAX_NUM_OF_NODES; i++) {
+		uint16_t y = current_node->coordinate.y;
+		uint16_t x = current_node->coordinate.x;
+		fprintf(fd, "(%d,%d)", x, y);
+		if (current_node->parent_node == NULL) {
+			path_valid = 1;
+			break;
+		}
+		fprintf(fd, ",");
+		current_node = current_node->parent_node;
+	}
 
-    fprintf(fd, "]");
-    fclose(fd);
+	fprintf(fd, "]");
+	fclose(fd);
 };
 #endif

@@ -1,10 +1,10 @@
-#include <unity.h>
-#include "pathfinding.h"
-#include "stdlib.h"
-#include "time.h"
-#include "stdio.h"
-#include "string.h"
-#include "obstacle.h"
+#include <zephyr/ztest.h>
+#include "pathfinding/pathfinding.h"
+#include "obstacles/obstacle.h"
+#include <stdlib.h>
+#include <time.h>
+#include <stdio.h>
+#include <string.h>
 
 #ifndef M_SQRT2
 #define M_SQRT2 1.41421356237309504880f
@@ -22,8 +22,10 @@
 
 FILE *psr_fd;
 pathfinding_object_t pathfinding_obj;
+struct pf_suite_fixture {
+};
 
-void setUp(void)
+static void *pf_suite_setup(void)
 {
 	pathfinding_configuration_t config;
 	config.field_boundaries.max_x = 3000; // 3m
@@ -44,18 +46,21 @@ void setUp(void)
 	}
 	utils_init_rand_seed(tab);
 #endif
+	return NULL;
 }
 
-void tearDown(void)
+static void pf_suite_before(void *f)
+{
+}
+
+static void pf_suite_teardown(void *f)
 {
 	fclose(psr_fd);
 }
 
-void test_get_closest_node(void)
-{
-}
+ZTEST_SUITE(pf_suite, NULL, pf_suite_setup, pf_suite_before, NULL, pf_suite_teardown);
 
-void test_in_free_space_path_must_be_found_simple_config(void)
+ZTEST_F(pf_suite, test_in_free_space_path_must_be_found_simple_config)
 {
 	obstacle_holder_t ob_hold = {0};
 	path_node_t *end_node;
@@ -71,14 +76,14 @@ void test_in_free_space_path_must_be_found_simple_config(void)
 	if (FORCE_PRINT_CONSTANT || err) {
 		pathfinding_debug_print(&pathfinding_obj);
 	}
-	TEST_ASSERT_EQUAL(PATHFINDING_ERROR_NONE, err);
+	zassert_equal(PATHFINDING_ERROR_NONE, err);
 	if (FORCE_PRINT_CONSTANT || err) {
 		pathfinding_debug_print_found_path(&pathfinding_obj, end_node);
 		printf("Found in %d nodes!\n", pathfinding_get_number_of_used_nodes(&pathfinding_obj));
 	}
 }
 
-void test_in_free_space_path_must_be_found_hard_config(void)
+ZTEST_F(pf_suite, test_in_free_space_path_must_be_found_hard_config)
 {
 	obstacle_holder_t ob_hold = {0};
 	path_node_t *end_node;
@@ -94,7 +99,7 @@ void test_in_free_space_path_must_be_found_hard_config(void)
 	if (FORCE_PRINT_CONSTANT || err) {
 		pathfinding_debug_print(&pathfinding_obj);
 	}
-	TEST_ASSERT_EQUAL(PATHFINDING_ERROR_NONE, err);
+	zassert_equal(PATHFINDING_ERROR_NONE, err);
 	if (FORCE_PRINT_CONSTANT || err) {
 		pathfinding_debug_print_found_path(&pathfinding_obj, end_node);
 		printf("Found in %d nodes!\n Now optimizing path : \n",
@@ -105,7 +110,7 @@ void test_in_free_space_path_must_be_found_hard_config(void)
 	}
 }
 
-void test_with_obstacle_path_must_be_found_hard_config(void)
+ZTEST_F(pf_suite, test_with_obstacle_path_must_be_found_hard_config)
 {
 	obstacle_holder_t ob_hold = {0};
 	obstacle_t rec = {.type = obstacle_type_rectangle,
@@ -130,11 +135,11 @@ void test_with_obstacle_path_must_be_found_hard_config(void)
 	if (FORCE_PRINT_CONSTANT || err) {
 		pathfinding_debug_print(&pathfinding_obj);
 	}
-	TEST_ASSERT_EQUAL(PATHFINDING_ERROR_NONE, err);
+	zassert_equal(PATHFINDING_ERROR_NONE, err);
 	if (FORCE_PRINT_CONSTANT || err) {
 		pathfinding_debug_print_found_path(&pathfinding_obj, end_node);
 		float time_spent = (float)(end_clk - begin_clk) / CLOCKS_PER_SEC * 1000;
-		printf("Found in %d nodes! Time : %f ms | Len : %d\n Now optimizing: \n",
+		printf("Found in %d nodes! Time : %f ms | Len : %f\n Now optimizing: \n",
 			   pathfinding_get_number_of_used_nodes(&pathfinding_obj), time_spent,
 			   end_node->distance_to_start);
 		begin_clk = clock();
@@ -144,14 +149,14 @@ void test_with_obstacle_path_must_be_found_hard_config(void)
 		pathfinding_debug_print_found_path(&pathfinding_obj, end_node);
 
 		time_spent = (float)(end_clk - begin_clk) / CLOCKS_PER_SEC * 1000;
-		printf("Optimized with total of %d nodes! Time : %f ms | Len : %d\n Now optimizing: \n",
+		printf("Optimized with total of %d nodes! Time : %f ms | Len : %f\n Now optimizing: \n",
 			   pathfinding_get_number_of_used_nodes(&pathfinding_obj), time_spent,
 			   end_node->distance_to_start);
 		// pathfinding_debug_write_found_path_list(&pathfinding_obj, end_node, "/tmp/path");
 	}
 }
 
-void test_with_lidar_obstacle_path_must_be_found(void)
+ZTEST_F(pf_suite, test_with_lidar_obstacle_path_must_be_found)
 {
 	obstacle_holder_t ob_hold = {0};
 	obstacle_t obs = {.type = obstacle_type_circle,
@@ -183,17 +188,17 @@ void test_with_lidar_obstacle_path_must_be_found(void)
 	if (err) {
 		fprintf(psr_fd, "Path not found\n");
 	} else {
-		fprintf(psr_fd, "Found in %d nodes! Time : %f ms | Len : %d\n",
+		fprintf(psr_fd, "Found in %d nodes! Time : %f ms | Len : %f\n",
 				pathfinding_get_number_of_used_nodes(&pathfinding_obj), time_spent,
 				end_node->distance_to_start);
 	}
 	if (FORCE_PRINT_CONSTANT || err) {
 		pathfinding_debug_print(&pathfinding_obj);
 	}
-	TEST_ASSERT_EQUAL(PATHFINDING_ERROR_NONE, err);
+	zassert_equal(PATHFINDING_ERROR_NONE, err);
 	if (FORCE_PRINT_CONSTANT || err) {
 		pathfinding_debug_print_found_path(&pathfinding_obj, end_node);
-		printf("Found in %d nodes! Time : %f ms | Len : %d\n Now optimizing: \n",
+		printf("Found in %d nodes! Time : %f ms | Len : %f\n Now optimizing: \n",
 			   pathfinding_get_number_of_used_nodes(&pathfinding_obj), time_spent,
 			   end_node->distance_to_start);
 		begin_clk = clock();
@@ -203,13 +208,13 @@ void test_with_lidar_obstacle_path_must_be_found(void)
 		pathfinding_debug_print_found_path(&pathfinding_obj, end_node);
 
 		time_spent = (float)(end_clk - begin_clk) / CLOCKS_PER_SEC * 1000;
-		printf("Optimized with total of %d nodes! Time : %f ms | Len : %d\n Now optimizing: \n",
+		printf("Optimized with total of %d nodes! Time : %f ms | Len : %f\n Now optimizing: \n",
 			   pathfinding_get_number_of_used_nodes(&pathfinding_obj), time_spent,
 			   end_node->distance_to_start);
 	}
 }
 
-void test_get_new_valid_coordinates()
+ZTEST_F(pf_suite, test_get_new_valid_coordinates)
 {
 	point2_t start = {
 		.x = 10,
@@ -221,45 +226,32 @@ void test_get_new_valid_coordinates()
 	};
 	point2_t must_be_crd = {.x = 10, .y = 10 + pathfinding_obj.config.delta_distance};
 	point2_t new;
-	TEST_ASSERT_EQUAL(0, get_new_valid_coordinates(&pathfinding_obj, &start, &end, &new));
-	TEST_ASSERT_EQUAL_MESSAGE(must_be_crd.y, new.y, "Y");
-	TEST_ASSERT_EQUAL_MESSAGE(must_be_crd.x, new.x, "X");
+	zassert_equal(0, get_new_valid_coordinates(&pathfinding_obj, &start, &end, &new));
+	zassert_equal(must_be_crd.y, new.y, "Y");
+	zassert_equal(must_be_crd.x, new.x, "X");
 
 	// DIAGONAL
 	end = (point2_t){1000, 1000};
 	must_be_crd = (point2_t){10 + pathfinding_obj.config.delta_distance * M_SQRT2 / 2,
 							 10 + pathfinding_obj.config.delta_distance * M_SQRT2 / 2};
-	TEST_ASSERT_EQUAL(0, get_new_valid_coordinates(&pathfinding_obj, &start, &end, &new));
-	TEST_ASSERT_EQUAL_MESSAGE(must_be_crd.y, new.y, "Y");
-	TEST_ASSERT_EQUAL_MESSAGE(must_be_crd.x, new.x, "X");
+	zassert_equal(0, get_new_valid_coordinates(&pathfinding_obj, &start, &end, &new));
+	zassert_equal(must_be_crd.y, new.y, "Y");
+	zassert_equal(must_be_crd.x, new.x, "X");
 
 	// DIAGONAL 2
 	start = (point2_t){500, 500};
 	end = (point2_t){10, 10};
 	must_be_crd = (point2_t){500 - pathfinding_obj.config.delta_distance * M_SQRT2 / 2,
 							 500 - pathfinding_obj.config.delta_distance * M_SQRT2 / 2};
-	TEST_ASSERT_EQUAL(0, get_new_valid_coordinates(&pathfinding_obj, &start, &end, &new));
-	TEST_ASSERT_TRUE_MESSAGE(new.y > must_be_crd.y * 0.99 && new.y < must_be_crd.y * 1.01,
-							 "Diag 2 y"); // not perfectly precise
-	TEST_ASSERT_TRUE_MESSAGE(new.x > must_be_crd.x * 0.99 && new.x < must_be_crd.x * 1.01,
-							 "Diag 2 x");
+	zassert_equal(0, get_new_valid_coordinates(&pathfinding_obj, &start, &end, &new));
+	zassert_true(new.y > must_be_crd.y * 0.99 && new.y < must_be_crd.y * 1.01,
+				 "Diag 2 y"); // not perfectly precise
+	zassert_true(new.x > must_be_crd.x * 0.99 && new.x < must_be_crd.x * 1.01, "Diag 2 x");
 	// TO CLOSE
 	start = (point2_t){10, 10};
 	end = (point2_t){20, 20};
 	must_be_crd = (point2_t){20, 20};
-	TEST_ASSERT_EQUAL(0, get_new_valid_coordinates(&pathfinding_obj, &start, &end, &new));
-	TEST_ASSERT_EQUAL_MESSAGE(must_be_crd.y, new.y, "Y");
-	TEST_ASSERT_EQUAL_MESSAGE(must_be_crd.x, new.x, "X");
-}
-
-int main(int argc, char **argv)
-{
-	UNITY_BEGIN();
-	RUN_TEST(test_get_closest_node);
-	RUN_TEST(test_in_free_space_path_must_be_found_simple_config);
-	RUN_TEST(test_in_free_space_path_must_be_found_hard_config);
-	RUN_TEST(test_with_obstacle_path_must_be_found_hard_config);
-	RUN_TEST(test_with_lidar_obstacle_path_must_be_found);
-	RUN_TEST(test_get_new_valid_coordinates);
-	return UNITY_END();
+	zassert_equal(0, get_new_valid_coordinates(&pathfinding_obj, &start, &end, &new));
+	zassert_equal(must_be_crd.y, new.y, "Y");
+	zassert_equal(must_be_crd.x, new.x, "X");
 }
