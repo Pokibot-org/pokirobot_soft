@@ -12,9 +12,6 @@
 #define OBSTACLE_HOLDER_ERROR_INVALID_INDEX		2
 #define OBSTACLE_HOLDER_ERROR_NO_OBSTACLE_FOUND 2
 
-#define OBSTACLE_COLLISION_ERROR_NONE		 0
-#define OBSTACLE_COLLISION_ERROR_UNSUPPORTED 255
-
 typedef struct circle {
 	point2_t coordinates;
 	float radius;
@@ -46,7 +43,14 @@ typedef struct obstacle_holder {
 	uint16_t read_head;
 } obstacle_holder_t;
 
-uint8_t obstacle_are_they_colliding(const obstacle_t *a, const obstacle_t *b);
+enum obstacle_collision_status {
+	OBSTACLE_COLLISION_NONE = 0,
+	OBSTACLE_COLLISION_DETECTED = 1,
+	OBSTACLE_COLLISION_ERROR = 255,
+};
+
+enum obstacle_collision_status obstacle_are_they_colliding(const obstacle_t *a,
+														   const obstacle_t *b);
 
 void obstacle_holder_clear(obstacle_holder_t *obj);
 int16_t obstacle_holder_get_number_of_obstacles(obstacle_holder_t *obj);
@@ -55,14 +59,15 @@ uint8_t obstacle_holder_get(obstacle_holder_t *obj, obstacle_t **obstacle);
 uint8_t obstacle_holder_push_circular_buffer_mode(obstacle_holder_t *obj, obstacle_t *obstacle);
 uint8_t obstacle_holder_delete_index(obstacle_holder_t *obj, uint16_t index);
 uint8_t obstacle_holder_delete(obstacle_holder_t *obj, obstacle_t *obstacle);
-uint8_t obstacle_get_point_of_collision_with_segment(const point2_t start_point,
-													 const point2_t end_point,
-													 const obstacle_t *obstacle,
-													 const float seg_radius, point2_t *out_crd);
+enum obstacle_collision_status
+obstacle_get_point_of_collision_with_segment(const point2_t start_point, const point2_t end_point,
+											 const obstacle_t *obstacle, const float seg_radius,
+											 point2_t *out_crd);
 #ifdef UNIT_TEST
 uint8_t obstacle_holder_compact(obstacle_holder_t *obj);
-uint8_t check_seg_collision(const point2_t a1, const point2_t a2, const point2_t b1,
-							const point2_t b2, point2_t *out);
+enum obstacle_collision_status check_seg_collision(const point2_t a1, const point2_t a2,
+												   const point2_t b1, const point2_t b2,
+												   point2_t *out);
 #endif
 
 #endif

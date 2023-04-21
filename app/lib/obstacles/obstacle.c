@@ -102,23 +102,24 @@ uint8_t obstacle_holder_delete(obstacle_holder_t *obj, obstacle_t *obstacle)
 	return obstacle_holder_delete_index(obj, index);
 }
 
-uint8_t are_rectangle_and_circle_colliding(const rectangle_t *rec, const circle_t *cir)
+enum obstacle_collision_status are_rectangle_and_circle_colliding(const rectangle_t *rec,
+																  const circle_t *cir)
 {
 	uint32_t circle_distance_x = fabsf((int32_t)cir->coordinates.x - (int32_t)rec->coordinates.x);
 	uint32_t circle_distance_y = fabsf((int32_t)cir->coordinates.y - (int32_t)rec->coordinates.y);
 
 	if (circle_distance_x > (rec->width / 2 + cir->radius)) {
-		return 0;
+		return OBSTACLE_COLLISION_NONE;
 	}
 	if (circle_distance_y > (rec->height / 2 + cir->radius)) {
-		return 0;
+		return OBSTACLE_COLLISION_NONE;
 	}
 
 	if (circle_distance_x <= (rec->width / 2)) {
-		return 1;
+		return OBSTACLE_COLLISION_DETECTED;
 	}
 	if (circle_distance_y <= (rec->height / 2)) {
-		return 1;
+		return OBSTACLE_COLLISION_DETECTED;
 	}
 
 	uint32_t corner_distance_sq = SQUARE((int32_t)circle_distance_x - rec->width / 2) +
@@ -127,17 +128,17 @@ uint8_t are_rectangle_and_circle_colliding(const rectangle_t *rec, const circle_
 	return (corner_distance_sq <= SQUARE(cir->radius));
 }
 
-uint8_t obstacle_are_they_colliding(const obstacle_t *a, const obstacle_t *b)
+enum obstacle_collision_status obstacle_are_they_colliding(const obstacle_t *a, const obstacle_t *b)
 {
 	if ((a->type == obstacle_type_none) || (b->type == obstacle_type_none)) {
-		return OBSTACLE_COLLISION_ERROR_UNSUPPORTED;
+		return OBSTACLE_COLLISION_ERROR;
 	}
 	if (a->type == b->type) {
 		if (a->type == obstacle_type_circle) {
 			return vec2_abs(point2_diff(a->data.circle.coordinates, b->data.circle.coordinates)) <=
 				   ((a->data.circle.radius + b->data.circle.radius));
 		} else {
-			return OBSTACLE_COLLISION_ERROR_UNSUPPORTED; // FIXME: NOT SUPPORTED
+			return OBSTACLE_COLLISION_ERROR; // FIXME: NOT SUPPORTED
 		}
 	}
 
@@ -146,13 +147,12 @@ uint8_t obstacle_are_they_colliding(const obstacle_t *a, const obstacle_t *b)
 	} else {
 		return are_rectangle_and_circle_colliding(&a->data.rectangle, &b->data.circle);
 	}
-	return OBSTACLE_COLLISION_ERROR_UNSUPPORTED;
+	return OBSTACLE_COLLISION_ERROR;
 }
 
-#include "stdio.h"
-
-uint8_t check_seg_collision(const point2_t a1, const point2_t a2, const point2_t b1,
-							const point2_t b2, point2_t *out)
+enum obstacle_collision_status check_seg_collision(const point2_t a1, const point2_t a2,
+												   const point2_t b1, const point2_t b2,
+												   point2_t *out)
 {
 	vec2_t vec_a, vec_b;
 	vec_a.dx = a2.x - a1.x;
@@ -163,7 +163,7 @@ uint8_t check_seg_collision(const point2_t a1, const point2_t a2, const point2_t
 	int32_t den = vec_a.dx * vec_b.dy - vec_a.dy * vec_b.dx;
 	if (!den) {
 		*out = a1;
-		return 0;
+		return OBSTACLE_COLLISION_NONE;
 	}
 	float coeff_point_sur_a =
 		((float)(-a1.x * vec_b.dy + b1.x * vec_b.dy + vec_b.dx * a1.y - vec_b.dx * b1.y)) / den;
@@ -174,19 +174,18 @@ uint8_t check_seg_collision(const point2_t a1, const point2_t a2, const point2_t
 		coeff_point_sur_b < 1) {
 		out->x = a1.x + coeff_point_sur_a * vec_a.dx;
 		out->y = a1.y + coeff_point_sur_a * vec_a.dy;
-		return 1;
+		return OBSTACLE_COLLISION_DETECTED;
 	}
-	return 0;
+	return OBSTACLE_COLLISION_NONE;
 }
 
-static uint8_t obstacle_get_point_of_collision_with_rectangle(const point2_t start_point,
-															  const point2_t end_point,
-															  const rectangle_t *rectangle,
-															  const float seg_radius,
-															  point2_t *out_crd)
+static enum obstacle_collision_status
+obstacle_get_point_of_collision_with_rectangle(const point2_t start_point, const point2_t end_point,
+											   const rectangle_t *rectangle, const float seg_radius,
+											   point2_t *out_crd)
 {
-	point2_t points[4];
 	const uint8_t sides_to_check = 4;
+	point2_t points[sides_to_check];
 
 	float demi_w = (rectangle->width / 2 + seg_radius);
 	float demi_h = (rectangle->height / 2 + seg_radius);
@@ -202,23 +201,28 @@ static uint8_t obstacle_get_point_of_collision_with_rectangle(const point2_t sta
 	points[3].x = rectangle->coordinates.x - demi_w;
 	points[3].y = rectangle->coordinates.y + demi_h;
 
-	point2_t out_pt_coll[4];
+	point2_t out_pt_coll[sides_to_check];
 	uint8_t nb_coll = 0;
-	uint8_t is_colliding = check_seg_collision(start_point, end_point, points[0],
-											   points[sides_to_check - 1], &out_pt_coll[nb_coll]);
+	uint8_t is_colliding =
+		check_seg_collision(start_point, end_point, points[0], points[sides_to_check - 1],
+							&out_pt_coll[nb_coll]) == OBSTACLE_COLLISION_DETECTED
+			? 1
+			: 0;
 	nb_coll += is_colliding;
 	for (size_t i = 1; i < sides_to_check; i++) {
 		is_colliding = check_seg_collision(start_point, end_point, points[i - 1], points[i],
-										   &out_pt_coll[nb_coll]);
+										   &out_pt_coll[nb_coll]) == OBSTACLE_COLLISION_DETECTED
+						   ? 1
+						   : 0;
 		nb_coll += is_colliding;
 	}
 
 	if (!nb_coll) {
 		*out_crd = end_point;
-		return 0;
+		return OBSTACLE_COLLISION_NONE;
 	}
 
-	float closest_dist = UINT16_MAX;
+	float closest_dist = __FLT_MAX__;
 	for (size_t i = 0; i < nb_coll; i++) {
 		float dist = vec2_abs(point2_diff(out_pt_coll[i], start_point));
 		if (dist <= closest_dist) {
@@ -227,13 +231,13 @@ static uint8_t obstacle_get_point_of_collision_with_rectangle(const point2_t sta
 		}
 	}
 
-	return 1; // NO COLLISION
+	return OBSTACLE_COLLISION_DETECTED;
 }
 
-static uint8_t obstacle_get_point_of_collision_with_circle(const point2_t start, const point2_t end,
-														   const circle_t *circle,
-														   const float seg_radius,
-														   point2_t *out_crd)
+static enum obstacle_collision_status
+obstacle_get_point_of_collision_with_circle(const point2_t start, const point2_t end,
+											const circle_t *circle, const float seg_radius,
+											point2_t *out_crd)
 {
 	// Calculer le vecteur directionnel du segment de ligne
 	vec2_t d = point2_diff(end, start);
@@ -246,7 +250,7 @@ static uint8_t obstacle_get_point_of_collision_with_circle(const point2_t start,
 	float discriminant = b * b - 4 * a * c;
 	// Si le discriminant est négatif, il n'y a pas d'intersection
 	if (discriminant < 0) {
-		return 1;
+		return OBSTACLE_COLLISION_NONE;
 	}
 	// Sinon, il y a au moins une intersection
 	discriminant = sqrt(discriminant);
@@ -257,23 +261,23 @@ static uint8_t obstacle_get_point_of_collision_with_circle(const point2_t start,
 		// Trouver les coordonnées du point d'intersection
 		out_crd->x = start.x + t1 * d.dx;
 		out_crd->y = start.y + t1 * d.dy;
-		return 0;
+		return OBSTACLE_COLLISION_DETECTED;
 	}
 	// Vérifier si t2 est une intersection valide
 	if (t2 >= 0 && t2 <= 1) {
 		// Trouver les coordonnées du point d'intersection
 		out_crd->x = start.x + t2 * d.dx;
 		out_crd->y = start.y + t2 * d.dy;
-		return 0;
+		return OBSTACLE_COLLISION_DETECTED;
 	}
 	// Sinon, il n'y a pas d'intersection valide
-	return 1;
+	return OBSTACLE_COLLISION_NONE;
 }
 
-uint8_t obstacle_get_point_of_collision_with_segment(const point2_t start_point,
-													 const point2_t end_point,
-													 const obstacle_t *obstacle,
-													 const float seg_radius, point2_t *out_crd)
+enum obstacle_collision_status
+obstacle_get_point_of_collision_with_segment(const point2_t start_point, const point2_t end_point,
+											 const obstacle_t *obstacle, const float seg_radius,
+											 point2_t *out_crd)
 {
 	if (obstacle->type == obstacle_type_rectangle) {
 		return obstacle_get_point_of_collision_with_rectangle(
@@ -282,6 +286,6 @@ uint8_t obstacle_get_point_of_collision_with_segment(const point2_t start_point,
 		return obstacle_get_point_of_collision_with_circle(
 			start_point, end_point, &obstacle->data.circle, seg_radius, out_crd);
 	} else {
-		return OBSTACLE_COLLISION_ERROR_UNSUPPORTED;
+		return OBSTACLE_COLLISION_ERROR;
 	}
 }
