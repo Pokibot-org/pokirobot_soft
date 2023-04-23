@@ -288,7 +288,7 @@ void init_current_node(path_node_t *current_node, path_node_t *parent_node, poin
 	add_child_node(parent_node, current_node->parent_node);
 	current_node->distance_to_start =
 		parent_node->distance_to_start +
-		vec2_distance(current_node->coordinate, current_node->coordinate);
+		vec2_distance(current_node->coordinate, parent_node->coordinate);
 }
 
 int pathfinding_find_path(pathfinding_object_t *obj, obstacle_holder_t *ob_hold, point2_t start,
