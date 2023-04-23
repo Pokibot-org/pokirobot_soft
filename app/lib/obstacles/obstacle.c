@@ -135,7 +135,7 @@ enum obstacle_collision_status obstacle_are_they_colliding(const obstacle_t *a, 
 	}
 	if (a->type == b->type) {
 		if (a->type == obstacle_type_circle) {
-			return vec2_abs(point2_diff(a->data.circle.coordinates, b->data.circle.coordinates)) <=
+			return vec2_distance(a->data.circle.coordinates, b->data.circle.coordinates) <=
 				   ((a->data.circle.radius + b->data.circle.radius));
 		} else {
 			return OBSTACLE_COLLISION_ERROR; // FIXME: NOT SUPPORTED
@@ -228,7 +228,7 @@ obstacle_get_point_of_collision_with_rectangle(const point2_t start_point, const
 
 	float closest_dist = UINT16_MAX;
 	for (size_t i = 0; i < nb_coll; i++) {
-		float dist = vec2_abs(point2_diff(out_pt_coll[i], start_point));
+		float dist = vec2_distance(out_pt_coll[i], start_point);
 		if (dist <= closest_dist) {
 			closest_dist = dist;
 			*out_crd = out_pt_coll[i];

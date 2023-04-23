@@ -7,8 +7,8 @@
 
 typedef struct path_node {
 	struct path_node *parent_node;
-	struct path_node *son_node;
-	struct path_node *son_node_next;
+	struct path_node *child_node;
+	struct path_node *next_child_node;
 	point2_t coordinate;
 	uint8_t is_used;
 	float distance_to_start;

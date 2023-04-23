@@ -41,6 +41,11 @@ float vec2_angle(vec2_t a, vec2_t b)
 	return acosf(vec2_dot(a, b) / (vec2_abs(a) * vec2_abs(b)));
 }
 
+float vec2_distance(point2_t a, point2_t b)
+{
+	return vec2_abs(point2_diff(a, b));
+}
+
 pos2_t pos2_diff(const pos2_t terminal, const pos2_t initial)
 {
 	pos2_t delta = {

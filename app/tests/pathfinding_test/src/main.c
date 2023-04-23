@@ -39,14 +39,7 @@ static void *pf_suite_setup(void)
 	pathfinding_object_configure(&fixture->pathfinding_obj, &config);
 
 	fixture->psr_fd = fopen("./psr.txt", "a+");
-#ifdef FORCE_RANDOM
-	srand(time(NULL));
-	uint32_t tab[4];
-	for (size_t i = 0; i < 4; i++) {
-		tab[i] = rand();
-	}
-	utils_init_rand_seed(tab);
-#endif
+
 	return fixture;
 }
 
