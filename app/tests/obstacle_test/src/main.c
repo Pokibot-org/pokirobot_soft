@@ -170,8 +170,8 @@ ZTEST(obstacles_test, test_object_collision_with_seg_and_rectangle)
 	int rcode = obstacle_get_point_of_collision_with_segment(start, end, &ob, robot_radius,
 															 &intersection_pt);
 
-	end.y = ob.data.rectangle.coordinates.y;
 	zassert_equal(OBSTACLE_COLLISION_DETECTED, rcode, "Intersection not found");
+	ob.data.rectangle.coordinates.y = end.y;
 
 	rcode = obstacle_get_point_of_collision_with_segment(start, end, &ob, robot_radius,
 														 &intersection_pt);
@@ -182,6 +182,21 @@ ZTEST(obstacles_test, test_object_collision_with_seg_and_rectangle)
 	rcode = obstacle_get_point_of_collision_with_segment(start, end, &ob, robot_radius,
 														 &intersection_pt);
 	zassert_equal(OBSTACLE_COLLISION_NONE, rcode, "Intersection found");
+
+	start.x = 0;
+	start.y = 0;
+	end.x = 100;
+	end.y = 100;
+
+	ob.data.rectangle.coordinates.x = 60;
+	ob.data.rectangle.coordinates.y = 40;
+	ob.data.rectangle.width = 20;
+	ob.data.rectangle.height = 20;
+	rcode = obstacle_get_point_of_collision_with_segment(start, end, &ob, robot_radius,
+														 &intersection_pt);
+	zassert_equal(rcode, OBSTACLE_COLLISION_DETECTED);
+	zassert_equal(intersection_pt.x, 40, "%d", (int)intersection_pt.x);
+	zassert_equal(intersection_pt.y, 40, "%d", (int)intersection_pt.y);
 }
 
 ZTEST(obstacles_test, test_get_point_collision_two_segments)

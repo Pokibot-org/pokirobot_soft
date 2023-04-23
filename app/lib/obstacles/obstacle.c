@@ -184,75 +184,58 @@ obstacle_get_point_of_collision_with_rectangle(const point2_t start_point, const
 											   const rectangle_t *rectangle, const float seg_radius,
 											   point2_t *out_crd)
 {
-	// On calcule le vecteur directeur du segment
-	vec2_t seg_dir = point2_diff(end_point, start_point);
+	const uint8_t sides_to_check = 4;
+	const float demi_w = (rectangle->width / 2 + seg_radius);
+	const float demi_h = (rectangle->height / 2 + seg_radius);
+	point2_t points[] = {
+		[0] =
+			{
+				.x = rectangle->coordinates.x - demi_w,
+				.y = rectangle->coordinates.y - demi_h,
+			},
+		[1] =
+			{
+				.x = rectangle->coordinates.x + demi_w,
+				.y = rectangle->coordinates.y - demi_h,
+			},
+		[2] =
+			{
+				.x = rectangle->coordinates.x + demi_w,
+				.y = rectangle->coordinates.y + demi_h,
+			},
+		[3] =
+			{
+				.x = rectangle->coordinates.x - demi_w,
+				.y = rectangle->coordinates.y + demi_h,
+			},
+	};
 
-	// On calcule les quatre coins du rectangle
-	point2_t rect_tl = rectangle->coordinates;					   // coin supérieur gauche
-	point2_t rect_tr = {rect_tl.x + rectangle->width, rect_tl.y};  // coin supérieur droit
-	point2_t rect_bl = {rect_tl.x, rect_tl.y - rectangle->height}; // coin inférieur gauche
-	point2_t rect_br = {rect_tr.x, rect_bl.y};					   // coin inférieur droit
+	point2_t out_pt_coll[sides_to_check];
+	uint8_t nb_coll = 0;
+	uint8_t is_colliding = check_seg_collision(start_point, end_point, points[0],
+											   points[sides_to_check - 1], &out_pt_coll[nb_coll]);
+	nb_coll += is_colliding;
+	for (size_t i = 1; i < sides_to_check; i++) {
+		is_colliding = check_seg_collision(start_point, end_point, points[i - 1], points[i],
+										   &out_pt_coll[nb_coll]);
+		nb_coll += is_colliding;
+	}
 
-	// On calcule les quatre côtés du rectangle comme des segments
-	point2_t rect_sides[4][2] = {
-		{rect_tl, rect_tr}, {rect_tr, rect_br}, {rect_br, rect_bl}, {rect_bl, rect_tl}};
+	if (!nb_coll) {
+		*out_crd = end_point;
+		return OBSTACLE_COLLISION_NONE;
+	}
 
-	// On initialise le statut de la collision à aucune
-	enum obstacle_collision_status status = OBSTACLE_COLLISION_NONE;
-
-	// On initialise la distance minimale à l'infini
-	float min_dist = INFINITY;
-
-	// On parcourt les quatre côtés du rectangle
-	for (int i = 0; i < 4; i++) {
-		// On calcule le vecteur directeur du côté
-		vec2_t side_dir = point2_diff(rect_sides[i][1], rect_sides[i][0]);
-
-		// On calcule le déterminant des deux vecteurs
-		float det = seg_dir.dx * side_dir.dy - seg_dir.dy * side_dir.dx;
-
-		// Si le déterminant est nul, les vecteurs sont parallèles ou confondus, donc pas
-		// d'intersection
-		if (det == 0) {
-			continue;
-		}
-
-		// Sinon, on calcule les coefficients alpha et beta tels que :
-		// start_point + alpha * seg_dir = rect_sides[i][0] + beta * side_dir
-		float alpha = (side_dir.dy * (rect_sides[i][0].x - start_point.x) -
-					   side_dir.dx * (rect_sides[i][0].y - start_point.y)) /
-					  det;
-		float beta = (seg_dir.dy * (rect_sides[i][0].x - start_point.x) -
-					  seg_dir.dx * (rect_sides[i][0].y - start_point.y)) /
-					 det;
-
-		// Si alpha et beta sont compris entre 0 et 1, il y a intersection entre les segments
-		if (alpha >= 0 && alpha <= 1 && beta >= 0 && beta <= 1) {
-			// On calcule le point d'intersection
-			point2_t inter = {start_point.x + alpha * seg_dir.dx,
-							  start_point.y + alpha * seg_dir.dy};
-
-			// On calcule la distance entre le point d'intersection et le point de départ du segment
-			float dist = vec2_abs(point2_diff(inter, start_point));
-
-			// Si la distance est inférieure à la distance minimale trouvée jusqu'à présent
-			if (dist < min_dist) {
-				// On met à jour la distance minimale
-				min_dist = dist;
-
-				// On met à jour le statut de la collision à détectée
-				status = OBSTACLE_COLLISION_DETECTED;
-
-				// On met à jour le point de collision dans out_crd en tenant compte du rayon du
-				// segment
-				vec2_t inter_to_rect = vec2_normalize(point2_diff(rect_sides[i][0], inter));
-				out_crd->x = inter.x + seg_radius * inter_to_rect.dx;
-				out_crd->y = inter.y + seg_radius * inter_to_rect.dy;
-			}
+	float closest_dist = UINT16_MAX;
+	for (size_t i = 0; i < nb_coll; i++) {
+		float dist = vec2_abs(point2_diff(out_pt_coll[i], start_point));
+		if (dist <= closest_dist) {
+			closest_dist = dist;
+			*out_crd = out_pt_coll[i];
 		}
 	}
 
-	return status;
+	return OBSTACLE_COLLISION_DETECTED;
 }
 
 static enum obstacle_collision_status
