@@ -10,7 +10,7 @@
 #include "obstacles/obstacle.h"
 #include "pokutils/robot_utils.h"
 
-LOG_MODULE_REGISTER(PATHFINDING, 1);
+LOG_MODULE_REGISTER(pathfinding);
 
 #define DEBUG_TAB_SIZE_X 120
 #define DEBUG_TAB_SIZE_Y 40
@@ -105,6 +105,58 @@ uint8_t get_array_of_closest_node(pathfinding_object_t *obj, point2_t crd, path_
 	return found_nodes;
 }
 
+void add_child_node(path_node_t *parent, path_node_t *child)
+{
+	LOG_DBG("parent %p, child %p", parent, child);
+	child->next_child_node = NULL;
+	child->child_node = NULL;
+	if (!parent->child_node) {
+		parent->child_node = child;
+		return;
+	}
+
+	path_node_t *previous_child = parent->child_node;
+	while (previous_child->next_child_node) {
+		previous_child = previous_child->next_child_node;
+	};
+	previous_child->next_child_node = child;
+}
+
+void remove_child_node(path_node_t *parent, path_node_t *child)
+{
+	LOG_DBG("parent %p, child %p", parent, child);
+	if (parent->child_node == child) {
+		parent->child_node = child->next_child_node;
+		child->next_child_node = NULL;
+		return;
+	}
+
+	path_node_t *previous_child = parent->child_node;
+	if (!previous_child) {
+		return;
+	}
+	while (previous_child->next_child_node) {
+		if (previous_child->next_child_node == child) {
+			previous_child->next_child_node = child->next_child_node;
+			child->next_child_node = NULL;
+			return;
+		}
+		previous_child = previous_child->next_child_node;
+	};
+}
+
+void update_new_distance(path_node_t *node)
+{
+	LOG_DBG("Updating dist of %p", node);
+	node = node->child_node;
+	while (node) {
+		node->distance_to_start = node->parent_node->distance_to_start +
+								  vec2_distance(node->coordinate, node->parent_node->coordinate);
+		update_new_distance(node);
+		node = node->next_child_node;
+	}
+}
+
 void remap_nodes_to_new_node_if_closer_to_start(pathfinding_object_t *obj,
 												obstacle_holder_t *ob_hold, path_node_t **nodes,
 												uint8_t nb_nodes, path_node_t *new_node)
@@ -120,8 +172,10 @@ void remap_nodes_to_new_node_if_closer_to_start(pathfinding_object_t *obj,
 			vec2_distance(new_node->coordinate, nodes[i]->coordinate) + new_node->distance_to_start;
 
 		if (total_distance < nodes[i]->distance_to_start) {
+			remove_child_node(nodes[i]->parent_node, nodes[i]);
 			nodes[i]->distance_to_start = total_distance;
 			nodes[i]->parent_node = new_node;
+			update_new_distance(nodes[i]);
 		}
 	}
 }
@@ -264,28 +318,12 @@ int pathfinding_cache_waypoint(pathfinding_object_t *obj, path_node_t *end_node)
 	return 0;
 }
 
-void add_child_node(path_node_t *parent, path_node_t *child)
-{
-	child->next_child_node = NULL;
-	child->child_node = NULL;
-	if (!parent->child_node) {
-		parent->child_node = child;
-		return;
-	}
-
-	path_node_t *previous_child = parent->child_node;
-	while (previous_child->next_child_node) {
-		previous_child = previous_child->next_child_node;
-	};
-	previous_child->next_child_node = child;
-}
-
 void init_current_node(path_node_t *current_node, path_node_t *parent_node, point2_t coordinates)
 {
 	current_node->is_used = 1;
 	current_node->coordinate = coordinates;
 	current_node->parent_node = parent_node;
-	add_child_node(parent_node, current_node->parent_node);
+	add_child_node(parent_node, current_node);
 	current_node->distance_to_start =
 		parent_node->distance_to_start +
 		vec2_distance(current_node->coordinate, parent_node->coordinate);
