@@ -36,8 +36,7 @@ If you already have a west workspace set up, you can also re-use it to avoid hav
 cd your-zephyr-workspace
 
 # pull the firmware
-git clone https://gitlab.com/comapsmartlab/embedded/pokirobot_soft
-cd pokirobot_soft
+git clone https://github.com/Pokibot-org/pokirobot_soft
 
 # re-configure and update the workspace
 # (to be done each time you switch between applications in same workspace)
