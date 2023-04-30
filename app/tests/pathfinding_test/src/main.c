@@ -205,16 +205,16 @@ ZTEST_F(pf_suite, test_with_lidar_obstacle_path_must_be_found)
 {
 	obstacle_holder_t ob_hold = {0};
 	obstacle_t obs = {.type = obstacle_type_circle,
-					  .data.circle = {.coordinates = {.x = 1500, .y = 10}, .radius = 0}};
-	for (size_t i = 0; i < 30; i++) {
+					  .data.circle = {.coordinates = {.x = 1000, .y = 10}, .radius = 0}};
+	for (size_t i = 0; i < 50; i++) {
 		obstacle_holder_push(&ob_hold, &obs);
-		obs.data.circle.coordinates.y += 20;
+		obs.data.circle.coordinates.y += 30;
 	}
 	obs.data.circle.coordinates.x = 2000;
 	obs.data.circle.coordinates.y = 2000;
-	for (size_t i = 0; i < 30; i++) {
+	for (size_t i = 0; i < 50; i++) {
 		obstacle_holder_push(&ob_hold, &obs);
-		obs.data.circle.coordinates.y -= 20;
+		obs.data.circle.coordinates.y -= 35;
 	}
 
 	path_node_t *end_node;
@@ -264,16 +264,16 @@ ZTEST_F(pf_suite, benchmark)
 	uint32_t nb_test = 20;
 	obstacle_holder_t ob_hold = {0};
 	obstacle_t obs = {.type = obstacle_type_circle,
-					  .data.circle = {.coordinates = {.x = 1500, .y = 10}, .radius = 0}};
-	for (size_t i = 0; i < 40; i++) {
+					  .data.circle = {.coordinates = {.x = 1000, .y = 10}, .radius = 0}};
+	for (size_t i = 0; i < 50; i++) {
 		obstacle_holder_push(&ob_hold, &obs);
-		obs.data.circle.coordinates.y += 20;
+		obs.data.circle.coordinates.y += 30;
 	}
 	obs.data.circle.coordinates.x = 2000;
 	obs.data.circle.coordinates.y = 2000;
-	for (size_t i = 0; i < 40; i++) {
+	for (size_t i = 0; i < 50; i++) {
 		obstacle_holder_push(&ob_hold, &obs);
-		obs.data.circle.coordinates.y -= 20;
+		obs.data.circle.coordinates.y -= 35;
 	}
 
 	path_node_t *end_node;
