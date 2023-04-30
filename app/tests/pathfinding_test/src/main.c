@@ -261,7 +261,7 @@ ZTEST_F(pf_suite, test_with_lidar_obstacle_path_must_be_found)
 
 ZTEST_F(pf_suite, benchmark)
 {
-	uint32_t nb_test = 20;
+	uint32_t nb_test = 100;
 	obstacle_holder_t ob_hold = {0};
 	obstacle_t obs = {.type = obstacle_type_circle,
 					  .data.circle = {.coordinates = {.x = 1000, .y = 10}, .radius = 0}};
