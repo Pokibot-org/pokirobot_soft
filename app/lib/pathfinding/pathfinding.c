@@ -323,6 +323,10 @@ void init_current_node(path_node_t *current_node, path_node_t *parent_node, poin
 	current_node->is_used = 1;
 	current_node->coordinate = coordinates;
 	current_node->parent_node = parent_node;
+	current_node->child_node = NULL;
+	current_node->next_child_node = NULL;
+	current_node->distance_to_start = 0;
+
 	add_child_node(parent_node, current_node);
 	current_node->distance_to_start =
 		parent_node->distance_to_start +
@@ -340,6 +344,8 @@ int pathfinding_find_path(pathfinding_object_t *obj, obstacle_holder_t *ob_hold,
 	// TODO :must be bound to current tree if existing
 	obj->nodes[0].coordinate = start;
 	obj->nodes[0].parent_node = NULL;
+	obj->nodes[0].child_node = NULL;
+	obj->nodes[0].next_child_node = NULL;
 	obj->nodes[0].is_used = 1;
 	obj->nodes[0].distance_to_start = 0;
 
@@ -401,6 +407,8 @@ int pathfinding_rebuild(pathfinding_object_t *obj, obstacle_holder_t *ob_hold, p
 	// TODO :must be bound to current tree if existing
 	obj->nodes[0].coordinate = start;
 	obj->nodes[0].parent_node = NULL;
+	obj->nodes[0].child_node = NULL;
+	obj->nodes[0].next_child_node = NULL;
 	obj->nodes[0].is_used = 1;
 	obj->nodes[0].distance_to_start = 0;
 

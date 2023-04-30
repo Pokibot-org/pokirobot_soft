@@ -10,7 +10,7 @@
 #define M_SQRT2 1.41421356237309504880f
 #endif
 
-#define FORCE_PRINT
+// #define FORCE_PRINT
 
 #ifdef FORCE_PRINT
 #define FORCE_PRINT_CONSTANT 1
@@ -257,4 +257,47 @@ ZTEST_F(pf_suite, test_with_lidar_obstacle_path_must_be_found)
 			   pathfinding_get_number_of_used_nodes(&fixture->pathfinding_obj), time_spent,
 			   end_node->distance_to_start);
 	}
+}
+
+ZTEST_F(pf_suite, benchmark)
+{
+	uint32_t nb_test = 20;
+	obstacle_holder_t ob_hold = {0};
+	obstacle_t obs = {.type = obstacle_type_circle,
+					  .data.circle = {.coordinates = {.x = 1500, .y = 10}, .radius = 0}};
+	for (size_t i = 0; i < 40; i++) {
+		obstacle_holder_push(&ob_hold, &obs);
+		obs.data.circle.coordinates.y += 20;
+	}
+	obs.data.circle.coordinates.x = 2000;
+	obs.data.circle.coordinates.y = 2000;
+	for (size_t i = 0; i < 40; i++) {
+		obstacle_holder_push(&ob_hold, &obs);
+		obs.data.circle.coordinates.y -= 20;
+	}
+
+	path_node_t *end_node;
+	point2_t start = {
+		.x = 40,
+		.y = 40,
+	};
+	point2_t end = {
+		.x = fixture->pathfinding_obj.config.field_boundaries.max_x - 40,
+		.y = 500,
+	};
+	uint32_t nb_passed_test = 0;
+	float total_time_spent = 0;
+	for (size_t i = 0; i < nb_test; i++) {
+		clock_t begin_clk = clock();
+		int err = pathfinding_find_path(&fixture->pathfinding_obj, &ob_hold, start, end, &end_node);
+		clock_t end_clk = clock();
+		float time_spent = (float)(end_clk - begin_clk) / CLOCKS_PER_SEC * 1000;
+		if (!err) {
+			total_time_spent += time_spent;
+			nb_passed_test += 1;
+		}
+	}
+
+	printf("Average Time : %d us, passed %d/%d\n",
+		   (uint32_t)(1000 * total_time_spent / nb_passed_test), nb_passed_test, nb_test);
 }
