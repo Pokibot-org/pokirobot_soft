@@ -36,10 +36,6 @@ void get_new_valid_coordinates(pathfinding_object_t *obj, point2_t crd_tree_node
 void pathfinding_debug_print(pathfinding_object_t *obj, obstacle_holder_t *obs_holder);
 void pathfinding_debug_print_found_path(pathfinding_object_t *obj, obstacle_holder_t *obs_holder,
 										path_node_t *end_node);
-void pathfinding_debug_write_found_path(pathfinding_object_t *obj, path_node_t *end_node,
-										char *file_path);
-void pathfinding_debug_write_found_path_list(pathfinding_object_t *obj, path_node_t *end_node,
-											 char *file_path);
 
 path_node_t *get_closest_node(pathfinding_object_t *obj, point2_t crd);
 #endif
