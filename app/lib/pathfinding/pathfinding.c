@@ -15,7 +15,7 @@ LOG_MODULE_REGISTER(pathfinding);
 #define DEBUG_TAB_SIZE_X 120
 #define DEBUG_TAB_SIZE_Y 40
 
-#define PATHFINDING_GET_ARRAY_OF_CLOSEST_NODES_MAX_NUM 40
+#define PATHFINDING_GET_ARRAY_OF_CLOSEST_NODES_MAX_NUM 8
 
 // DECLARATION
 
@@ -66,6 +66,16 @@ int pathfinding_object_configure(pathfinding_object_t *obj, pathfinding_configur
 	obj->next_free_node_nb = 0;
 
 	return PATHFINDING_ERROR_NONE;
+}
+
+path_node_t *allocate_new_node(pathfinding_object_t *obj)
+{
+	if (obj->next_free_node_nb >= PATHFINDING_MAX_NUM_OF_NODES) {
+		return NULL;
+	}
+	path_node_t *new_node = &obj->nodes[obj->next_free_node_nb];
+	obj->next_free_node_nb++;
+	return new_node;
 }
 
 path_node_t *get_closest_node(pathfinding_object_t *obj, point2_t crd)
@@ -180,20 +190,19 @@ void remap_nodes_to_new_node_if_closer_to_start(pathfinding_object_t *obj,
 	}
 }
 
-int get_new_valid_coordinates(pathfinding_object_t *obj, point2_t crd_tree_node,
-							  point2_t crd_random_node, point2_t *crd_new_node)
+void get_new_valid_coordinates(pathfinding_object_t *obj, point2_t crd_tree_node,
+							   point2_t crd_random_node, point2_t *crd_new_node)
 {
 	float segment_len = vec2_distance(crd_tree_node, crd_random_node);
 	if (segment_len <= obj->config.delta_distance) {
 		*crd_new_node = crd_random_node;
-		return PATHFINDING_ERROR_NONE;
+		return;
 	}
 
 	float frac = (float)obj->config.delta_distance / segment_len;
 
 	crd_new_node->x = crd_tree_node.x + (crd_random_node.x - crd_tree_node.x) * frac;
 	crd_new_node->y = crd_tree_node.y + (crd_random_node.y - crd_tree_node.y) * frac;
-	return PATHFINDING_ERROR_NONE;
 }
 
 /**
@@ -282,42 +291,6 @@ point2_t pathfinding_generate_rand_coordinates(const pathfinding_object_t *obj, 
 	return rand_coordinates;
 }
 
-point2_t pathfinding_generate_rebuild_rand_coordinates(const pathfinding_object_t *obj,
-													   const point2_t end)
-{
-	uint32_t rand_num = utils_get_rand32();
-	uint8_t point_gen_type_probability = rand_num & 0x000000FF;
-	point2_t rand_coordinates;
-	if (point_gen_type_probability < obj->config.rand_goal_probability) {
-		rand_coordinates = end;
-	} else if ((point_gen_type_probability <
-				obj->config.rand_goal_probability + obj->config.rand_waypoint_probability) &&
-			   obj->nb_of_coordinate_cached) {
-		rand_coordinates = obj->coordinate_cache[(rand_num >> 24) % obj->nb_of_coordinate_cached];
-	} else {
-		rand_coordinates.x = utils_get_randf_in_range(obj->config.field_boundaries.min_x,
-													  obj->config.field_boundaries.max_x);
-		rand_coordinates.y = utils_get_randf_in_range(obj->config.field_boundaries.min_y,
-													  obj->config.field_boundaries.max_y);
-	}
-	return rand_coordinates;
-}
-
-int pathfinding_cache_waypoint(pathfinding_object_t *obj, path_node_t *end_node)
-{
-	obj->nb_of_coordinate_cached = 0;
-	path_node_t *current_node = end_node;
-	while (current_node->parent_node != NULL) {
-		if (obj->nb_of_coordinate_cached == PATHFINDING_MAX_NUM_OF_COORDINATES_CACHE) {
-			return -1;
-		}
-		obj->coordinate_cache[obj->nb_of_coordinate_cached] = current_node->coordinate;
-		obj->nb_of_coordinate_cached += 1;
-		current_node = current_node->parent_node;
-	}
-	return 0;
-}
-
 void init_current_node(path_node_t *current_node, path_node_t *parent_node, point2_t coordinates)
 {
 	current_node->is_used = 1;
@@ -348,6 +321,7 @@ int pathfinding_find_path(pathfinding_object_t *obj, obstacle_holder_t *ob_hold,
 	obj->nodes[0].next_child_node = NULL;
 	obj->nodes[0].is_used = 1;
 	obj->nodes[0].distance_to_start = 0;
+	obj->next_free_node_nb = 1;
 
 	if (start.x < obj->config.field_boundaries.min_x ||
 		start.y < obj->config.field_boundaries.min_y ||
@@ -356,84 +330,27 @@ int pathfinding_find_path(pathfinding_object_t *obj, obstacle_holder_t *ob_hold,
 		return PATHFINDING_ERROR_WRONG_INPUTS;
 	}
 
-	for (obj->next_free_node_nb = 1; obj->next_free_node_nb < PATHFINDING_MAX_NUM_OF_NODES;
-		 obj->next_free_node_nb++) {
-		path_node_t *current_node = &obj->nodes[obj->next_free_node_nb];
+	while (1) {
+		path_node_t *current_node = allocate_new_node(obj);
+		if (!current_node) {
+			return PATHFINDING_ERROR_NOT_ENOUGH_MEMORY;
+		}
 		point2_t rand_coordinates = pathfinding_generate_rand_coordinates(obj, end);
 		LOG_DBG("Random coordinates generated : x:%f y:%f", rand_coordinates.x, rand_coordinates.y);
 		path_node_t *closest_node_p = get_closest_node(obj, rand_coordinates);
 		LOG_DBG("Closest node %p", closest_node_p);
-		if (check_collision(obj, ob_hold, closest_node_p->coordinate, rand_coordinates) ==
-			OBSTACLE_COLLISION_DETECTED) {
-			LOG_DBG("Collison, dumping node");
-			obj->next_free_node_nb -= 1;
-			continue;
-		}
 		point2_t new_coordinates;
 		get_new_valid_coordinates(obj, closest_node_p->coordinate, rand_coordinates,
 								  &new_coordinates);
 		LOG_DBG("New valid coordinates generated : x:%f y:%f", new_coordinates.x,
 				new_coordinates.y);
-		// Remaping nodes for RRT*
-		path_node_t *to_be_remaped_nodes[PATHFINDING_GET_ARRAY_OF_CLOSEST_NODES_MAX_NUM] = {0};
-		uint8_t nb_of_to_be_remaped_nodes =
-			get_array_of_closest_node(obj, new_coordinates, to_be_remaped_nodes);
-
-		init_current_node(current_node, closest_node_p, new_coordinates);
-
-		remap_nodes_to_new_node_if_closer_to_start(obj, ob_hold, to_be_remaped_nodes,
-												   nb_of_to_be_remaped_nodes, current_node);
-
-		if ((new_coordinates.x == end.x) && (new_coordinates.y == end.y)) {
-			*end_node = current_node;
-			int err = pathfinding_cache_waypoint(obj, current_node);
-			LOG_DBG("End of pathfinding");
-			if (err) {
-				return PATHFINDING_ERROR_NOT_ENOUGH_CACHE;
-			}
-			return PATHFINDING_ERROR_NONE;
-		}
-	}
-
-	return PATHFINDING_ERROR_PATH_NOT_FOUND;
-}
-
-int pathfinding_rebuild(pathfinding_object_t *obj, obstacle_holder_t *ob_hold, point2_t start,
-						point2_t end, path_node_t **end_node)
-{
-	*end_node = NULL;
-	// TODO: Check input validity, must be between 0 and pathfinding_boundaries
-	// Init start node
-	// TODO :must be bound to current tree if existing
-	obj->nodes[0].coordinate = start;
-	obj->nodes[0].parent_node = NULL;
-	obj->nodes[0].child_node = NULL;
-	obj->nodes[0].next_child_node = NULL;
-	obj->nodes[0].is_used = 1;
-	obj->nodes[0].distance_to_start = 0;
-
-	if (start.x < obj->config.field_boundaries.min_x ||
-		start.y < obj->config.field_boundaries.min_y ||
-		start.x >= obj->config.field_boundaries.max_x ||
-		start.y >= obj->config.field_boundaries.max_y) {
-		return PATHFINDING_ERROR_WRONG_INPUTS;
-	}
-
-	for (obj->next_free_node_nb = 1; obj->next_free_node_nb < PATHFINDING_MAX_NUM_OF_NODES;
-		 obj->next_free_node_nb++) {
-		path_node_t *current_node = &obj->nodes[obj->next_free_node_nb];
-		point2_t rand_coordinates = pathfinding_generate_rebuild_rand_coordinates(obj, end);
-		path_node_t *closest_node_p = get_closest_node(obj, rand_coordinates);
-
-		if (check_collision(obj, ob_hold, rand_coordinates, closest_node_p->coordinate) ==
+		// get new valid coordinates before
+		if (check_collision(obj, ob_hold, closest_node_p->coordinate, new_coordinates) ==
 			OBSTACLE_COLLISION_DETECTED) {
+			LOG_DBG("Collison, dumping node");
 			obj->next_free_node_nb -= 1;
 			continue;
 		}
-		point2_t new_coordinates;
-		get_new_valid_coordinates(obj, closest_node_p->coordinate, rand_coordinates,
-								  &new_coordinates);
-
 		// Remaping nodes for RRT*
 		path_node_t *to_be_remaped_nodes[PATHFINDING_GET_ARRAY_OF_CLOSEST_NODES_MAX_NUM] = {0};
 		uint8_t nb_of_to_be_remaped_nodes =
@@ -446,9 +363,11 @@ int pathfinding_rebuild(pathfinding_object_t *obj, obstacle_holder_t *ob_hold, p
 
 		if ((new_coordinates.x == end.x) && (new_coordinates.y == end.y)) {
 			*end_node = current_node;
+			LOG_DBG("End of pathfinding");
 			return PATHFINDING_ERROR_NONE;
 		}
 	}
+
 	return PATHFINDING_ERROR_PATH_NOT_FOUND;
 }
 
@@ -469,7 +388,7 @@ int pathfinding_optimize_path(pathfinding_object_t *obj, obstacle_holder_t *ob_h
 													   nb_of_to_be_remaped_nodes, current_node);
 			continue;
 		}
-		// FIXME: in middle of the node array thereis unused nodes, you must
+		// FIXME: in middle of the node array there is unused nodes, you must
 		// optimise all existing nodes and not stop to the first unused nodes
 		// when nb_of_nodes_to_add = 0
 		point2_t rand_coordinates;

@@ -71,7 +71,7 @@ ZTEST_F(pf_suite, test_get_new_valid_coordinates)
 	};
 	point2_t must_be_crd = {.x = 10, .y = 10 + fixture->pathfinding_obj.config.delta_distance};
 	point2_t new;
-	zassert_equal(0, get_new_valid_coordinates(&fixture->pathfinding_obj, start, end, &new));
+	get_new_valid_coordinates(&fixture->pathfinding_obj, start, end, &new);
 	zassert_equal(must_be_crd.y, new.y, "Y");
 	zassert_equal(must_be_crd.x, new.x, "X");
 
@@ -79,7 +79,7 @@ ZTEST_F(pf_suite, test_get_new_valid_coordinates)
 	end = (point2_t){1000, 1000};
 	must_be_crd = (point2_t){10 + fixture->pathfinding_obj.config.delta_distance * M_SQRT2 / 2,
 							 10 + fixture->pathfinding_obj.config.delta_distance * M_SQRT2 / 2};
-	zassert_equal(0, get_new_valid_coordinates(&fixture->pathfinding_obj, start, end, &new));
+	get_new_valid_coordinates(&fixture->pathfinding_obj, start, end, &new);
 	zassert_equal(must_be_crd.y, new.y, "Y");
 	zassert_equal(must_be_crd.x, new.x, "X");
 
@@ -88,7 +88,7 @@ ZTEST_F(pf_suite, test_get_new_valid_coordinates)
 	end = (point2_t){10, 10};
 	must_be_crd = (point2_t){500 - fixture->pathfinding_obj.config.delta_distance * M_SQRT2 / 2,
 							 500 - fixture->pathfinding_obj.config.delta_distance * M_SQRT2 / 2};
-	zassert_equal(0, get_new_valid_coordinates(&fixture->pathfinding_obj, start, end, &new));
+	get_new_valid_coordinates(&fixture->pathfinding_obj, start, end, &new);
 	zassert_true(new.y > must_be_crd.y * 0.99 && new.y < must_be_crd.y * 1.01,
 				 "Diag 2 y"); // not perfectly precise
 	zassert_true(new.x > must_be_crd.x * 0.99 && new.x < must_be_crd.x * 1.01, "Diag 2 x");
@@ -96,7 +96,7 @@ ZTEST_F(pf_suite, test_get_new_valid_coordinates)
 	start = (point2_t){10, 10};
 	end = (point2_t){20, 20};
 	must_be_crd = (point2_t){20, 20};
-	zassert_equal(0, get_new_valid_coordinates(&fixture->pathfinding_obj, start, end, &new));
+	get_new_valid_coordinates(&fixture->pathfinding_obj, start, end, &new);
 	zassert_equal(must_be_crd.y, new.y, "Y");
 	zassert_equal(must_be_crd.x, new.x, "X");
 }
@@ -291,6 +291,7 @@ ZTEST_F(pf_suite, benchmark)
 		clock_t begin_clk = clock();
 		int err = pathfinding_find_path(&fixture->pathfinding_obj, &ob_hold, start, end, &end_node);
 		clock_t end_clk = clock();
+		zassert_equal(err, PATHFINDING_ERROR_NONE, "pathdinfig error %d", err);
 		float time_spent = (float)(end_clk - begin_clk) / CLOCKS_PER_SEC * 1000;
 		if (!err) {
 			total_time_spent += time_spent;
