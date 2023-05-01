@@ -75,16 +75,16 @@ ZTEST_F(pf_suite, test_get_new_valid_coordinates)
 	point2_t must_be_crd = {.x = 10, .y = 10 + fixture->pathfinding_obj.config.delta_distance};
 	point2_t new;
 	get_new_valid_coordinates(&fixture->pathfinding_obj, start, end, &new);
-	zassert_equal(must_be_crd.y, new.y, "Y");
-	zassert_equal(must_be_crd.x, new.x, "X");
+	zassert_equal(must_be_crd.y, new.y, "Y %f != %f", must_be_crd.y, new.y);
+	zassert_equal(must_be_crd.x, new.x, "X %f != %f", must_be_crd.x, new.x);
 
 	// DIAGONAL
 	end = (point2_t){1000, 1000};
 	must_be_crd = (point2_t){10 + fixture->pathfinding_obj.config.delta_distance * M_SQRT2 / 2,
 							 10 + fixture->pathfinding_obj.config.delta_distance * M_SQRT2 / 2};
 	get_new_valid_coordinates(&fixture->pathfinding_obj, start, end, &new);
-	zassert_equal(must_be_crd.y, new.y, "Y");
-	zassert_equal(must_be_crd.x, new.x, "X");
+	zassert_equal((int)must_be_crd.y, (int)new.y, "Y %f != %f", must_be_crd.y, new.y);
+	zassert_equal((int)must_be_crd.x, (int)new.x, "X %f != %f", must_be_crd.x, new.x);
 
 	// DIAGONAL 2
 	start = (point2_t){500, 500};
@@ -100,8 +100,8 @@ ZTEST_F(pf_suite, test_get_new_valid_coordinates)
 	end = (point2_t){20, 20};
 	must_be_crd = (point2_t){20, 20};
 	get_new_valid_coordinates(&fixture->pathfinding_obj, start, end, &new);
-	zassert_equal(must_be_crd.y, new.y, "Y");
-	zassert_equal(must_be_crd.x, new.x, "X");
+	zassert_equal(must_be_crd.y, new.y, "Y %f != %f", must_be_crd.y, new.y);
+	zassert_equal(must_be_crd.x, new.x, "X %f != %f", must_be_crd.x, new.x);
 }
 
 ZTEST_F(pf_suite, test_in_free_space_path_must_be_found_simple_config)
