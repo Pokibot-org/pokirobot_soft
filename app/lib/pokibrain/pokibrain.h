@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include <zephyr/kernel.h>
 
-#include "user_context.h"
 #include "pokutils.h"
 
 #define POKIBRAIN_LOG_LEVEL		  4
@@ -13,34 +12,33 @@
 #define POKIBRAIN_CHILD_TASK_SIZE 2048
 #define POKIBRAIN_DEEPTH		  2
 
-typedef struct {
+struct pokibrain_process_data {
 	bool is_done;
-} pokibrain_process_data_t;
+};
 
-typedef struct {
+struct pokibrain_callback_params {
 	pos2_t task_position;
 	pos2_t robot_position;
 	uint32_t time;
-	pokibrain_user_context_t *world_context;
-} pokibrain_callback_params_t;
+	void *world_context;
+};
 
-typedef uint8_t (*pokibrain_task_function_t)(pokibrain_callback_params_t *params);
-typedef int32_t (*pokibrain_reward_calulation_t)(pokibrain_callback_params_t *params);
-typedef uint8_t (*pokibrain_completion_callback_t)(pokibrain_callback_params_t *params);
+typedef uint8_t (*pokibrain_task_function_t)(struct pokibrain_callback_params *params);
+typedef int32_t (*pokibrain_reward_calulation_t)(struct pokibrain_callback_params *params);
+typedef uint8_t (*pokibrain_completion_callback_t)(struct pokibrain_callback_params *params);
 
-typedef void (*pokibrain_end_fo_game_callback_t)(void);
+typedef void (*pokibrain_end_of_game_callback_t)(void);
 
-typedef struct {
+struct pokibrain_task {
 	pos2_t task_position;
 	pokibrain_task_function_t task_process;
 	pokibrain_reward_calulation_t reward_calculation;
 	pokibrain_completion_callback_t completiton_callback;
-	pokibrain_process_data_t _process_data;
-} pokibrain_task_t;
+	struct pokibrain_process_data _process_data;
+};
 
-void pokibrain_init(pokibrain_task_t *tasks, uint32_t number_of_tasks,
-					pokibrain_user_context_t *world_context,
-					pokibrain_end_fo_game_callback_t end_clbk);
+int pokibrain_init(struct pokibrain_task *tasks, uint32_t number_of_tasks, void *world_context,
+				   uint32_t world_context_size, pokibrain_end_of_game_callback_t end_clbk);
 void pokibrain_start(void);
 void pokibrain_think_now(void);
 #endif

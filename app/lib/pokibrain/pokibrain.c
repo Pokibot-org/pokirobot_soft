@@ -16,15 +16,15 @@ typedef enum {
 
 typedef struct {
 	uint32_t number_of_tasks;
-	pokibrain_task_t *tasks;
+	struct pokibrain_task *tasks;
 	struct k_thread child_thread;
 	struct k_thread thread;
 	k_tid_t thread_id;
 	k_tid_t child_thread_id;
 	uint32_t current_score;
-	pokibrain_user_context_t *world_context;
-	pokibrain_user_context_t world_context_save[POKIBRAIN_DEEPTH];
-	pokibrain_end_fo_game_callback_t end_clbk;
+	void *world_context;
+	void *world_context_save;
+	pokibrain_end_of_game_callback_t end_clbk;
 } pokibrain_t;
 
 // FUNC ------------------------------------------------------------------
@@ -52,7 +52,8 @@ static void pokibrain_periodic_timer(struct k_timer *timer_id)
 	k_msgq_put(&event_queue, &ev, K_NO_WAIT);
 }
 
-void pokibrain_get_best_task(uint8_t deepth, pokibrain_task_t *best_task, uint32_t *best_task_score)
+void pokibrain_get_best_task(uint8_t deepth, struct pokibrain_task *best_task,
+							 uint32_t *best_task_score)
 {
 }
 
@@ -60,10 +61,10 @@ void pokibrain_think(void)
 {
 	LOG_DBG("Think");
 	uint32_t best_score = 0;
-	pokibrain_task_t *best_task = NULL;
-	pokibrain_callback_params_t params = {.robot_position = {.x = 0, .y = 0, .a = 0},
-										  .time = 0, // TODO: TIMER
-										  .world_context = brain.world_context};
+	struct pokibrain_task *best_task = NULL;
+	struct pokibrain_callback_params params = {.robot_position = {.x = 0, .y = 0, .a = 0},
+											   .time = 0, // TODO: TIMER
+											   .world_context = brain.world_context};
 	for (size_t i = 0; i < brain.number_of_tasks; i++) {
 		uint32_t score;
 		params.task_position = brain.tasks[i].task_position;
@@ -111,17 +112,22 @@ void pokibrain_task(void *arg1, void *arg2, void *arg3)
 	}
 }
 
-void pokibrain_init(pokibrain_task_t *tasks, uint32_t number_of_tasks,
-					pokibrain_user_context_t *world_context,
-					pokibrain_end_fo_game_callback_t end_clbk)
+int pokibrain_init(struct pokibrain_task *tasks, uint32_t number_of_tasks, void *world_context,
+				   uint32_t world_context_size, pokibrain_end_of_game_callback_t end_clbk)
 {
 	brain.tasks = tasks;
 	brain.number_of_tasks = number_of_tasks;
 	brain.world_context = world_context;
+	brain.world_context_save = k_malloc(POKIBRAIN_DEEPTH * world_context_size);
+	if (!brain.world_context_save) {
+		LOG_ERR("k_malloc err");
+		return -ENOMEM;
+	}
 	brain.end_clbk = end_clbk;
 	brain.thread_id = k_thread_create(&brain.thread, stack, POKIBRAIN_STACK_SIZE, pokibrain_task,
 									  NULL, NULL, NULL, POKIBRAIN_TASK_PRIORITY, 0, K_NO_WAIT);
 	LOG_INF("Brain initialized");
+	return 0;
 }
 
 void pokibrain_start(void)
