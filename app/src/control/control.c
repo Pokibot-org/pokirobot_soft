@@ -306,7 +306,6 @@ void _test_motor_cmd()
 void _test_target()
 {
 	LOG_INF("_test_target");
-	shared_init();
 	static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
 #if !(CONFIG_CONTROL_TASK)
 	LOG_ERR("control task not launched");
@@ -339,7 +338,6 @@ void _test_target()
 void _test_calibration_distance()
 {
 	LOG_INF("_test_calibration");
-	shared_init();
 	// static const struct gpio_dt_spec led =
 	//     GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
 	// int ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
@@ -376,7 +374,6 @@ void _test_calibration_distance()
 void _test_calibration_angle()
 {
 	LOG_INF("_test_calibration");
-	shared_init();
 	// static const struct gpio_dt_spec led =
 	//     GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
 	// int ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
@@ -413,7 +410,6 @@ void _test_calibration_angle()
 void _test_calibration_mix()
 {
 	LOG_INF("_test_calibration");
-	shared_init();
 	// static const struct gpio_dt_spec led =
 	//     GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
 	// int ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
@@ -455,7 +451,6 @@ void _test_calibration_mix()
 void _test_connerie()
 {
 	LOG_INF("_test_connerie");
-	shared_init();
 #if !(CONFIG_CONTROL_TASK)
 	LOG_ERR("control task not launched");
 #endif

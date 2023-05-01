@@ -132,11 +132,6 @@ void match_init()
 		LOG_ERR("failed to init led");
 		goto exit;
 	}
-	if (shared_init()) {
-		LOG_ERR("failed to init shared objects");
-		ret = -1;
-		goto exit;
-	}
 	if (tirette_init()) {
 		LOG_ERR("failed to init tirette");
 		ret = -1;
@@ -204,11 +199,6 @@ void match_1()
 	ret = gpio_pin_configure_dt(&sw_power, GPIO_INPUT);
 	if (ret < 0) {
 		LOG_ERR("failed to init led");
-		goto exit;
-	}
-	if (shared_init()) {
-		LOG_ERR("failed to init shared objects");
-		ret = -1;
 		goto exit;
 	}
 	if (tirette_init()) {
@@ -319,11 +309,6 @@ void match_2()
 	ret = gpio_pin_configure_dt(&sw_power, GPIO_INPUT);
 	if (ret < 0) {
 		LOG_ERR("failed to init led");
-		goto exit;
-	}
-	if (shared_init()) {
-		LOG_ERR("failed to init shared objects");
-		ret = -1;
 		goto exit;
 	}
 	if (tirette_init()) {
@@ -642,11 +627,6 @@ void _test_pathfinding()
 	ret = gpio_pin_configure_dt(&sw_power, GPIO_INPUT);
 	if (ret < 0) {
 		LOG_ERR("failed to init led");
-		goto exit;
-	}
-	if (shared_init()) {
-		LOG_ERR("failed to init shared objects");
-		ret = -1;
 		goto exit;
 	}
 	if (tirette_init()) {

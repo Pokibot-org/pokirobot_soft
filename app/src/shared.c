@@ -10,16 +10,17 @@ LOG_MODULE_REGISTER(shared);
 
 uart_hdb_t steppers_uart_hdb;
 
-int shared_init(void)
+int shared_init(const struct device *dev)
 {
+	ARG_UNUSED(dev);
 	LOG_INF("shared objects init");
-	int ret = 0;
-	int tmp = 0;
-	tmp = uart_hdb_init(&steppers_uart_hdb, DEVICE_DT_GET(DT_ALIAS(stepper_bus)));
-	if (tmp) {
+
+	if (uart_hdb_init(&steppers_uart_hdb, DEVICE_DT_GET(DT_ALIAS(stepper_bus)))) {
 		LOG_ERR("failed to init steppers_uart_hdb");
-		ret = -10;
+		return -ENODEV;
 	}
-	LOG_INF("shared objects init done (ret=%d)", ret);
-	return ret;
+	LOG_INF("shared objects init done");
+	return 0;
 }
+
+SYS_INIT(shared_init, APPLICATION, 90);

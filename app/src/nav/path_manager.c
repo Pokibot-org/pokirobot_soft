@@ -65,8 +65,8 @@ static void path_manager_task(void *p0, void *p1, void *p2)
 	path_node_t *pn_end;
 
 	LOG_INF("path_manager_task start");
-	int err = pathfinding_find_path(&pm_obj->pathfinding_obj, &pm_obj->obstacle_hold,
-									&pm_obj->start, &pm_obj->end, &pn_end);
+	int err = pathfinding_find_path(&pm_obj->pathfinding_obj, &pm_obj->obstacle_hold, pm_obj->start,
+									pm_obj->end, &pn_end);
 	if (err) {
 		LOG_WRN("Path not found err %d", err);
 	} else {

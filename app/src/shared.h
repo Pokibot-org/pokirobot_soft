@@ -9,6 +9,4 @@
 
 extern uart_hdb_t steppers_uart_hdb;
 
-int shared_init(void);
-
 #endif // SHARED_H
