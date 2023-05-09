@@ -18,7 +18,6 @@ struct pokibrain_process_data {
 
 struct pokibrain_callback_params {
 	pos2_t task_position;
-	pos2_t robot_position;
 	uint32_t time_in_match_ms;
 	void *world_context;
 };

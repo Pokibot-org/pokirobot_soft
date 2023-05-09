@@ -29,6 +29,7 @@ typedef struct {
 	uint32_t current_score;
 	void *world_context;
 	void *world_context_save;
+	uint32_t world_context_size;
 	pokibrain_end_of_game_callback_t end_clbk;
 	uint32_t start_time_ms;
 	bool running;
@@ -51,26 +52,28 @@ struct k_work_q task_runner_work_queue;
 K_THREAD_STACK_DEFINE(task_runner_stack, POKIBRAIN_CHILD_TASK_SIZE);
 void pokibrain_run_task_work_handler(struct k_work *work);
 K_WORK_DEFINE(run_task, pokibrain_run_task_work_handler);
-K_MUTEX_DEFINE(run_task_mutex);
-struct pokibrain_task *tasks_to_run[POKIBRAIN_DEPTH];
+K_MSGQ_DEFINE(task_to_run_msgq, sizeof(struct pokibrain_task *), POKIBRAIN_DEPTH, 4);
 
 // IMPLEMENTATION --------------------------------------------------------
+
 void pokibrain_run_task_work_handler(struct k_work *work)
 {
+
 	struct pokibrain_task task_to_run;
-	struct pokibrain_callback_params params = {.robot_position = {.x = 0, .y = 0, .a = 0},
-											   .time_in_match_ms = pokibrain_get_time_in_match_ms(),
-											   .world_context = brain.world_context};
-	if (!tasks_to_run[0]) {
+	if (!k_msgq_get(&task_to_run_msgq, &task_to_run, K_MSEC(100))) {
 		return;
 	}
-	k_mutex_lock(&run_task_mutex, K_FOREVER);
-	task_to_run = *tasks_to_run[0];
-	k_mutex_unlock(&run_task_mutex);
+
+	struct pokibrain_callback_params params = {
+		.task_position = task_to_run.task_position,
+		.time_in_match_ms = pokibrain_get_time_in_match_ms(),
+		.world_context = brain.world_context,
+	};
 
 	if (!task_to_run.task_process(&params)) {
-		// TODO:  update pos
 		task_to_run.completion_callback(&params);
+	} else {
+		k_msgq_purge(&task_to_run_msgq);
 	}
 
 	pokibrain_events_t ev = POKIBRAIN_TASK_DONE;
@@ -94,40 +97,63 @@ static void pokibrain_periodic_timer(struct k_timer *timer_id)
 	k_msgq_put(&event_queue, &ev, K_NO_WAIT);
 }
 
-void pokibrain_get_best_task_recursive(uint8_t depth, void *world_context,
-									   struct pokibrain_task *best_task)
+int pokibrain_get_best_task_recursive(uint8_t depth, struct pokibrain_task *current_task,
+									  void *world_context)
 {
+	LOG_DBG("Depth %d", depth);
+	void *current_world_context =
+		(uint8_t *)brain.world_context_save + depth * brain.world_context_size;
+	memcpy(current_world_context, world_context, brain.world_context_size);
+	struct pokibrain_callback_params params = {.time_in_match_ms = pokibrain_get_time_in_match_ms(),
+											   .world_context = current_world_context,
+											   .task_position = current_task->task_position};
+	// Evaluate the nb of point that the task will give before considering it done
+	int32_t current_task_score = current_task->reward_calculation(&params);
+	current_task->completion_callback(&params);
 	if (depth == 0) {
-		return;
+		// FIXME: should be the current total of points
+		LOG_DBG("Depth 0, current task reward %d", current_task_score);
+		return current_task_score;
 	}
+
+	int32_t best_score = INT32_MIN;
+	for (size_t i = 0; i < brain.number_of_tasks; i++) {
+		int32_t score =
+			pokibrain_get_best_task_recursive(depth - 1, &brain.tasks[i], current_world_context);
+		if (score >= best_score) {
+			best_score = score;
+		}
+	}
+
+	return best_score + current_task_score;
 }
 
-void pokibrain_get_best_task(uint8_t depth, struct pokibrain_task *best_task,
-							 uint32_t *best_task_score)
+void pokibrain_get_best_task(struct pokibrain_task **best_task)
 {
+	LOG_DBG("Searching for the best task to do");
+	int32_t best_score = INT32_MIN;
+	for (size_t i = 0; i < brain.number_of_tasks; i++) {
+		int32_t score;
+		score = pokibrain_get_best_task_recursive(POKIBRAIN_DEPTH - 1, &brain.tasks[i],
+												  brain.world_context);
+		if (score >= best_score) {
+			best_score = score;
+			*best_task = &brain.tasks[i];
+			LOG_DBG("New best task %p, score %d", best_task, best_score);
+		}
+	}
+	LOG_INF("Best task %p, score %d", best_task, best_score);
 }
 
 void pokibrain_think(void)
 {
 	LOG_DBG("Think");
-	uint32_t best_score = 0;
-	struct pokibrain_task *best_task = NULL;
-	struct pokibrain_callback_params params = {.robot_position = {.x = 0, .y = 0, .a = 0},
-											   .time_in_match_ms = pokibrain_get_time_in_match_ms(),
-											   .world_context = brain.world_context};
-	for (size_t i = 0; i < brain.number_of_tasks; i++) {
-		uint32_t score;
-		params.task_position = brain.tasks[i].task_position;
-		score = brain.tasks[i].reward_calculation(&params);
-		if (score >= best_score) {
-			best_score = score;
-			best_task = &brain.tasks[i];
-		}
-	}
+	struct pokibrain_task *best_task;
+	pokibrain_get_best_task(&best_task);
 
 	// run task and save next task
 	if (!k_work_busy_get(&run_task)) {
-		tasks_to_run[0] = best_task;
+		k_msgq_put(&task_to_run_msgq, best_task, K_MSEC(100));
 		k_work_submit_to_queue(&task_runner_work_queue, &run_task);
 	}
 }
@@ -184,6 +210,7 @@ int pokibrain_init(struct pokibrain_task *tasks, uint32_t number_of_tasks, void 
 	brain.tasks = tasks;
 	brain.number_of_tasks = number_of_tasks;
 	brain.world_context = world_context;
+	brain.world_context_size = world_context_size;
 	brain.world_context_save = k_malloc(POKIBRAIN_DEPTH * world_context_size);
 	if (!brain.world_context_save) {
 		LOG_ERR("k_malloc err");

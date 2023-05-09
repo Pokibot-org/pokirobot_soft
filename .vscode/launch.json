@@ -1,7 +1,26 @@
 {
     "version": "0.2.0",
     "configurations": [
-
+        {
+            "name": "Debug pc_app",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build-pc-app/zephyr/zephyr.elf",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
         {
             "name": "Debug native_posix",
             "type": "cppdbg",
