@@ -139,10 +139,10 @@ void pokibrain_get_best_task(struct pokibrain_task **best_task)
 		if (score >= best_score) {
 			best_score = score;
 			*best_task = &brain.tasks[i];
-			LOG_DBG("New best task %p, score %d", best_task, best_score);
+			LOG_DBG("New best task name: %s, score %d", (*best_task)->name, best_score);
 		}
 	}
-	LOG_INF("Best task %p, score %d", best_task, best_score);
+	LOG_INF("Best task name : %s, score %d", (*best_task)->name, best_score);
 }
 
 void pokibrain_think(void)

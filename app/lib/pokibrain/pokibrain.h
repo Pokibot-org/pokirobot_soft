@@ -33,6 +33,7 @@ struct pokibrain_task {
 	pokibrain_task_function_t task_process;
 	pokibrain_reward_calculation_t reward_calculation;
 	pokibrain_completion_callback_t completion_callback;
+	const char *name;
 	struct pokibrain_process_data _process_data;
 };
 

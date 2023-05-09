@@ -141,11 +141,13 @@ void strat_init(void)
 {
 	static struct pokibrain_user_context world_context;
 	static struct pokibrain_task tasks[] = {
-		{.task_position = {.a = 90.0f, .x = 100, .y = 100},
+		{.name = "grab",
+		 .task_position = {.a = 90.0f, .x = 100, .y = 100},
 		 .reward_calculation = pokibrain_reward_calculation_grab_smth,
 		 .task_process = pokibrain_task_grab_smth,
 		 .completion_callback = pokibrain_completion_grab_smth},
-		{.task_position = {.a = 90.0f, .x = 100, .y = 100},
+		{.name = "put",
+		 .task_position = {.a = 90.0f, .x = 100, .y = 100},
 		 .reward_calculation = pokibrain_reward_calculation_put_smth,
 		 .task_process = pokibrain_task_put_smth,
 		 .completion_callback = pokibrain_completion_put_smth}};
