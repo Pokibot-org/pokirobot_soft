@@ -1,4 +1,5 @@
 #include "pokibrain.h"
+#include "zephyr/kernel/thread_stack.h"
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
@@ -40,12 +41,14 @@ static void pokibrain_match_timer(struct k_timer *timer_id);
 
 // DECLARATIONS ----------------------------------------------------------
 static pokibrain_t brain;
-K_THREAD_STACK_DEFINE(child_stack, POKIBRAIN_CHILD_TASK_SIZE);
 K_THREAD_STACK_DEFINE(stack, POKIBRAIN_STACK_SIZE);
 K_MSGQ_DEFINE(event_queue, sizeof(pokibrain_events_t), 8, 4);
 K_TIMER_DEFINE(timer, pokibrain_periodic_timer, NULL);
 K_TIMER_DEFINE(match_end_timer, pokibrain_match_timer, NULL);
 
+const struct k_work_queue_config task_runner_cfg = {.name = "Pokibrain WQ", .no_yield = false};
+struct k_work_q task_runner_work_queue;
+K_THREAD_STACK_DEFINE(task_runner_stack, POKIBRAIN_CHILD_TASK_SIZE);
 void pokibrain_run_task_work_handler(struct k_work *work);
 K_WORK_DEFINE(run_task, pokibrain_run_task_work_handler);
 K_MUTEX_DEFINE(run_task_mutex);
@@ -125,7 +128,7 @@ void pokibrain_think(void)
 	// run task and save next task
 	if (!k_work_busy_get(&run_task)) {
 		tasks_to_run[0] = best_task;
-		k_work_submit(&run_task);
+		k_work_submit_to_queue(&task_runner_work_queue, &run_task);
 	}
 }
 
@@ -196,6 +199,10 @@ int pokibrain_init(struct pokibrain_task *tasks, uint32_t number_of_tasks, void 
 void pokibrain_start(void)
 {
 	LOG_INF("Brain started");
+	k_work_queue_init(&task_runner_work_queue);
+	k_work_queue_start(&task_runner_work_queue, task_runner_stack,
+					   K_THREAD_STACK_SIZEOF(task_runner_stack), (POKIBRAIN_TASK_PRIORITY - 1),
+					   &task_runner_cfg);
 	k_timer_start(&timer, K_MSEC(POKIBRAIN_PERIOD_MS), K_MSEC(POKIBRAIN_PERIOD_MS));
 	k_timer_start(&match_end_timer, K_SECONDS(GAME_ROUND_TIME_S), K_NO_WAIT);
 	brain.start_time_ms = k_uptime_get_32();
