@@ -14,6 +14,7 @@
 #include "tirette/tirette.h"
 #include "tmc2209/tmc2209.h"
 #include "pokutils.h"
+#include <stdbool.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
 
@@ -24,9 +25,9 @@ LOG_MODULE_REGISTER(main);
 void collision_callback(bool collision)
 {
 	if (collision) {
-		LOG_INF("Collision detected");
+		LOG_DBG("Collision detected");
 	}
-	shared_ctrl.brake = collision;
+	control_set_brake(&shared_ctrl, collision);
 }
 
 void end_game_callback(void)
@@ -34,8 +35,7 @@ void end_game_callback(void)
 	LOG_INF("MATCH IS OVER");
 	camsense_x1_kill();
 	obstacle_manager_kill();
-	shared_ctrl.brake = true;
-	pokarm_up();
+	control_set_brake(&shared_ctrl, true);
 	control_force_motor_stop();
 	k_sched_lock();
 	while (1) {
@@ -124,11 +124,6 @@ void match_init()
 		LOG_ERR("failed to init sw_poser");
 		goto exit;
 	}
-	if (tirette_init()) {
-		LOG_ERR("failed to init tirette");
-		ret = -1;
-		goto exit;
-	}
 	if (!device_is_ready(led.port)) {
 		LOG_ERR("failed to init led");
 		goto exit;
@@ -192,80 +187,8 @@ void match_1()
 	at_target = control_task_wait_target(30.0f, DEG_TO_RAD(10.0f), 20000);
 	if (!at_target) {
 		LOG_INF("abort carrefouille b1");
-		goto end_carrefouille;
+		goto exit;
 	}
-	target = TRANSFORM_SIDE(side, COORDS_CARREFOUILLE_B2);
-	control_set_target(&shared_ctrl, target);
-	at_target = control_task_wait_target(30.0f, DEG_TO_RAD(10.0f), 10000);
-	if (!at_target) {
-		LOG_INF("abort carrefouille b2");
-		goto end_carrefouille;
-	}
-	target = TRANSFORM_SIDE(side, COORDS_CARREFOUILLE_B3);
-	control_set_target(&shared_ctrl, target);
-	at_target = control_task_wait_target(30.0f, DEG_TO_RAD(10.0f), 10000);
-	if (!at_target) {
-		LOG_INF("abort carrefouille b3");
-		goto end_carrefouille;
-	}
-	pokarm_pos_put_haxagone_display();
-	k_sleep(K_MSEC(500));
-	target = TRANSFORM_SIDE(side, COORDS_CARREFOUILLE);
-	control_set_target(&shared_ctrl, target);
-	at_target = control_task_wait_target_default(10000);
-	if (!at_target) {
-		LOG_INF("abort carrefouille target");
-		goto end_carrefouille;
-	}
-end_carrefouille:
-	pokarm_up();
-	k_sleep(K_MSEC(500));
-	target = TRANSFORM_SIDE(side, COORDS_CARREFOUILLE_A1);
-	control_set_target(&shared_ctrl, target);
-	at_target = control_task_wait_target_default(10000);
-	if (!at_target) {
-		LOG_INF("abort carrefouille a1");
-	}
-
-	LOG_INF("go to statuette");
-	target = TRANSFORM_SIDE(side, COORDS_STATUETTE);
-	if (side == SIDE_YELLOW) {
-		target.a -= 2.0f / 3.0f * M_PI;
-	}
-	control_set_target(&shared_ctrl, target);
-	at_target = control_task_wait_target_default(20000);
-	if (!at_target) {
-		LOG_INF("abort statuette target");
-		goto end_statuette;
-	}
-	figurine_lifter_grab();
-	k_sleep(K_MSEC(500));
-	LOG_INF("go to vitrine");
-	target = TRANSFORM_SIDE(side, COORDS_VITRINE_B1);
-	if (side == SIDE_YELLOW) {
-		target.a -= 2.0f / 3.0f * M_PI;
-	}
-	control_set_target(&shared_ctrl, target);
-	at_target = control_task_wait_target_default(30000);
-	if (!at_target) {
-		LOG_INF("abort statuette target");
-		goto end_statuette;
-	}
-	target = TRANSFORM_SIDE(side, COORDS_VITRINE);
-	if (side == SIDE_YELLOW) {
-		target.a -= 2.0f / 3.0f * M_PI;
-	}
-	control_set_target(&shared_ctrl, target);
-	at_target = control_task_wait_target_default(10000);
-	if (!at_target) {
-		LOG_INF("abort statuette target");
-		goto end_statuette;
-	}
-end_statuette:
-	figurine_lifter_put();
-	k_sleep(K_MSEC(500));
-	figurine_lifter_up_inside();
-	k_sleep(K_MSEC(500));
 
 	LOG_INF("go to home");
 	target = TRANSFORM_SIDE(side, COORDS_HOME);
@@ -282,8 +205,6 @@ int main(void)
 {
 	LOG_INF("BOOTING");
 	int ret = 0;
-
-	// obstacle_manager_init(collision_callback);
 
 	// pokarm_test();
 	// wait for init

@@ -55,6 +55,12 @@ CONTROL_LOCKVAR_SETTER(target, pos2_t)
 CONTROL_LOCKVAR_GETTER(pos, pos2_t)
 CONTROL_LOCKVAR_GETTER(target, pos2_t)
 
+int control_set_brake(control_t *dev, bool brake)
+{
+	dev->brake = brake;
+	return 0;
+}
+
 int control_init(control_t *ctrl, tmc2209_t *m1, tmc2209_t *m2, tmc2209_t *m3)
 {
 	k_sleep(K_MSEC(200));

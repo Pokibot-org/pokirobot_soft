@@ -2,6 +2,7 @@
 #include "pokibrain/pokibrain.h"
 #include "strat.h"
 #include "pokutils.h"
+#include <stdint.h>
 
 LOG_MODULE_REGISTER(start);
 
@@ -57,6 +58,7 @@ enum plate_color {
 struct plate {
 	enum plate_color color;
 	point2_t pos;
+	uint8_t cake_size;
 };
 
 static struct plate plate_list[] = {
@@ -136,6 +138,21 @@ uint8_t pokibrain_completion_put_smth(struct pokibrain_callback_params *params)
 	ctx->nb_thing_grabbed = 0;
 	return 0;
 }
+
+/**
+ * We need :
+ * - grab a slice
+ * - deposit of a slice in a plate
+	1 pt per slice + 4 for the legendary recipe
+	pink
+	yellow
+	brown
+ * - grab cherry
+ * - put cherry on the cake 3pt
+ * - deposit cherry in basket
+ * - go back in start area 15 pt
+ * - funny action
+ */
 
 void strat_init(void)
 {

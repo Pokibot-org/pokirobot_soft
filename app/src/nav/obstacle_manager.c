@@ -125,7 +125,7 @@ uint8_t process_point(obstacle_manager_t *obj, uint16_t point_distance, float po
 uint8_t process_lidar_message(obstacle_manager_t *obj, const lidar_message_t *message)
 {
 	float step = 0.0f;
-	static bool obstacle_detected = 0;
+	static bool obstacle_detected = false;
 	static uint8_t decimation_counter;
 	static float old_end_angle;
 	if (message->end_angle > message->start_angle) {
@@ -152,23 +152,22 @@ uint8_t process_lidar_message(obstacle_manager_t *obj, const lidar_message_t *me
 			continue;
 		}
 
-		if (message->points[i].quality != 0) // Filter some noisy data
-		{
+		// Filter some noisy data
+		if (message->points[i].quality == 0) {
+			continue;
+		}
 #ifdef LIDAR_COUNTER_CLOCKWISE
 // float point_angle =
 //     360.0f - ((message->start_angle + step * i) +
 //                  (CAMSENSE_CENTER_OFFSET_DEG + 180.0f));
 #error FIXME
 #else
-			float point_angle =
-				(message->start_angle + step * i) + CAMSENSE_CENTER_OFFSET_DEG + 180.0f;
+		float point_angle = (message->start_angle + step * i) + CAMSENSE_CENTER_OFFSET_DEG + 180.0f;
 #endif
-			uint8_t err_code =
-				process_point(&obs_man_obj, message->points[i].distance, point_angle);
-			if (err_code == 1) // 0 ok, 1 in front of robot, 2 outside table
-			{
-				obstacle_detected = true;
-			}
+		uint8_t err_code = process_point(&obs_man_obj, message->points[i].distance, point_angle);
+		if (err_code == 1) // 0 ok, 1 in front of robot, 2 outside table
+		{
+			obstacle_detected = true;
 		}
 	}
 	return 0;

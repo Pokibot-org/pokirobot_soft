@@ -53,6 +53,7 @@ extern control_t shared_ctrl;
 
 int control_set_pos(control_t *dev, pos2_t pos);
 int control_set_target(control_t *dev, pos2_t target);
+int control_set_brake(control_t *dev, bool brake);
 int control_get_pos(control_t *dev, pos2_t *pos);
 int control_get_target(control_t *dev, pos2_t *target);
 
