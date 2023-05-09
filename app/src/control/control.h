@@ -58,6 +58,8 @@ int control_get_target(control_t *dev, pos2_t *target);
 
 int control_init(control_t *dev, tmc2209_t *m1, tmc2209_t *m2, tmc2209_t *m3);
 
+void control_force_motor_stop(void);
+
 vel2_t world_vel_from_delta(pos2_t delta, vel2_t prev_vel);
 vel2_t local_vel_from_world(pos2_t pos, vel2_t world_vel);
 vel2_t world_vel_from_local(pos2_t pos, vel2_t local_vel);

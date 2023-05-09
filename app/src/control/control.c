@@ -2,6 +2,7 @@
 
 #include <zephyr/kernel.h>
 #include <math.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <zephyr/kernel.h>
 #include <zephyr/devicetree.h>
@@ -87,6 +88,19 @@ int control_init(control_t *ctrl, tmc2209_t *m1, tmc2209_t *m2, tmc2209_t *m3)
 	}
 	ctrl->ready = true;
 	return ret;
+}
+
+void control_force_motor_stop(void)
+{
+	shared_ctrl.ready = false;
+	for (int i = 0; i < 10; i++) {
+		tmc2209_set_speed(&train_motor_1, 0);
+		tmc2209_set_speed(&train_motor_2, 0);
+		tmc2209_set_speed(&train_motor_3, 0);
+	}
+	// delay used to be sure that tmc task send the messages
+	// to be changed !
+	k_sleep(K_MSEC(1000));
 }
 
 vel2_t world_vel_from_delta(pos2_t delta, vel2_t prev_vel)
@@ -204,7 +218,7 @@ static int control_task(void)
 	LOG_INF("control task wait");
 	control_task_wait_start();
 	LOG_INF("control task start");
-	while (1) {
+	while (shared_ctrl.ready) {
 		pos2_t target;
 		control_get_pos(&shared_ctrl, &pos);
 		// update pos

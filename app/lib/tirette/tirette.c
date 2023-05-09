@@ -16,8 +16,9 @@ static const struct gpio_dt_spec tirette_spec;
 static const struct gpio_dt_spec tirette_spec = GPIO_DT_SPEC_GET(DT_ALIAS(sw_tirette), gpios);
 #endif
 
-int tirette_init(void)
+int tirette_init(const struct device *dev)
 {
+	UNUSED(dev);
 	int err = 0;
 	err |= gpio_pin_configure_dt(&tirette_spec, GPIO_INPUT);
 	if (err) {
@@ -34,3 +35,5 @@ void tirette_wait_until_released(void)
 		k_sleep(K_MSEC(1));
 	}
 }
+
+SYS_INIT(tirette_init, APPLICATION, 90);
