@@ -16,4 +16,5 @@ target_sources(app PRIVATE
     ../app/lib/pathfinding/pathfinding.c
     ../app/lib/pokutils/robot_utils.c
     ../app/src/pokutils.c
+    ../app/src/strat.c
     )

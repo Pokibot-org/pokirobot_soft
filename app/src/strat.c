@@ -11,6 +11,11 @@ LOG_MODULE_REGISTER(start);
 #define BOARD_CENTER_Y 1500
 #define PLATE_SIZE	   450
 
+#define NB_CHERRY_PER_DISPENSER	 10
+#define CHERRY_DISPENSER_WIDTH	 300
+#define CHERRY_DISPENSER_DEPTH	 30
+#define CHERRY_DISPENSER_WIDTH_2 150
+#define CHERRY_DISPENSER_DEPTH_2 15
 enum layer_color {
 	LAYER_COLOR_YELLOW,
 	LAYER_COLOR_PINK,
@@ -70,7 +75,19 @@ static struct plate plate_list[] = {
 	(struct plate){.color = PLATE_COLOR_BLUE,
 				   .pos = {.x = BOARD_SIZE_X - 225, .y = BOARD_CENTER_Y + 375}},
 	(struct plate){.color = PLATE_COLOR_BLUE, .pos = {.x = 225, .y = BOARD_SIZE_Y - 225}},
+};
 
+struct cherry_dispenser {
+	pos2_t pos;
+};
+
+struct cherry_dispenser dispenser_list[] = {
+	(struct cherry_dispenser){.pos = {.x = BOARD_CENTER_X, .y = CHERRY_DISPENSER_WIDTH_2, .a = 0}},
+	(struct cherry_dispenser){
+		.pos = {.x = BOARD_CENTER_X, .y = BOARD_SIZE_Y - CHERRY_DISPENSER_WIDTH_2, .a = 0}},
+	(struct cherry_dispenser){.pos = {.x = CHERRY_DISPENSER_DEPTH_2, .y = BOARD_CENTER_Y, .a = 0}},
+	(struct cherry_dispenser){
+		.pos = {.x = BOARD_SIZE_X - CHERRY_DISPENSER_DEPTH_2, .y = BOARD_CENTER_Y, .a = 0}},
 };
 
 struct pokibrain_user_context {
