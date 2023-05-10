@@ -52,27 +52,28 @@ struct k_work_q task_runner_work_queue;
 K_THREAD_STACK_DEFINE(task_runner_stack, POKIBRAIN_CHILD_TASK_SIZE);
 void pokibrain_run_task_work_handler(struct k_work *work);
 K_WORK_DEFINE(run_task, pokibrain_run_task_work_handler);
-K_MSGQ_DEFINE(task_to_run_msgq, sizeof(struct pokibrain_task *), POKIBRAIN_DEPTH, 4);
+K_MSGQ_DEFINE(task_to_run_msgq, sizeof(struct pokibrain_task), POKIBRAIN_DEPTH, 4);
 
 // IMPLEMENTATION --------------------------------------------------------
 
 void pokibrain_run_task_work_handler(struct k_work *work)
 {
-
 	struct pokibrain_task task_to_run;
-	if (!k_msgq_get(&task_to_run_msgq, &task_to_run, K_MSEC(100))) {
+	if (k_msgq_get(&task_to_run_msgq, &task_to_run, K_MSEC(100))) {
+		LOG_ERR("No task to run found");
 		return;
 	}
 
 	struct pokibrain_callback_params params = {
-		.task_position = task_to_run.task_position,
 		.time_in_match_ms = pokibrain_get_time_in_match_ms(),
 		.world_context = brain.world_context,
 	};
 
 	if (!task_to_run.task_process(&params)) {
+		LOG_INF("Task %s run ok", task_to_run.name);
 		task_to_run.completion_callback(&params);
 	} else {
+		LOG_WRN("Problems during task process, flushing task to run queue");
 		k_msgq_purge(&task_to_run_msgq);
 	}
 
@@ -105,8 +106,7 @@ int pokibrain_get_best_task_recursive(uint8_t depth, struct pokibrain_task *curr
 		(uint8_t *)brain.world_context_save + depth * brain.world_context_size;
 	memcpy(current_world_context, world_context, brain.world_context_size);
 	struct pokibrain_callback_params params = {.time_in_match_ms = pokibrain_get_time_in_match_ms(),
-											   .world_context = current_world_context,
-											   .task_position = current_task->task_position};
+											   .world_context = current_world_context};
 	// Evaluate the nb of point that the task will give before considering it done
 	int32_t current_task_score = current_task->reward_calculation(&params);
 	current_task->completion_callback(&params);
@@ -155,6 +155,8 @@ void pokibrain_think(void)
 	if (!k_work_busy_get(&run_task)) {
 		k_msgq_put(&task_to_run_msgq, best_task, K_MSEC(100));
 		k_work_submit_to_queue(&task_runner_work_queue, &run_task);
+	} else {
+		LOG_WRN("One task is already running");
 	}
 }
 
@@ -182,7 +184,7 @@ void pokibrain_task(void *arg1, void *arg2, void *arg3)
 				pokibrain_think();
 				end_time = k_uptime_get();
 				total = end_time - start_time;
-				LOG_INF("Thinking took %llu ms", total);
+				LOG_DBG("Thinking took %llu ms", total);
 				break;
 			case POKIBRAIN_TASK_DONE:
 				pokibrain_run_next_task();
