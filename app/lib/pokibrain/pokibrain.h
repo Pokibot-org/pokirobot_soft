@@ -23,8 +23,8 @@ typedef int (*pokibrain_task_function_t)(struct pokibrain_callback_params *param
 typedef int32_t (*pokibrain_reward_calculation_t)(struct pokibrain_callback_params *params);
 typedef int (*pokibrain_completion_callback_t)(struct pokibrain_callback_params *params);
 
-typedef void (*pokibrain_end_of_game_callback_t)(void);
 typedef void (*pokibrain_pre_think_callback_t)(void *world_context);
+typedef void (*pokibrain_end_of_game_callback_t)(void *world_context);
 
 struct pokibrain_task {
 	pokibrain_task_precompute_t task_precompute;

@@ -144,7 +144,7 @@ int32_t pokibrain_get_best_task_recursive(uint8_t depth, struct pokibrain_task *
 	return best_score + current_task_score;
 }
 
-void pokibrain_get_best_task(struct pokibrain_task **best_task)
+int pokibrain_get_best_task(struct pokibrain_task **best_task)
 {
 	LOG_DBG("Searching for the best task to do");
 
@@ -163,14 +163,21 @@ void pokibrain_get_best_task(struct pokibrain_task **best_task)
 			LOG_DBG("New best task name: %s, score %d", (*best_task)->name, best_score);
 		}
 	}
+	if (best_score == INT32_MIN) {
+		return -1;
+	}
 	LOG_INF("Best task name : %s, score %d", (*best_task)->name, best_score);
+	return 0;
 }
 
 void pokibrain_think(void)
 {
 	LOG_DBG("Think");
 	struct pokibrain_task *best_task;
-	pokibrain_get_best_task(&best_task);
+	if (pokibrain_get_best_task(&best_task)) {
+		LOG_WRN("No task to do, waiting");
+		return;
+	}
 
 	// run task and save next task
 	if (!k_work_busy_get(&run_task)) {
@@ -183,6 +190,7 @@ void pokibrain_think(void)
 
 void pokibrain_run_next_task(void)
 {
+	// pokibrain_think_now();
 }
 
 void pokibrain_task(void *arg1, void *arg2, void *arg3)
@@ -216,7 +224,7 @@ void pokibrain_task(void *arg1, void *arg2, void *arg3)
 				k_msgq_purge(&event_queue);
 				brain.running = false;
 				if (brain.end_clbk) {
-					brain.end_clbk();
+					brain.end_clbk(brain.world_context);
 				}
 				break;
 			default:

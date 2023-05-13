@@ -200,6 +200,32 @@ int get_closest_in_build_plate_index(struct pokibrain_user_context *ctx, uint8_t
 
 // ---------------------------- STRAT TASKS ----------------------------
 
+bool is_golden_recipe(const struct plate *plate)
+{
+	if (plate->cake_size != 3) {
+		return false;
+	}
+	return plate->cake_layer_colors[0] == LAYER_COLOR_BROWN &&
+		   plate->cake_layer_colors[1] == LAYER_COLOR_YELLOW &&
+		   plate->cake_layer_colors[2] == LAYER_COLOR_PINK;
+}
+
+uint32_t calculate_score(struct pokibrain_user_context *ctx)
+{
+	uint32_t score = 0;
+	for (uint8_t i = 0; i < ARRAY_SIZE(ctx->plate_list); i++) {
+		struct plate *plate = &ctx->plate_list[i];
+		if (plate->color != ctx->team_color) {
+			continue;
+		}
+		if (plate->cake_size == 0) {
+			continue;
+		}
+		score += plate->cake_size + is_golden_recipe(plate) * 4;
+	}
+	return score;
+};
+
 // ---------------------------------------- GRAB CAKE
 
 int pokibrain_precompute_grab_cake_layer(struct pokibrain_callback_params *params)
@@ -301,8 +327,7 @@ pokibrain_reward_calculation_put_cake_layer_in_plate(struct pokibrain_callback_p
 	struct plate target_plate = ctx->plate_list[ctx->precompute.put.plate_index];
 
 	add_layer_to_plate(&target_plate, &ctx->layer_list[ctx->index_held_layer]);
-	// TODO: is golden receipe ?
-	return 1 * target_plate.cake_size;
+	return 1 * target_plate.cake_size + is_golden_recipe(&target_plate) * 4;
 }
 
 int pokibrain_completion_put_cake_layer_in_plate(struct pokibrain_callback_params *params)
@@ -334,12 +359,15 @@ void strat_pre_think(void *world_context)
 {
 	struct pokibrain_user_context *ctx = world_context;
 	strat_get_robot_pos(&ctx->robot_pos);
+
+	LOG_ERR("SCORE %d", calculate_score(ctx));
 }
 
-static void strat_end_game_clbk(void)
+static void strat_end_game_clbk(void *world_context)
 {
+	struct pokibrain_user_context *ctx = world_context;
 	LOG_INF("GAME IS OVER");
-	// TODO: CALCULATE SCORE
+	LOG_ERR("SCORE %d", calculate_score(ctx));
 }
 
 // -------------------------- PUBLIC FUNCTIONS ---------------------------
