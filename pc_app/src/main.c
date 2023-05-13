@@ -2,7 +2,7 @@
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/logging/log.h>
-#include "strat.h"
+#include "strat/strat.h"
 
 LOG_MODULE_REGISTER(main);
 

@@ -56,6 +56,15 @@ K_MSGQ_DEFINE(task_to_run_msgq, sizeof(struct pokibrain_task), POKIBRAIN_DEPTH, 
 
 // IMPLEMENTATION --------------------------------------------------------
 
+int run_task_precompute(struct pokibrain_task *task_to_run,
+						struct pokibrain_callback_params *params)
+{
+	if (!task_to_run->task_precompute) {
+		return 0;
+	}
+	return task_to_run->task_precompute(params);
+}
+
 void pokibrain_run_task_work_handler(struct k_work *work)
 {
 	struct pokibrain_task task_to_run;
@@ -64,12 +73,11 @@ void pokibrain_run_task_work_handler(struct k_work *work)
 		return;
 	}
 
-	struct pokibrain_callback_params params = {
-		.time_in_match_ms = pokibrain_get_time_in_match_ms(),
-		.world_context = brain.world_context,
-	};
+	struct pokibrain_callback_params params = {.time_in_match_ms = pokibrain_get_time_in_match_ms(),
+											   .world_context = brain.world_context,
+											   .self = &task_to_run};
 
-	if (!task_to_run.task_process(&params)) {
+	if (!run_task_precompute(&task_to_run, &params) && !task_to_run.task_process(&params)) {
 		LOG_INF("Task %s run ok", task_to_run.name);
 		task_to_run.completion_callback(&params);
 	} else {
@@ -98,17 +106,24 @@ static void pokibrain_periodic_timer(struct k_timer *timer_id)
 	k_msgq_put(&event_queue, &ev, K_NO_WAIT);
 }
 
-int pokibrain_get_best_task_recursive(uint8_t depth, struct pokibrain_task *current_task,
-									  void *world_context)
+int32_t pokibrain_get_best_task_recursive(uint8_t depth, struct pokibrain_task *current_task,
+										  void *world_context)
 {
 	LOG_DBG("Depth %d", depth);
 	void *current_world_context =
 		(uint8_t *)brain.world_context_save + depth * brain.world_context_size;
 	memcpy(current_world_context, world_context, brain.world_context_size);
 	struct pokibrain_callback_params params = {.time_in_match_ms = pokibrain_get_time_in_match_ms(),
-											   .world_context = current_world_context};
+											   .world_context = current_world_context,
+											   .self = current_task};
+	if (run_task_precompute(current_task, &params)) {
+		return INT32_MIN;
+	}
 	// Evaluate the nb of point that the task will give before considering it done
 	int32_t current_task_score = current_task->reward_calculation(&params);
+	if (current_task_score == INT32_MIN) {
+		return INT32_MIN;
+	}
 	current_task->completion_callback(&params);
 	if (depth == 0) {
 		// FIXME: should be the current total of points

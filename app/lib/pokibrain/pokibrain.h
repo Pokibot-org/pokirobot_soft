@@ -15,19 +15,23 @@
 struct pokibrain_callback_params {
 	uint32_t time_in_match_ms;
 	void *world_context;
+	struct pokibrain_task *self;
 };
 
-typedef uint8_t (*pokibrain_task_function_t)(struct pokibrain_callback_params *params);
+typedef int (*pokibrain_task_precompute_t)(struct pokibrain_callback_params *params);
+typedef int (*pokibrain_task_function_t)(struct pokibrain_callback_params *params);
 typedef int32_t (*pokibrain_reward_calculation_t)(struct pokibrain_callback_params *params);
-typedef uint8_t (*pokibrain_completion_callback_t)(struct pokibrain_callback_params *params);
+typedef int (*pokibrain_completion_callback_t)(struct pokibrain_callback_params *params);
 
 typedef void (*pokibrain_end_of_game_callback_t)(void);
 
 struct pokibrain_task {
+	pokibrain_task_precompute_t task_precompute;
 	pokibrain_task_function_t task_process;
 	pokibrain_reward_calculation_t reward_calculation;
 	pokibrain_completion_callback_t completion_callback;
 	const char *name;
+	uint32_t id;
 };
 
 int pokibrain_init(struct pokibrain_task *tasks, uint32_t number_of_tasks, void *world_context,
