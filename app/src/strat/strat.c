@@ -12,6 +12,11 @@ LOG_MODULE_REGISTER(strategy);
 	{                                                                                              \
 		.x = (pos).x, .y = (pos).y                                                                 \
 	}
+#define CONVERT_POINT2_TO_POS2(point, angle)                                                       \
+	(pos2_t)                                                                                       \
+	{                                                                                              \
+		.x = (point).x, .y = (point).y, .a = (angle)                                               \
+	}
 
 #define BOARD_SIZE_X   2000
 #define BOARD_CENTER_X 1000
@@ -30,6 +35,7 @@ LOG_MODULE_REGISTER(strategy);
 #define ROBOT_MAX_LAYER_GRABBED 1
 
 enum layer_color {
+	LAYER_COLOR_NONE,
 	LAYER_COLOR_YELLOW,
 	LAYER_COLOR_PINK,
 	LAYER_COLOR_BROWN,
@@ -64,6 +70,7 @@ const static struct cake_layer layer_list[] = {
 };
 
 enum plate_color {
+	PLATE_COLOR_NONE,
 	PLATE_COLOR_BLUE,
 	PLATE_COLOR_GREEN,
 };
@@ -253,6 +260,17 @@ int pokibrain_precompute_grab_cake_layer(struct pokibrain_callback_params *param
 int pokibrain_task_grab_cake_layer(struct pokibrain_callback_params *params)
 {
 	LOG_INF("RUNNING %s", __func__);
+	struct pokibrain_user_context *ctx = params->world_context;
+
+	pos2_t layer_pos =
+		CONVERT_POINT2_TO_POS2(ctx->layer_list[ctx->precompute.grab.layer_index].point, 0.0f);
+	if (strat_move_robot_to(layer_pos, K_SECONDS(10))) {
+		return -1;
+	}
+
+	if (strat_grab_layer(layer_pos, K_SECONDS(6))) {
+		return -1;
+	}
 	return 0;
 }
 
@@ -308,6 +326,18 @@ int pokibrain_precompute_put_cake_layer_in_plate(struct pokibrain_callback_param
 int pokibrain_task_put_cake_layer_in_plate(struct pokibrain_callback_params *params)
 {
 	LOG_INF("RUNNING %s", __func__);
+	struct pokibrain_user_context *ctx = params->world_context;
+	struct plate *plate = &ctx->plate_list[ctx->precompute.put.plate_index];
+
+	pos2_t plate_pos = CONVERT_POINT2_TO_POS2(plate->point, 0.0f);
+	if (strat_move_robot_to(plate_pos, K_SECONDS(10))) {
+		return -1;
+	}
+
+	if (strat_put_layer(plate_pos, plate->cake_size, K_SECONDS(6))) {
+		return -1;
+	}
+
 	return 0;
 }
 
@@ -360,14 +390,14 @@ void strat_pre_think(void *world_context)
 	struct pokibrain_user_context *ctx = world_context;
 	strat_get_robot_pos(&ctx->robot_pos);
 
-	LOG_ERR("SCORE %d", calculate_score(ctx));
+	LOG_DBG("SCORE %d", calculate_score(ctx));
 }
 
 static void strat_end_game_clbk(void *world_context)
 {
 	struct pokibrain_user_context *ctx = world_context;
 	LOG_INF("GAME IS OVER");
-	LOG_ERR("SCORE %d", calculate_score(ctx));
+	LOG_INF("SCORE %d", calculate_score(ctx));
 }
 
 // -------------------------- PUBLIC FUNCTIONS ---------------------------
@@ -380,9 +410,9 @@ void strat_init(void)
 		.nb_cake_layer_grabbed = 0,
 	};
 
-	memcpy(world_context.layer_list, layer_list, ARRAY_SIZE(layer_list));
-	memcpy(world_context.plate_list, plate_list, ARRAY_SIZE(plate_list));
-	memcpy(world_context.dispenser_list, dispenser_list, ARRAY_SIZE(dispenser_list));
+	memcpy(world_context.layer_list, layer_list, sizeof(layer_list));
+	memcpy(world_context.plate_list, plate_list, sizeof(plate_list));
+	memcpy(world_context.dispenser_list, dispenser_list, sizeof(dispenser_list));
 
 	static struct pokibrain_task tasks[] = {
 		{

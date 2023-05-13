@@ -29,10 +29,12 @@ int strat_move_robot_to(pos2_t pos, k_timeout_t timeout)
 
 int strat_grab_layer(pos2_t layer_pos, k_timeout_t timeout)
 {
-	return -1;
+	k_sleep(K_SECONDS(2));
+	return 0;
 }
 
 int strat_put_layer(pos2_t plate_pos, uint8_t current_cake_height, k_timeout_t timeout)
 {
+	k_sleep(K_SECONDS(1));
 	return -1;
 }
