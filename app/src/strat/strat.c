@@ -1,10 +1,17 @@
 #include <zephyr/logging/log.h>
 #include "pokibrain/pokibrain.h"
 #include "strat.h"
+#include "strat_interface.h"
 #include "pokutils.h"
 #include <stdint.h>
 
 LOG_MODULE_REGISTER(strategy);
+
+#define CONVERT_POS2_TO_POINT2(pos)                                                                \
+	(point2_t)                                                                                     \
+	{                                                                                              \
+		.x = (pos).x, .y = (pos).y                                                                 \
+	}
 
 #define BOARD_SIZE_X   2000
 #define BOARD_CENTER_X 1000
@@ -30,29 +37,29 @@ enum layer_color {
 
 struct cake_layer {
 	enum layer_color color;
-	point2_t pos;
+	point2_t point;
 	uint8_t in_plate;
 };
 
 const static struct cake_layer layer_list[] = {
 	(struct cake_layer){.color = LAYER_COLOR_BROWN,
-						.pos = {.x = BOARD_CENTER_X - 275, .y = BOARD_CENTER_Y - 375}},
+						.point = {.x = BOARD_CENTER_X - 275, .y = BOARD_CENTER_Y - 375}},
 	(struct cake_layer){.color = LAYER_COLOR_BROWN,
-						.pos = {.x = BOARD_CENTER_X + 275, .y = BOARD_CENTER_Y - 375}},
+						.point = {.x = BOARD_CENTER_X + 275, .y = BOARD_CENTER_Y - 375}},
 	(struct cake_layer){.color = LAYER_COLOR_BROWN,
-						.pos = {.x = BOARD_CENTER_X - 275, .y = BOARD_CENTER_Y + 375}},
+						.point = {.x = BOARD_CENTER_X - 275, .y = BOARD_CENTER_Y + 375}},
 	(struct cake_layer){.color = LAYER_COLOR_BROWN,
-						.pos = {.x = BOARD_CENTER_X + 275, .y = BOARD_CENTER_Y + 375}},
-	(struct cake_layer){.color = LAYER_COLOR_PINK, .pos = {.x = 225, .y = 575}},
-	(struct cake_layer){.color = LAYER_COLOR_PINK, .pos = {.x = BOARD_SIZE_X - 225, .y = 575}},
-	(struct cake_layer){.color = LAYER_COLOR_PINK, .pos = {.x = 225, .y = BOARD_SIZE_Y - 575}},
+						.point = {.x = BOARD_CENTER_X + 275, .y = BOARD_CENTER_Y + 375}},
+	(struct cake_layer){.color = LAYER_COLOR_PINK, .point = {.x = 225, .y = 575}},
+	(struct cake_layer){.color = LAYER_COLOR_PINK, .point = {.x = BOARD_SIZE_X - 225, .y = 575}},
+	(struct cake_layer){.color = LAYER_COLOR_PINK, .point = {.x = 225, .y = BOARD_SIZE_Y - 575}},
 	(struct cake_layer){.color = LAYER_COLOR_PINK,
-						.pos = {.x = BOARD_SIZE_X - 225, .y = BOARD_SIZE_Y - 575}},
-	(struct cake_layer){.color = LAYER_COLOR_PINK, .pos = {.x = 225, .y = 775}},
-	(struct cake_layer){.color = LAYER_COLOR_PINK, .pos = {.x = BOARD_SIZE_X - 225, .y = 775}},
-	(struct cake_layer){.color = LAYER_COLOR_PINK, .pos = {.x = 225, .y = BOARD_SIZE_Y - 775}},
+						.point = {.x = BOARD_SIZE_X - 225, .y = BOARD_SIZE_Y - 575}},
+	(struct cake_layer){.color = LAYER_COLOR_PINK, .point = {.x = 225, .y = 775}},
+	(struct cake_layer){.color = LAYER_COLOR_PINK, .point = {.x = BOARD_SIZE_X - 225, .y = 775}},
+	(struct cake_layer){.color = LAYER_COLOR_PINK, .point = {.x = 225, .y = BOARD_SIZE_Y - 775}},
 	(struct cake_layer){.color = LAYER_COLOR_PINK,
-						.pos = {.x = BOARD_SIZE_X - 225, .y = BOARD_SIZE_Y - 775}},
+						.point = {.x = BOARD_SIZE_X - 225, .y = BOARD_SIZE_Y - 775}},
 
 };
 
@@ -63,27 +70,27 @@ enum plate_color {
 
 struct plate {
 	enum plate_color color;
-	point2_t pos;
+	point2_t point;
 	uint8_t cake_size;
 	enum layer_color cake_layer_colors[CAKE_MAX_NB_LAYERS];
 };
 
 const static struct plate plate_list[] = {
 	// GREEN
-	(struct plate){.color = PLATE_COLOR_GREEN, .pos = {.x = 225, .y = 225}},
-	(struct plate){.color = PLATE_COLOR_GREEN, .pos = {.x = BOARD_CENTER_X + 275, .y = 225}},
+	(struct plate){.color = PLATE_COLOR_GREEN, .point = {.x = 225, .y = 225}},
+	(struct plate){.color = PLATE_COLOR_GREEN, .point = {.x = BOARD_CENTER_X + 275, .y = 225}},
 	(struct plate){.color = PLATE_COLOR_GREEN,
-				   .pos = {.x = BOARD_SIZE_X - 225, .y = BOARD_CENTER_Y - 375}},
-	(struct plate){.color = PLATE_COLOR_GREEN, .pos = {.x = 225, .y = BOARD_CENTER_Y + 375}},
+				   .point = {.x = BOARD_SIZE_X - 225, .y = BOARD_CENTER_Y - 375}},
+	(struct plate){.color = PLATE_COLOR_GREEN, .point = {.x = 225, .y = BOARD_CENTER_Y + 375}},
 	(struct plate){.color = PLATE_COLOR_GREEN,
-				   .pos = {.x = BOARD_SIZE_X - 225, .y = BOARD_SIZE_Y - 225}},
+				   .point = {.x = BOARD_SIZE_X - 225, .y = BOARD_SIZE_Y - 225}},
 	// BLUE
-	(struct plate){.color = PLATE_COLOR_BLUE, .pos = {.x = BOARD_CENTER_X - 275, .y = 225}},
-	(struct plate){.color = PLATE_COLOR_BLUE, .pos = {.x = BOARD_SIZE_X - 225, .y = 225}},
-	(struct plate){.color = PLATE_COLOR_BLUE, .pos = {.x = 225, .y = BOARD_CENTER_Y - 375}},
+	(struct plate){.color = PLATE_COLOR_BLUE, .point = {.x = BOARD_CENTER_X - 275, .y = 225}},
+	(struct plate){.color = PLATE_COLOR_BLUE, .point = {.x = BOARD_SIZE_X - 225, .y = 225}},
+	(struct plate){.color = PLATE_COLOR_BLUE, .point = {.x = 225, .y = BOARD_CENTER_Y - 375}},
 	(struct plate){.color = PLATE_COLOR_BLUE,
-				   .pos = {.x = BOARD_SIZE_X - 225, .y = BOARD_CENTER_Y + 375}},
-	(struct plate){.color = PLATE_COLOR_BLUE, .pos = {.x = 225, .y = BOARD_SIZE_Y - 225}},
+				   .point = {.x = BOARD_SIZE_X - 225, .y = BOARD_CENTER_Y + 375}},
+	(struct plate){.color = PLATE_COLOR_BLUE, .point = {.x = 225, .y = BOARD_SIZE_Y - 225}},
 };
 
 struct cherry_dispenser {
@@ -108,6 +115,7 @@ struct put_layer_precompute_storage {
 };
 
 struct pokibrain_user_context {
+	pos2_t robot_pos;
 	enum plate_color team_color;
 	uint8_t nb_cake_layer_grabbed;
 	uint8_t nb_cherry_grabbed;
@@ -126,17 +134,68 @@ struct pokibrain_user_context {
 int get_closest_available_cake_layer_index(struct pokibrain_user_context *ctx,
 										   enum layer_color color, uint8_t *index)
 {
-	return 0;
+	float best_dist = MAXFLOAT;
+	int ret = -1;
+
+	for (uint8_t i = 0; i < ARRAY_SIZE(ctx->layer_list); i++) {
+		struct cake_layer *layer = &ctx->layer_list[i];
+		if (layer->color != color) {
+			continue;
+		}
+		float dist = vec2_distance(CONVERT_POS2_TO_POINT2(ctx->robot_pos), layer->point);
+		if (dist <= best_dist) {
+			ret = 0;
+			best_dist = dist;
+			*index = i;
+		}
+	}
+	return ret;
 };
 
 int get_closest_available_plate_index(struct pokibrain_user_context *ctx, uint8_t *index)
 {
-	return 0;
+	float best_dist = MAXFLOAT;
+	int ret = -1;
+
+	for (uint8_t i = 0; i < ARRAY_SIZE(ctx->plate_list); i++) {
+		struct plate *plate = &ctx->plate_list[i];
+		if (plate->color != ctx->team_color) {
+			continue;
+		}
+		if (plate->cake_size != 0) {
+			continue;
+		}
+		float dist = vec2_distance(CONVERT_POS2_TO_POINT2(ctx->robot_pos), plate->point);
+		if (dist <= best_dist) {
+			ret = 0;
+			best_dist = dist;
+			*index = i;
+		}
+	}
+	return ret;
 };
 
 int get_closest_in_build_plate_index(struct pokibrain_user_context *ctx, uint8_t *index)
 {
-	return 0;
+	float best_dist = MAXFLOAT;
+	int ret = -1;
+
+	for (uint8_t i = 0; i < ARRAY_SIZE(ctx->plate_list); i++) {
+		struct plate *plate = &ctx->plate_list[i];
+		if (plate->color != ctx->team_color) {
+			continue;
+		}
+		if (plate->cake_size == 0) {
+			continue;
+		}
+		float dist = vec2_distance(CONVERT_POS2_TO_POINT2(ctx->robot_pos), plate->point);
+		if (dist <= best_dist) {
+			ret = 0;
+			best_dist = dist;
+			*index = i;
+		}
+	}
+	return ret;
 };
 
 // ---------------------------- STRAT TASKS ----------------------------
@@ -231,7 +290,7 @@ void add_layer_to_plate(struct plate *target_plate, struct cake_layer *layer)
 	target_plate->cake_layer_colors[target_plate->cake_size] = layer->color;
 	target_plate->cake_size += 1;
 	layer->in_plate = true;
-	layer->pos = target_plate->pos;
+	layer->point = target_plate->point;
 }
 
 int32_t
@@ -270,6 +329,12 @@ int pokibrain_completion_put_cake_layer_in_plate(struct pokibrain_callback_param
  * - go back in start area 15 pt
  * - funny action
  */
+
+void strat_pre_think(void *world_context)
+{
+	struct pokibrain_user_context *ctx = world_context;
+	strat_get_robot_pos(&ctx->robot_pos);
+}
 
 static void strat_end_game_clbk(void)
 {
@@ -329,7 +394,7 @@ void strat_init(void)
 		 .completion_callback = pokibrain_completion_put_cake_layer_in_plate,
 		 .id = 1}};
 	pokibrain_init(tasks, sizeof(tasks) / sizeof(tasks[0]), &world_context,
-				   sizeof(struct pokibrain_user_context), strat_end_game_clbk);
+				   sizeof(struct pokibrain_user_context), strat_pre_think, strat_end_game_clbk);
 }
 
 void strat_run(void)

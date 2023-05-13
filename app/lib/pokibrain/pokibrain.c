@@ -30,6 +30,7 @@ typedef struct {
 	void *world_context;
 	void *world_context_save;
 	uint32_t world_context_size;
+	pokibrain_pre_think_callback_t pre_think_clbk;
 	pokibrain_end_of_game_callback_t end_clbk;
 	uint32_t start_time_ms;
 	bool running;
@@ -146,6 +147,11 @@ int32_t pokibrain_get_best_task_recursive(uint8_t depth, struct pokibrain_task *
 void pokibrain_get_best_task(struct pokibrain_task **best_task)
 {
 	LOG_DBG("Searching for the best task to do");
+
+	if (brain.pre_think_clbk) {
+		brain.pre_think_clbk(brain.world_context);
+	}
+
 	int32_t best_score = INT32_MIN;
 	for (size_t i = 0; i < brain.number_of_tasks; i++) {
 		int32_t score;
@@ -222,7 +228,8 @@ void pokibrain_task(void *arg1, void *arg2, void *arg3)
 }
 
 int pokibrain_init(struct pokibrain_task *tasks, uint32_t number_of_tasks, void *world_context,
-				   uint32_t world_context_size, pokibrain_end_of_game_callback_t end_clbk)
+				   uint32_t world_context_size, pokibrain_pre_think_callback_t pre_think_clbk,
+				   pokibrain_end_of_game_callback_t end_clbk)
 {
 	brain.tasks = tasks;
 	brain.number_of_tasks = number_of_tasks;
@@ -233,6 +240,7 @@ int pokibrain_init(struct pokibrain_task *tasks, uint32_t number_of_tasks, void 
 		LOG_ERR("k_malloc err");
 		return -ENOMEM;
 	}
+	brain.pre_think_clbk = pre_think_clbk;
 	brain.end_clbk = end_clbk;
 	brain.thread_id = k_thread_create(&brain.thread, stack, POKIBRAIN_STACK_SIZE, pokibrain_task,
 									  NULL, NULL, NULL, POKIBRAIN_TASK_PRIORITY, 0, K_NO_WAIT);

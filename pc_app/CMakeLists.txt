@@ -11,6 +11,7 @@ target_include_directories(app PRIVATE
 
 target_sources(app PRIVATE 
     src/main.c 
+    src/strat_interface.c 
     ../app/lib/pokibrain/pokibrain.c
     ../app/lib/obstacles/obstacle.c
     ../app/lib/pathfinding/pathfinding.c
