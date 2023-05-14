@@ -116,12 +116,15 @@ int strat_put_layer(pos2_t plate_pos, uint8_t current_cake_height, k_timeout_t t
 
 void fake_control_task(void)
 {
-	const float speed = 2.5f * CONTROL_PERIOD_MS;
+	const float speed = 0.5f * CONTROL_PERIOD_MS;
+	const float precision = speed + 0.1;
 	char buffer[256];
 	while (1) {
 		pos2_t current_pos, target_pos;
-		control_get_pos(&fake_ctrl, &current_pos);
 		control_get_target(&fake_ctrl, &target_pos);
+		k_mutex_lock(&fake_ctrl.pos.lock, K_MSEC(100));
+		current_pos = fake_ctrl.pos.val;
+
 		point2_t current_point = {.x = current_pos.x, .y = current_pos.y};
 		point2_t target_point = {.x = target_pos.x, .y = target_pos.y};
 
@@ -129,14 +132,15 @@ void fake_control_task(void)
 
 		vec2_t norm = vec2_normalize(diff);
 
-		current_point.x += fminf(norm.dx * speed, diff.dx);
-		current_point.y += fminf(norm.dy * speed, diff.dy);
+		current_point.x += norm.dx * speed;
+		current_point.y += norm.dy * speed;
 
-		if (target_point.x == current_point.x && target_point.y == current_point.y) {
+		if (fabs(target_point.x - current_point.x) < precision &&
+			fabs(target_point.y - current_point.y) < precision) {
 			fake_ctrl.at_target = true;
 		}
-		control_set_pos(&fake_ctrl,
-						(pos2_t){.x = current_point.x, .y = current_point.y, .a = target_pos.a});
+		fake_ctrl.pos.val = (pos2_t){.x = current_point.x, .y = current_point.y, .a = target_pos.a};
+		k_mutex_unlock(&fake_ctrl.pos.lock);
 
 		snprintf(buffer, 256, "{\"pos\": {\"x\":%.2f, \"y\":%.2f}}", current_point.x,
 				 current_point.y);

@@ -32,8 +32,6 @@ LOG_MODULE_REGISTER(strategy);
 #define CHERRY_DISPENSER_WIDTH_2 150
 #define CHERRY_DISPENSER_DEPTH_2 15
 
-#define ROBOT_MAX_LAYER_GRABBED 1
-
 enum layer_color {
 	LAYER_COLOR_NONE,
 	LAYER_COLOR_YELLOW,
@@ -149,6 +147,9 @@ int get_closest_available_cake_layer_index(struct pokibrain_user_context *ctx,
 		if (layer->color != color) {
 			continue;
 		}
+		if (layer->in_plate) {
+			continue;
+		}
 		float dist = vec2_distance(CONVERT_POS2_TO_POINT2(ctx->robot_pos), layer->point);
 		if (dist <= best_dist) {
 			ret = 0;
@@ -239,17 +240,12 @@ int pokibrain_precompute_grab_cake_layer(struct pokibrain_callback_params *param
 {
 	LOG_DBG("REWARD CALC %s", __func__);
 	struct pokibrain_user_context *ctx = params->world_context;
-	if (ctx->nb_cake_layer_grabbed >= ROBOT_MAX_LAYER_GRABBED) {
+	if (ctx->nb_cake_layer_grabbed != 0) {
 		return INT32_MIN;
 	}
 	enum layer_color color = (enum layer_color)params->self->id;
 	uint8_t index = 255;
 	if (get_closest_available_cake_layer_index(ctx, color, &index)) {
-		return INT32_MIN;
-	}
-
-	if (index == 255) {
-		LOG_ERR("Should not happens");
 		return INT32_MIN;
 	}
 
@@ -287,7 +283,7 @@ int pokibrain_completion_grab_cake_layer(struct pokibrain_callback_params *param
 	struct pokibrain_user_context *ctx = params->world_context;
 
 	ctx->index_held_layer = ctx->precompute.grab.layer_index;
-	ctx->nb_cake_layer_grabbed = MIN(ROBOT_MAX_LAYER_GRABBED, ctx->nb_cake_layer_grabbed + 1);
+	ctx->nb_cake_layer_grabbed = 1;
 	return 0;
 }
 
@@ -309,10 +305,6 @@ int pokibrain_precompute_put_cake_layer_in_plate(struct pokibrain_callback_param
 		if (get_closest_in_build_plate_index(ctx, &index)) {
 			return INT32_MIN;
 		}
-	}
-	if (index == 255) {
-		LOG_ERR("Should not happens");
-		return INT32_MIN;
 	}
 
 	if (ctx->plate_list[index].cake_size >= CAKE_MAX_NB_LAYERS) {
@@ -367,6 +359,7 @@ int pokibrain_completion_put_cake_layer_in_plate(struct pokibrain_callback_param
 	struct plate *target_plate = &ctx->plate_list[ctx->precompute.put.plate_index];
 	add_layer_to_plate(target_plate, &ctx->layer_list[ctx->index_held_layer]);
 	ctx->nb_cake_layer_grabbed = 0;
+	ctx->index_held_layer = -1;
 	return 0;
 }
 
@@ -402,13 +395,17 @@ static void strat_end_game_clbk(void *world_context)
 
 // -------------------------- PUBLIC FUNCTIONS ---------------------------
 
-void strat_init(void)
+void strat_init(enum team_color color)
 {
 	static struct pokibrain_user_context world_context = {
-		.team_color = PLATE_COLOR_BLUE,
 		.nb_cherry_grabbed = 0,
 		.nb_cake_layer_grabbed = 0,
 	};
+	world_context.team_color = (enum plate_color)color;
+	pos2_t start_pos = world_context.team_color == PLATE_COLOR_BLUE
+						   ? CONVERT_POINT2_TO_POS2(plate_list[9].point, -M_PI_2)
+						   : CONVERT_POINT2_TO_POS2(plate_list[4].point, -M_PI_2);
+	strat_set_robot_pos(start_pos);
 
 	memcpy(world_context.layer_list, layer_list, sizeof(layer_list));
 	memcpy(world_context.plate_list, plate_list, sizeof(plate_list));

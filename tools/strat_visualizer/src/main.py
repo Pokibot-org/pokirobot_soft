@@ -41,7 +41,7 @@ def load_image(name):
 def draw_robot(screen, board, robot):
     ratio = board.dim_y[1]/board.real_size[1]
     on_board_radius = robot.radius * ratio
-    on_board_pos = (robot.pos[0] * ratio, robot.pos[1] * ratio)
+    on_board_pos = (robot.pos[0] * ratio, board.dim_y[1] - robot.pos[1] * ratio)
     pg.draw.circle(screen, (30, 30, 100), on_board_pos, on_board_radius)
 
 # here's the full code

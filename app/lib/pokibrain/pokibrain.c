@@ -78,14 +78,20 @@ void pokibrain_run_task_work_handler(struct k_work *work)
 											   .world_context = brain.world_context,
 											   .self = &task_to_run};
 
-	if (!run_task_precompute(&task_to_run, &params) && !task_to_run.task_process(&params)) {
-		LOG_INF("Task %s run ok", task_to_run.name);
-		task_to_run.completion_callback(&params);
-	} else {
-		LOG_WRN("Problems during task process, flushing task to run queue");
-		k_msgq_purge(&task_to_run_msgq);
+	if (run_task_precompute(&task_to_run, &params)) {
+		LOG_ERR("Error in precompute");
+		goto exit;
 	}
 
+	if (task_to_run.task_process(&params)) {
+		LOG_ERR("Error in task run");
+		goto exit;
+	}
+	LOG_INF("Task %s run ok", task_to_run.name);
+	task_to_run.completion_callback(&params);
+	// LOG_WRN("Problems during task process, flushing task to run queue");
+	// k_msgq_purge(&task_to_run_msgq);
+exit:
 	pokibrain_events_t ev = POKIBRAIN_TASK_DONE;
 	k_msgq_put(&event_queue, &ev, K_FOREVER);
 }
@@ -263,6 +269,7 @@ void pokibrain_start(void)
 	k_work_queue_start(&task_runner_work_queue, task_runner_stack,
 					   K_THREAD_STACK_SIZEOF(task_runner_stack), (POKIBRAIN_TASK_PRIORITY - 1),
 					   &task_runner_cfg);
+	pokibrain_think_now();
 	k_timer_start(&timer, K_MSEC(POKIBRAIN_PERIOD_MS), K_MSEC(POKIBRAIN_PERIOD_MS));
 	k_timer_start(&match_end_timer, K_SECONDS(GAME_ROUND_TIME_S), K_NO_WAIT);
 	brain.start_time_ms = k_uptime_get_32();
@@ -270,7 +277,7 @@ void pokibrain_start(void)
 
 void pokibrain_think_now(void)
 {
-	LOG_INF("Think now requested");
+	LOG_INF("Think now requested --------------------\n");
 	pokibrain_events_t ev = POKIBRAIN_THINK;
 	k_msgq_put(&event_queue, &ev, K_NO_WAIT);
 }
