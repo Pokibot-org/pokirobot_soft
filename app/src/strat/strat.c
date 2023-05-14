@@ -18,6 +18,8 @@ LOG_MODULE_REGISTER(strategy);
 		.x = (point).x, .y = (point).y, .a = (angle)                                               \
 	}
 
+#define OFFSET_SCORE(x) (x << 16)
+
 #define BOARD_SIZE_X   2000
 #define BOARD_CENTER_X 1000
 #define BOARD_SIZE_Y   3000
@@ -376,7 +378,11 @@ pokibrain_reward_calculation_put_cake_layer_in_plate(struct pokibrain_callback_p
 	struct plate target_plate = ctx->plate_list[ctx->precompute.put.plate_index];
 
 	add_layer_to_plate(&target_plate, &ctx->layer_list[ctx->index_held_layer]);
-	return 1 * target_plate.cake_size + is_golden_recipe(&target_plate) * 4;
+	int32_t score = 1 * target_plate.cake_size + is_golden_recipe(&target_plate) * 4 +
+					(target_plate.cake_layer_colors[0] == LAYER_COLOR_BROWN) +
+					(target_plate.cake_layer_colors[1] == LAYER_COLOR_YELLOW) +
+					(target_plate.cake_layer_colors[2] == LAYER_COLOR_PINK);
+	return OFFSET_SCORE(score);
 }
 
 int pokibrain_completion_put_cake_layer_in_plate(struct pokibrain_callback_params *params)
