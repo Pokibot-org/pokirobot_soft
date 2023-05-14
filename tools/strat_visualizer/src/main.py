@@ -16,8 +16,10 @@ import pygame as pg
 import threading
 import socketserver
 import json
+import math
 
 main_dir = os.path.split(os.path.abspath(__file__))[0]
+
 
 class Board:
     def __init__(self) -> None:
@@ -25,24 +27,40 @@ class Board:
         self.dim_x = None
         self.dim_y = None
 
+
 class Robot:
     def __init__(self) -> None:
         self.radius = 140
         self.pos = [0, 0]
+        self.dir = 0
 
 
 robot = Robot()
+
 
 # quick function to load an image
 def load_image(name):
     path = os.path.join(main_dir, "../img", name)
     return pg.image.load(path).convert()
 
+
 def draw_robot(screen, board, robot):
-    ratio = board.dim_y[1]/board.real_size[1]
+    ratio = board.dim_y[1] / board.real_size[1]
     on_board_radius = robot.radius * ratio
     on_board_pos = (robot.pos[0] * ratio, board.dim_y[1] - robot.pos[1] * ratio)
+
     pg.draw.circle(screen, (30, 30, 100), on_board_pos, on_board_radius)
+    pg.draw.line(
+        screen,
+        (130, 30, 30),
+        on_board_pos,
+        (
+            on_board_pos[0] + on_board_radius * math.cos(robot.dir),
+            on_board_pos[1] + on_board_radius * math.sin(robot.dir + math.pi),
+        ),
+        width=4,
+    )
+
 
 # here's the full code
 def main():
@@ -58,7 +76,9 @@ def main():
     while True:
         info = pg.display.Info()
         screen.fill(pg.Color(0, 0, 0))
-        background = pg.transform.scale(raw_background, (info.current_h * raw_background_ratio, info.current_h))
+        background = pg.transform.scale(
+            raw_background, (info.current_h * raw_background_ratio, info.current_h)
+        )
         board.dim_x = [0, background.get_width()]
         board.dim_y = [0, background.get_height()]
         screen.blit(background, (board.dim_x[0], board.dim_y[0]))
@@ -84,17 +104,16 @@ class Session(socketserver.BaseRequestHandler):
         super().__init__(*args, **keys)
 
     def handle(self):
-        """Handle proto
-
-        """
-        json_data = json.loads(self.request[0].decode())
-        if "pos" in json_data:
-            robot.pos[0] = json_data["pos"]["x"]
-            robot.pos[1] = json_data["pos"]["y"]
-            print(robot.pos)
-        # try:
-        # except Exception as err:
-        #     print("Error during decoding", err)
+        """Handle proto"""
+        try:
+            json_data = json.loads(self.request[0].decode())
+            if "pos" in json_data:
+                robot.pos[0] = json_data["pos"]["x"]
+                robot.pos[1] = json_data["pos"]["y"]
+                robot.dir = json_data["pos"]["a"]
+        except Exception as err:
+            print("Error during decoding", err)
+            print(self.request[0])
 
 
 if __name__ == "__main__":

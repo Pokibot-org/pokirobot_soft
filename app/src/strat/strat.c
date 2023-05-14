@@ -25,6 +25,8 @@ LOG_MODULE_REGISTER(strategy);
 #define PLATE_SIZE	   450
 
 #define CAKE_MAX_NB_LAYERS 3
+#define CAKE_LAYER_RADIUS  60
+#define CAKE_LAYER_HEIGHT  20
 
 #define NB_CHERRY_PER_DISPENSER	 10
 #define CHERRY_DISPENSER_WIDTH	 300
@@ -113,10 +115,12 @@ const struct cherry_dispenser dispenser_list[] = {
 
 struct grab_layer_precompute_storage {
 	uint8_t layer_index;
+	pos2_t dock_pos;
 };
 
 struct put_layer_precompute_storage {
 	uint8_t plate_index;
+	pos2_t dock_pos;
 };
 
 struct pokibrain_user_context {
@@ -236,9 +240,23 @@ uint32_t calculate_score(struct pokibrain_user_context *ctx)
 
 // ---------------------------------------- GRAB CAKE
 
+int get_layer_docking_pos(point2_t robot_point, point2_t layer_point, pos2_t *dock_pos)
+{
+	const float docking_dist = ROBOT_RADIUS + CAKE_LAYER_RADIUS + 10;
+	float segment_len = vec2_distance(robot_point, layer_point);
+	float frac = docking_dist / segment_len;
+	vec2_t diff = point2_diff(layer_point, robot_point);
+
+	dock_pos->x = layer_point.x - diff.dx * frac;
+	dock_pos->y = layer_point.y - diff.dy * frac;
+	dock_pos->a = vec2_angle(diff, (vec2_t){.dx = 1.0f, .dy = 0.0f});
+
+	return 0;
+}
+
 int pokibrain_precompute_grab_cake_layer(struct pokibrain_callback_params *params)
 {
-	LOG_DBG("REWARD CALC %s", __func__);
+	LOG_DBG("PRECOMPUTE %s", __func__);
 	struct pokibrain_user_context *ctx = params->world_context;
 	if (ctx->nb_cake_layer_grabbed != 0) {
 		return INT32_MIN;
@@ -249,7 +267,12 @@ int pokibrain_precompute_grab_cake_layer(struct pokibrain_callback_params *param
 		return INT32_MIN;
 	}
 
+	if (get_layer_docking_pos(CONVERT_POS2_TO_POINT2(ctx->robot_pos), ctx->layer_list[index].point,
+							  &ctx->precompute.grab.dock_pos)) {
+		return INT32_MIN;
+	}
 	ctx->precompute.grab.layer_index = index;
+
 	return 0;
 }
 
@@ -258,8 +281,7 @@ int pokibrain_task_grab_cake_layer(struct pokibrain_callback_params *params)
 	LOG_INF("RUNNING %s", __func__);
 	struct pokibrain_user_context *ctx = params->world_context;
 
-	pos2_t layer_pos =
-		CONVERT_POINT2_TO_POS2(ctx->layer_list[ctx->precompute.grab.layer_index].point, 0.0f);
+	pos2_t layer_pos = ctx->precompute.grab.dock_pos;
 	if (strat_move_robot_to(layer_pos, K_SECONDS(10))) {
 		return -1;
 	}
@@ -290,7 +312,7 @@ int pokibrain_completion_grab_cake_layer(struct pokibrain_callback_params *param
 // ---------------------------------------- PUT CAKE
 int pokibrain_precompute_put_cake_layer_in_plate(struct pokibrain_callback_params *params)
 {
-	LOG_DBG("REWARD CALC %s", __func__);
+	LOG_DBG("PRECOMPUTE %s", __func__);
 	struct pokibrain_user_context *ctx = params->world_context;
 	if (ctx->nb_cake_layer_grabbed == 0) {
 		return INT32_MIN;
@@ -311,6 +333,11 @@ int pokibrain_precompute_put_cake_layer_in_plate(struct pokibrain_callback_param
 		return INT32_MIN;
 	}
 
+	if (get_layer_docking_pos(CONVERT_POS2_TO_POINT2(ctx->robot_pos), ctx->plate_list[index].point,
+							  &ctx->precompute.put.dock_pos)) {
+		return INT32_MIN;
+	}
+
 	ctx->precompute.put.plate_index = index;
 	return 0;
 }
@@ -321,7 +348,7 @@ int pokibrain_task_put_cake_layer_in_plate(struct pokibrain_callback_params *par
 	struct pokibrain_user_context *ctx = params->world_context;
 	struct plate *plate = &ctx->plate_list[ctx->precompute.put.plate_index];
 
-	pos2_t plate_pos = CONVERT_POINT2_TO_POS2(plate->point, 0.0f);
+	pos2_t plate_pos = ctx->precompute.put.dock_pos;
 	if (strat_move_robot_to(plate_pos, K_SECONDS(10))) {
 		return -1;
 	}

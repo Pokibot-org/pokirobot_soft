@@ -11,7 +11,8 @@
 LOG_MODULE_REGISTER(strat_interface);
 #define LOG_POS(pos) LOG_DBG("position<x: %3.2f,y: %3.2f,a: %3.2f>", (pos).x, (pos).y, (pos).a)
 
-#define CONTROL_PERIOD_MS	  10.0f
+#define CONTROL_PERIOD_MS	  1.0f
+#define CONTROL_SPEED		  10000.0f
 #define CONTROL_MUTEX_TIMEOUT (K_MSEC(30))
 
 void socket_send(const char *string);
@@ -92,6 +93,7 @@ int strat_move_robot_to(pos2_t pos, k_timeout_t timeout)
 		fake_ctrl.start = true;
 	}
 
+	LOG_ERR("pos.a %f", pos.a);
 	if (control_set_target(&fake_ctrl, pos)) {
 		return -1;
 	}
@@ -116,7 +118,7 @@ int strat_put_layer(pos2_t plate_pos, uint8_t current_cake_height, k_timeout_t t
 
 void fake_control_task(void)
 {
-	const float speed = 0.5f * CONTROL_PERIOD_MS;
+	const float speed = CONTROL_SPEED / (CONTROL_PERIOD_MS * 1000.0f);
 	const float precision = speed + 0.1;
 	char buffer[256];
 	while (1) {
@@ -129,11 +131,11 @@ void fake_control_task(void)
 		point2_t target_point = {.x = target_pos.x, .y = target_pos.y};
 
 		vec2_t diff = point2_diff(target_point, current_point);
-
+		float dist = vec2_distance(target_point, current_point);
 		vec2_t norm = vec2_normalize(diff);
 
-		current_point.x += norm.dx * speed;
-		current_point.y += norm.dy * speed;
+		current_point.x += norm.dx * fminf(speed, dist);
+		current_point.y += norm.dy * fminf(speed, dist);
 
 		if (fabs(target_point.x - current_point.x) < precision &&
 			fabs(target_point.y - current_point.y) < precision) {
@@ -142,10 +144,10 @@ void fake_control_task(void)
 		fake_ctrl.pos.val = (pos2_t){.x = current_point.x, .y = current_point.y, .a = target_pos.a};
 		k_mutex_unlock(&fake_ctrl.pos.lock);
 
-		snprintf(buffer, 256, "{\"pos\": {\"x\":%.2f, \"y\":%.2f}}", current_point.x,
-				 current_point.y);
+		snprintf(buffer, 256, "{\"pos\": {\"x\":%.2f, \"y\":%.2f, \"a\":%.2f}}", current_pos.x,
+				 current_pos.y, current_pos.a);
 		socket_send(buffer);
-		k_sleep(K_MSEC((uint64_t)CONTROL_PERIOD_MS));
+		k_sleep(K_USEC((uint64_t)(CONTROL_PERIOD_MS * 1000)));
 	}
 }
 
