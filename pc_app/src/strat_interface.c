@@ -4,17 +4,25 @@
 #include <zephyr/logging/log.h>
 #include <math.h>
 
+#include <stdio.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+
 LOG_MODULE_REGISTER(strat_interface);
 #define LOG_POS(pos) LOG_DBG("position<x: %3.2f,y: %3.2f,a: %3.2f>", (pos).x, (pos).y, (pos).a)
 
-#define CONTROL_PERIOD_MS	  2.0f
+#define CONTROL_PERIOD_MS	  10.0f
 #define CONTROL_MUTEX_TIMEOUT (K_MSEC(30))
+
+void socket_send(const char *string);
 
 typedef struct control {
 	bool start;
 	bool at_target;
 	LOCKVAR(pos2_t) pos;
 	LOCKVAR(pos2_t) target;
+	int socket_fd;
+	bool is_socket_connected;
 } control_t;
 control_t fake_ctrl;
 
@@ -108,6 +116,8 @@ int strat_put_layer(pos2_t plate_pos, uint8_t current_cake_height, k_timeout_t t
 
 void fake_control_task(void)
 {
+	const float speed = 2.5f * CONTROL_PERIOD_MS;
+	char buffer[256];
 	while (1) {
 		pos2_t current_pos, target_pos;
 		control_get_pos(&fake_ctrl, &current_pos);
@@ -119,7 +129,6 @@ void fake_control_task(void)
 
 		vec2_t norm = vec2_normalize(diff);
 
-		const float speed = 5.0f;
 		current_point.x += fminf(norm.dx * speed, diff.dx);
 		current_point.y += fminf(norm.dy * speed, diff.dy);
 
@@ -128,16 +137,52 @@ void fake_control_task(void)
 		}
 		control_set_pos(&fake_ctrl,
 						(pos2_t){.x = current_point.x, .y = current_point.y, .a = target_pos.a});
+
+		snprintf(buffer, 256, "{\"pos\": {\"x\":%.2f, \"y\":%.2f}}", current_point.x,
+				 current_point.y);
+		socket_send(buffer);
 		k_sleep(K_MSEC((uint64_t)CONTROL_PERIOD_MS));
 	}
 }
 
 K_THREAD_DEFINE(fake_control, 1024, fake_control_task, NULL, NULL, NULL, 5, 0, 0);
 
+void socket_init(void)
+{
+	struct sockaddr_un addr;
+
+	if ((fake_ctrl.socket_fd = socket(PF_UNIX, SOCK_DGRAM, 0)) < 0) {
+		LOG_ERR("Failed to open socket");
+		return;
+	}
+
+	memset(&addr, 0, sizeof(addr));
+	addr.sun_family = AF_UNIX;
+	strcpy(addr.sun_path, "/tmp/strat_visu_server.sock");
+	if (connect(fake_ctrl.socket_fd, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
+		LOG_ERR("Failed to connect to the socket");
+		return;
+	}
+
+	fake_ctrl.is_socket_connected = true;
+}
+
+void socket_send(const char *string)
+{
+	if (!fake_ctrl.is_socket_connected) {
+		return;
+	}
+	if (send(fake_ctrl.socket_fd, string, strlen(string), 0) == -1) {
+		LOG_ERR("Error while sending data on socket");
+	}
+}
+
 int fake_init(const struct device *dev)
 {
 	INIT_LOCKVAR(fake_ctrl.pos);
 	INIT_LOCKVAR(fake_ctrl.target);
+	socket_init();
+	socket_send("{\"init\": \"ok\"}");
 	return 0;
 }
 

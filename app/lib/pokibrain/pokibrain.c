@@ -190,7 +190,7 @@ void pokibrain_think(void)
 
 void pokibrain_run_next_task(void)
 {
-	// pokibrain_think_now();
+	pokibrain_think_now();
 }
 
 void pokibrain_task(void *arg1, void *arg2, void *arg3)
