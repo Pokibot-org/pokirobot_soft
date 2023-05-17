@@ -6,12 +6,12 @@
 #include "pokutils.h"
 
 typedef struct path_node {
-	struct path_node *parent_node;
-	struct path_node *child_node;
-	struct path_node *next_child_node;
-	point2_t coordinate;
-	uint8_t is_used;
-	float distance_to_start;
+    struct path_node *parent_node;
+    struct path_node *child_node;
+    struct path_node *next_child_node;
+    point2_t coordinate;
+    uint8_t is_used;
+    float distance_to_start;
 } path_node_t;
 
 /**
@@ -21,10 +21,10 @@ typedef struct path_node {
  * boundaries.y = 2000;
  */
 typedef struct boundaries {
-	float max_x;
-	float max_y;
-	float min_x;
-	float min_y;
+    float max_x;
+    float max_y;
+    float min_x;
+    float min_y;
 } boundaries_t;
 
 #endif

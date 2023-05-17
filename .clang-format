@@ -81,7 +81,7 @@ TabWidth: 4
 InsertBraces: true
 SpaceBeforeParens: ControlStatementsExceptControlMacros
 SortIncludes: Never
-UseTab: Always
+UseTab: Never
 WhitespaceSensitiveMacros:
   - STRINGIFY
   - Z_STRINGIFY

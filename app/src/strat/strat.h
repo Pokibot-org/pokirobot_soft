@@ -2,9 +2,9 @@
 #define STRAT_H
 
 enum team_color {
-	TEAM_COLOR_NONE,
-	TEAM_COLOR_BLUE,
-	TEAM_COLOR_GREEN,
+    TEAM_COLOR_NONE,
+    TEAM_COLOR_BLUE,
+    TEAM_COLOR_GREEN,
 };
 
 void strat_init(enum team_color color);

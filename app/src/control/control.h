@@ -10,40 +10,40 @@
 #define CONTROL_MUTEX_TIMEOUT (K_MSEC(30))
 
 #define CONTROL_PERIOD_MS 2.0f
-#define ROBOT_L			  160.404f
-#define WHEEL_PERIMETER	  358.142f
-#define MM_TO_USTEPS	  102657.14f
+#define ROBOT_L           160.404f
+#define WHEEL_PERIMETER   358.142f
+#define MM_TO_USTEPS      102657.14f
 
-#define PLANAR_VMAX	  700.0f // 200 mm/s
+#define PLANAR_VMAX   700.0f // 200 mm/s
 #define PLANAR_FACTOR (0.03f * PLANAR_VMAX)
-#define PLANAR_RAMP	  (0.5f * PLANAR_VMAX * CONTROL_PERIOD_MS / 1000.0f) // 2 seconds to reach vmax
+#define PLANAR_RAMP   (0.5f * PLANAR_VMAX * CONTROL_PERIOD_MS / 1000.0f) // 2 seconds to reach vmax
 
 #define ANGULAR_VMAX   (1.0f * M_PI) // 0.5 rotation/s
 #define ANGULAR_FACTOR (0.7f * ANGULAR_VMAX)
 #define ANGULAR_RAMP   (0.5f * ANGULAR_VMAX * CONTROL_PERIOD_MS / 1000.0f) // 1 seconds to reach vmax
 
-#define CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT  5.0f				// 5mm
+#define CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT  5.0f             // 5mm
 #define CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT DEG_TO_RAD(3.0f) // 3 deg
 
 typedef struct omni3 {
-	float v1;
-	float v2;
-	float v3;
+    float v1;
+    float v2;
+    float v3;
 } omni3_t;
 
 typedef struct control {
-	bool start;
-	bool start_init;
-	bool brake;
-	bool ready;
-	bool at_target;
-	float planar_target_sensivity;
-	float angular_target_sensivity;
-	LOCKVAR(pos2_t) pos;
-	LOCKVAR(pos2_t) target;
-	tmc2209_t *m1;
-	tmc2209_t *m2;
-	tmc2209_t *m3;
+    bool start;
+    bool start_init;
+    bool brake;
+    bool ready;
+    bool at_target;
+    float planar_target_sensivity;
+    float angular_target_sensivity;
+    LOCKVAR(pos2_t) pos;
+    LOCKVAR(pos2_t) target;
+    tmc2209_t *m1;
+    tmc2209_t *m2;
+    tmc2209_t *m3;
 } control_t;
 
 extern tmc2209_t train_motor_1;
@@ -70,8 +70,8 @@ vel2_t local_vel_from_omni(omni3_t omni);
 void control_task_wait_ready();
 bool control_task_wait_target(float planar_sensivity, float angular_sensivity, uint32_t timeout_ms);
 #define control_task_wait_target_default(_timeout_ms)                                              \
-	control_task_wait_target(CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT,                            \
-							 CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT, _timeout_ms)
+    control_task_wait_target(CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT,                            \
+                             CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT, _timeout_ms)
 
 void _test_gconf();
 void _test_motor_cmd();

@@ -8,13 +8,13 @@
 #define LED_PWM_PERIOD_NS 10000000 // 10ms - 100Hz
 
 typedef struct led {
-	struct pwm_dt_spec spec;
+    struct pwm_dt_spec spec;
 } led_t;
 
 typedef struct rgb {
-	led_t red;
-	led_t green;
-	led_t blue;
+    led_t red;
+    led_t green;
+    led_t blue;
 } rgb_t;
 
 int led_set(led_t *led, uint8_t val);
