@@ -30,7 +30,7 @@ class Board:
 
 class Robot:
     def __init__(self) -> None:
-        self.radius = 140
+        self.radius = 190
         self.pos = [0, 0]
         self.dir = 0
 

@@ -252,7 +252,7 @@ int get_layer_docking_pos(point2_t robot_point, point2_t layer_point, pos2_t *do
 
     dock_pos->x = layer_point.x - diff.dx * frac;
     dock_pos->y = layer_point.y - diff.dy * frac;
-    dock_pos->a = vec2_angle(diff, (vec2_t){.dx = 1.0f, .dy = 0.0f});
+    dock_pos->a = atan2f(diff.dy, diff.dx);
 
     return 0;
 }
@@ -443,8 +443,8 @@ void strat_init(enum team_color color)
     };
     world_context.team_color = (enum plate_color)color;
     pos2_t start_pos = world_context.team_color == PLATE_COLOR_BLUE
-                           ? CONVERT_POINT2_TO_POS2(plate_list[9].point, -M_PI_2)
-                           : CONVERT_POINT2_TO_POS2(plate_list[4].point, -M_PI_2);
+                           ? CONVERT_POINT2_TO_POS2(plate_list[7].point, 0)
+                           : CONVERT_POINT2_TO_POS2(plate_list[3].point, M_PI);
     strat_set_robot_pos(start_pos);
 
     memcpy(world_context.layer_list, layer_list, sizeof(layer_list));
