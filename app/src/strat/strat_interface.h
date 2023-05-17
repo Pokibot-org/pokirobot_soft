@@ -14,6 +14,7 @@ bool strat_wait_target(float planar_sensivity, float angular_sensivity, uint32_t
 #define strat_wait_target_default(_timeout_ms)                                                     \
     strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,                                     \
                       STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, _timeout_ms)
+void strat_force_motor_stop(void);
 
 int strat_move_robot_to(pos2_t pos, k_timeout_t timeout);
 

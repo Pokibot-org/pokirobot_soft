@@ -84,3 +84,8 @@ void nav_init(void)
 {
     obstacle_manager_init(collision_callback);
 }
+
+void nav_stop(void)
+{
+    obstacle_manager_kill();
+}

@@ -225,6 +225,7 @@ void obstacle_manager_init(obstacle_manager_collision_clbk fun)
 
 void obstacle_manager_kill(void)
 {
+    camsense_x1_kill();
     k_thread_suspend(obstacle_manager_thread);
     k_msgq_purge(&obs_man_obj.lidar_msgq);
 }

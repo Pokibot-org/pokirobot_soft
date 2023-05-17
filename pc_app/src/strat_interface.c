@@ -24,6 +24,7 @@ typedef struct control {
     LOCKVAR(pos2_t) target;
     int socket_fd;
     bool is_socket_connected;
+    bool running;
 } control_t;
 control_t fake_ctrl;
 
@@ -97,6 +98,11 @@ bool strat_wait_target(float planar_sensivity, float angular_sensivity, uint32_t
     return fake_ctrl.at_target;
 }
 
+void strat_force_motor_stop(void)
+{
+    fake_ctrl.running = false;
+}
+
 int strat_move_robot_to(pos2_t pos, k_timeout_t timeout)
 {
     if (!fake_ctrl.start) {
@@ -131,7 +137,8 @@ void fake_control_task(void)
     const float speed = CONTROL_SPEED / (CONTROL_PERIOD_MS * 1000.0f);
     const float precision = speed + 0.1;
     char buffer[256];
-    while (1) {
+    fake_ctrl.running = true;
+    while (fake_ctrl.running) {
         pos2_t current_pos, target_pos;
         control_get_target(&fake_ctrl, &target_pos);
         k_mutex_lock(&fake_ctrl.pos.lock, K_MSEC(100));

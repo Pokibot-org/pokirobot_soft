@@ -21,9 +21,14 @@ int strat_set_target(pos2_t pos)
     return control_set_target(&shared_ctrl, pos);
 }
 
-bool start_wait_target(float planar_sensivity, float angular_sensivity, uint32_t timeout_ms)
+bool strat_wait_target(float planar_sensivity, float angular_sensivity, uint32_t timeout_ms)
 {
     return control_task_wait_target(planar_sensivity, angular_sensivity, timeout_ms);
+}
+
+void strat_force_motor_stop(void)
+{
+    control_force_motor_stop();
 }
 
 int strat_move_robot_to(pos2_t pos, k_timeout_t timeout)

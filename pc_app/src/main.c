@@ -8,11 +8,11 @@ LOG_MODULE_REGISTER(main);
 
 void main(void)
 {
-	LOG_INF("BOOTING !\n");
+    LOG_INF("BOOTING !\n");
 
-	strat_init(TEAM_COLOR_BLUE);
-	strat_run();
-	while (1) {
-		k_sleep(K_MSEC(1000));
-	}
+    strat_init(TEAM_COLOR_BLUE);
+    strat_run();
+    while (1) {
+        k_sleep(K_MSEC(1000));
+    }
 }
