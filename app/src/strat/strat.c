@@ -253,7 +253,7 @@ uint32_t calculate_score(struct pokibrain_user_context *ctx)
 
 int get_layer_docking_pos(point2_t robot_point, point2_t layer_point, pos2_t *dock_pos)
 {
-    const float docking_dist = ROBOT_RADIUS + CAKE_LAYER_RADIUS + 10;
+    const float docking_dist = ROBOT_RADIUS + CAKE_LAYER_RADIUS;
     float segment_len = vec2_distance(robot_point, layer_point);
     float frac = docking_dist / segment_len;
     vec2_t diff = point2_diff(layer_point, robot_point);
@@ -504,7 +504,7 @@ int pokibrain_completion_push_cake_layer_in_plate(struct pokibrain_callback_para
     LOG_DBG("COMPLETION %s", __func__);
     struct pokibrain_user_context *ctx = params->world_context;
     struct plate *target_plate = &ctx->plate_list[ctx->precompute.push.plate_index];
-    add_layer_to_plate(target_plate, &ctx->layer_list[ctx->index_held_layer]);
+    add_layer_to_plate(target_plate, &ctx->layer_list[ctx->precompute.push.layer_index]);
     return 0;
 }
 
