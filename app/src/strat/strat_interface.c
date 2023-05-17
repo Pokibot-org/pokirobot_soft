@@ -1,6 +1,11 @@
 #include "strat_interface.h"
 #include "control/control.h"
 
+int strat_set_robot_brake(bool brake)
+{
+    return control_set_brake(&shared_ctrl, brake);
+}
+
 int strat_get_robot_pos(pos2_t *pos)
 {
     return control_get_pos(&shared_ctrl, pos);
@@ -9,6 +14,16 @@ int strat_get_robot_pos(pos2_t *pos)
 int strat_set_robot_pos(pos2_t pos)
 {
     return control_set_pos(&shared_ctrl, pos);
+}
+
+int strat_set_target(pos2_t pos)
+{
+    return control_set_target(&shared_ctrl, pos);
+}
+
+bool start_wait_target(float planar_sensivity, float angular_sensivity, uint32_t timeout_ms)
+{
+    return control_task_wait_target(planar_sensivity, angular_sensivity, timeout_ms);
 }
 
 int strat_move_robot_to(pos2_t pos, k_timeout_t timeout)

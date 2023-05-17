@@ -3,7 +3,7 @@
 #include <math.h>
 #include <zephyr/kernel.h>
 
-#include "control/control.h"
+#include "strat/strat_interface.h"
 #include "lidar/camsense_x1/camsense_x1.h"
 #include "pokutils.h"
 #include <zephyr/logging/log.h>
@@ -71,7 +71,7 @@ uint8_t process_point(obstacle_manager_t *obj, uint16_t point_distance, float po
         .data.circle.radius = 0 // FIXME: remove the magic number
     };
     pos2_t actual_robot_pos;
-    control_get_pos(&shared_ctrl, &actual_robot_pos);
+    strat_get_robot_pos(&actual_robot_pos);
 
     // LOG_INF("IN PROCESS POINT: angle: %f, distance: %d", point_angle,
     // point_distance);

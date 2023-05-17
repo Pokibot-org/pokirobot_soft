@@ -8,6 +8,7 @@
 // https://github.com/zephyrproject-rtos/zephyr/blob/main/lib/libc/minimal/include/math.h
 #define MAXFLOAT 3.40282347e+38F
 
+#if !(defined __USE_MISC || defined __USE_XOPEN)
 #define M_E        2.7182818284590452354
 #define M_LOG2E    1.4426950408889634074
 #define M_LOG10E   0.43429448190325182765
@@ -22,6 +23,7 @@
 #define M_SQRT2    1.41421356237309504880
 #define M_SQRT1_2  0.70710678118654752440
 #define M_SQRT3    1.73205080756887729352
+#endif
 
 #define DEG_TO_RAD(_rad) (_rad * 180.0f / M_PI)
 

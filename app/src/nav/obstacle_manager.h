@@ -2,9 +2,7 @@
 #define OBSTACLE_MANAGER_H
 #include "stdbool.h"
 #include "obstacles/obstacle.h"
-
-#define ROBOT_MAX_RADIUS_MM 155
-#define ROBOT_MIN_RADIUS_MM 50
+#include "global_def.h"
 
 typedef void (*obstacle_manager_collision_clbk)(bool collision);
 

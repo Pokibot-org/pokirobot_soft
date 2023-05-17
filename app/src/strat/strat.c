@@ -4,6 +4,7 @@
 #include "strat_interface.h"
 #include "pokutils.h"
 #include <stdint.h>
+#include "nav/nav.h"
 
 LOG_MODULE_REGISTER(strategy);
 
@@ -284,7 +285,7 @@ int pokibrain_task_grab_cake_layer(struct pokibrain_callback_params *params)
     struct pokibrain_user_context *ctx = params->world_context;
 
     pos2_t layer_pos = ctx->precompute.grab.dock_pos;
-    if (strat_move_robot_to(layer_pos, K_SECONDS(10))) {
+    if (nav_go_to_with_pathfinding(layer_pos)) {
         return -1;
     }
 
@@ -351,7 +352,7 @@ int pokibrain_task_put_cake_layer_in_plate(struct pokibrain_callback_params *par
     struct plate *plate = &ctx->plate_list[ctx->precompute.put.plate_index];
 
     pos2_t plate_pos = ctx->precompute.put.dock_pos;
-    if (strat_move_robot_to(plate_pos, K_SECONDS(10))) {
+    if (nav_go_to_with_pathfinding(plate_pos)) {
         return -1;
     }
 
@@ -483,6 +484,8 @@ void strat_init(enum team_color color)
          .id = 1}};
     pokibrain_init(tasks, sizeof(tasks) / sizeof(tasks[0]), &world_context,
                    sizeof(struct pokibrain_user_context), strat_pre_think, strat_end_game_clbk);
+
+    nav_init();
 }
 
 void strat_run(void)

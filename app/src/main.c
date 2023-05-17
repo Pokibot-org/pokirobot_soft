@@ -121,7 +121,7 @@ void match_init()
     }
     ret = gpio_pin_configure_dt(&sw_power, GPIO_INPUT);
     if (ret < 0) {
-        LOG_ERR("failed to init sw_poser");
+        LOG_ERR("failed to init sw_power");
         goto exit;
     }
     if (!device_is_ready(led.port)) {

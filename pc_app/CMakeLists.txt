@@ -16,6 +16,9 @@ target_sources(app PRIVATE
     ../app/lib/obstacles/obstacle.c
     ../app/lib/pathfinding/pathfinding.c
     ../app/lib/pokutils/robot_utils.c
+    ../app/src/nav/obstacle_manager.c
+    ../app/src/nav/path_manager.c
+    ../app/src/nav/nav.c
     ../app/src/pokutils.c
     ../app/src/strat/strat.c
     )
