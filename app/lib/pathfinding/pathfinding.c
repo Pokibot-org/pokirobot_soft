@@ -330,6 +330,14 @@ int pathfinding_find_path(pathfinding_object_t *obj, obstacle_holder_t *ob_hold,
         return PATHFINDING_ERROR_WRONG_INPUTS;
     }
 
+    if (!check_collision(obj, ob_hold, start, end)) {
+        LOG_DBG("Direct path");
+        path_node_t *current_node = allocate_new_node(obj);
+        init_current_node(current_node, &obj->nodes[0], end);
+        *end_node = current_node;
+        return PATHFINDING_ERROR_NONE;
+    }
+
     while (1) {
         path_node_t *current_node = allocate_new_node(obj);
         if (!current_node) {
