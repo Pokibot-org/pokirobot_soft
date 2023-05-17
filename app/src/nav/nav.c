@@ -9,6 +9,7 @@ LOG_MODULE_REGISTER(nav);
 
 #define MAX_PATH_SIZE 256
 point2_t path[MAX_PATH_SIZE];
+pos2_t path_pos[MAX_PATH_SIZE];
 uint16_t path_size = 0;
 K_SEM_DEFINE(path_found_sem, 0, 1);
 
@@ -25,6 +26,15 @@ void path_found_clbk(const path_node_t *node, void *user_data)
     }
 
     k_sem_give(&path_found_sem);
+}
+
+void revert_path_and_add_angle(point2_t *path, pos2_t *path_pos, int path_len, float a)
+{
+    for (size_t i = 0; i < path_len; i++) {
+        path_pos[i].x = path[path_len - i - 1].x;
+        path_pos[i].y = path[path_len - i - 1].y;
+        path_pos[i].a = a;
+    }
 }
 
 int nav_go_to_with_pathfinding(pos2_t end_pos, obstacle_t *obstacle_list, uint8_t obstacle_list_len)
@@ -53,22 +63,21 @@ int nav_go_to_with_pathfinding(pos2_t end_pos, obstacle_t *obstacle_list, uint8_
     }
     LOG_INF("Waiting for path to be found");
     if (k_sem_take(&path_found_sem, K_SECONDS(5))) {
+        LOG_WRN("No path found, timeout");
+        return -2;
+    }
+
+    if (path_size == 0) {
         LOG_WRN("No path found");
         return -2;
     }
 
     LOG_INF("Path found of size %u", path_size);
-    for (int16_t i = path_size - 1; i >= 0; i--) {
-        pos2_t next_pos;
-        next_pos.a = end_pos.a;
-        next_pos.x = path[i].x;
-        next_pos.y = path[i].y;
-        LOG_INF("Go to point %d, x: %f, y: %f", i, next_pos.x, next_pos.y);
-        strat_set_target(next_pos);
-        strat_wait_target(100.0f, M_PI / 4.0f, 5000);
-    }
+    revert_path_and_add_angle(path, path_pos, path_size, end_pos.a);
+    strat_set_waypoints(path_pos, path_size);
     strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
                       STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 5000);
+
     return 0;
 }
 

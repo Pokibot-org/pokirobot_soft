@@ -18,7 +18,12 @@ int strat_set_robot_pos(pos2_t pos)
 
 int strat_set_target(pos2_t pos)
 {
-    return control_set_target(&shared_ctrl, pos);
+    return control_set_waypoints(&shared_ctrl, &pos, 1);
+}
+
+int strat_set_waypoints(pos2_t *pos_list, int n)
+{
+    return control_set_waypoints(&shared_ctrl, pos_list, n);
 }
 
 bool strat_wait_target(float planar_sensivity, float angular_sensivity, uint32_t timeout_ms)

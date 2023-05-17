@@ -85,6 +85,12 @@ int strat_set_target(pos2_t pos)
     return control_set_target(&fake_ctrl, pos);
 }
 
+int strat_set_waypoints(pos2_t *pos_list, int n)
+{
+    control_set_target(&fake_ctrl, pos_list[n - 1]);
+    return 0;
+}
+
 bool strat_wait_target(float planar_sensivity, float angular_sensivity, uint32_t timeout_ms)
 {
     fake_ctrl.at_target = false;

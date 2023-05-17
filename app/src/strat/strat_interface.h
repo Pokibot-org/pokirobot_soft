@@ -10,6 +10,7 @@ int strat_set_robot_brake(bool brake);
 int strat_get_robot_pos(pos2_t *pos);
 int strat_set_robot_pos(pos2_t pos);
 int strat_set_target(pos2_t pos);
+int strat_set_waypoints(pos2_t *pos_list, int n);
 bool strat_wait_target(float planar_sensivity, float angular_sensivity, uint32_t timeout_ms);
 #define strat_wait_target_default(_timeout_ms)                                                     \
     strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,                                     \

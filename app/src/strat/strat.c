@@ -462,6 +462,7 @@ int get_layers_as_obstacle(struct pokibrain_user_context *ctx, obstacle_t *obsta
                                         .data.circle.coordinates = ctx->layer_list[i].point,
                                         .data.circle.radius = CAKE_LAYER_RADIUS};
     }
+    return ARRAY_SIZE(layer_list);
 }
 
 int pokibrain_task_push_cake_layer_in_plate(struct pokibrain_callback_params *params)
