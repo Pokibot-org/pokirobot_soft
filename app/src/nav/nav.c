@@ -7,7 +7,7 @@
 
 LOG_MODULE_REGISTER(nav);
 
-#define MAX_PATH_SIZE 1000
+#define MAX_PATH_SIZE 256
 point2_t path[MAX_PATH_SIZE];
 uint16_t path_size = 0;
 K_SEM_DEFINE(path_found_sem, 0, 1);

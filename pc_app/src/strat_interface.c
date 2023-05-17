@@ -109,7 +109,7 @@ int strat_move_robot_to(pos2_t pos, k_timeout_t timeout)
         fake_ctrl.start = true;
     }
 
-    LOG_ERR("pos.a %f", pos.a);
+    LOG_DBG("pos.a %f", pos.a);
     if (strat_set_target(pos)) {
         return -1;
     }

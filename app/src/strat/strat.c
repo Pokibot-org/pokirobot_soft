@@ -126,6 +126,13 @@ struct put_layer_precompute_storage {
     pos2_t dock_pos;
 };
 
+struct push_layer_precompute_storage {
+    uint8_t plate_index;
+    uint8_t layer_index;
+    pos2_t push_dock_pos;
+    pos2_t deposit_pos;
+};
+
 struct pokibrain_user_context {
     pos2_t robot_pos;
     enum plate_color team_color;
@@ -138,6 +145,7 @@ struct pokibrain_user_context {
     union {
         struct grab_layer_precompute_storage grab;
         struct put_layer_precompute_storage put;
+        struct push_layer_precompute_storage push;
     } precompute;
 };
 
@@ -253,6 +261,25 @@ int get_layer_docking_pos(point2_t robot_point, point2_t layer_point, pos2_t *do
     dock_pos->x = layer_point.x - diff.dx * frac;
     dock_pos->y = layer_point.y - diff.dy * frac;
     dock_pos->a = atan2f(diff.dy, diff.dx);
+
+    return 0;
+}
+
+int get_aligned_plate_layer_docking_pos(point2_t plate_point, point2_t layer_point,
+                                        pos2_t *dock_pos)
+{
+    const float docking_dist = ROBOT_RADIUS + CAKE_LAYER_RADIUS + 10;
+    vec2_t diff = vec2_normalize(point2_diff(layer_point, plate_point));
+
+    dock_pos->x = layer_point.x + diff.dx * docking_dist;
+    dock_pos->y = layer_point.y + diff.dy * docking_dist;
+    dock_pos->a = atan2f(diff.dy, diff.dx);
+    LOG_DBG("plate x,y %f,%f | layer x,y %f,%f | dock_pos x,y %f,%f", plate_point.x, plate_point.y,
+            layer_point.x, layer_point.y, dock_pos->x, dock_pos->y);
+    if (dock_pos->x - ROBOT_RADIUS < 0 || dock_pos->y - ROBOT_RADIUS < 0 ||
+        dock_pos->x + ROBOT_RADIUS > BOARD_SIZE_X || dock_pos->y + ROBOT_RADIUS > BOARD_SIZE_Y) {
+        return -1;
+    }
 
     return 0;
 }
@@ -397,6 +424,78 @@ int pokibrain_completion_put_cake_layer_in_plate(struct pokibrain_callback_param
     return 0;
 }
 
+// PUSH CAKE
+
+int pokibrain_precompute_push_cake_layer_in_plate(struct pokibrain_callback_params *params)
+{
+    LOG_DBG("PRECOMPUTE %s", __func__);
+    struct pokibrain_user_context *ctx = params->world_context;
+
+    if (get_closest_available_plate_index(ctx, &ctx->precompute.push.plate_index)) {
+        return INT32_MIN;
+    }
+    enum layer_color color = (enum layer_color)params->self->id;
+
+    if (get_closest_available_cake_layer_index(ctx, color, &ctx->precompute.push.layer_index)) {
+        return INT32_MIN;
+    }
+
+    if (get_aligned_plate_layer_docking_pos(ctx->plate_list[ctx->precompute.push.plate_index].point,
+                                            ctx->layer_list[ctx->precompute.push.layer_index].point,
+                                            &ctx->precompute.push.push_dock_pos)) {
+        return INT32_MIN;
+    }
+
+    if (get_layer_docking_pos(ctx->layer_list[ctx->precompute.push.layer_index].point,
+                              ctx->plate_list[ctx->precompute.push.plate_index].point,
+                              &ctx->precompute.push.deposit_pos)) {
+        return INT32_MIN;
+    }
+
+    return 0;
+}
+
+int pokibrain_task_push_cake_layer_in_plate(struct pokibrain_callback_params *params)
+{
+    LOG_INF("RUNNING %s", __func__);
+    struct pokibrain_user_context *ctx = params->world_context;
+    // struct plate *plate = &ctx->plate_list[ctx->precompute.push.layer_index];
+
+    if (nav_go_to_with_pathfinding(ctx->precompute.push.push_dock_pos)) {
+        return -1;
+    }
+
+    if (strat_move_robot_to(ctx->precompute.push.deposit_pos, K_SECONDS(4))) {
+        return -1;
+    }
+
+    return 0;
+}
+
+int32_t
+pokibrain_reward_calculation_push_cake_layer_in_plate(struct pokibrain_callback_params *params)
+{
+    LOG_DBG("REWARD CALC %s", __func__);
+    struct pokibrain_user_context *ctx = params->world_context;
+    struct plate target_plate = ctx->plate_list[ctx->precompute.push.plate_index];
+
+    add_layer_to_plate(&target_plate, &ctx->layer_list[ctx->precompute.push.layer_index]);
+    int32_t score = 1 * target_plate.cake_size + is_golden_recipe(&target_plate) * 4 +
+                    (target_plate.cake_layer_colors[0] == LAYER_COLOR_BROWN) +
+                    (target_plate.cake_layer_colors[1] == LAYER_COLOR_YELLOW) +
+                    (target_plate.cake_layer_colors[2] == LAYER_COLOR_PINK);
+    return OFFSET_SCORE(score);
+}
+
+int pokibrain_completion_push_cake_layer_in_plate(struct pokibrain_callback_params *params)
+{
+    LOG_DBG("COMPLETION %s", __func__);
+    struct pokibrain_user_context *ctx = params->world_context;
+    struct plate *target_plate = &ctx->plate_list[ctx->precompute.push.plate_index];
+    add_layer_to_plate(target_plate, &ctx->layer_list[ctx->index_held_layer]);
+    return 0;
+}
+
 /**
  * We need :
  * - grab a slice
@@ -453,41 +552,67 @@ void strat_init(enum team_color color)
 
     static struct pokibrain_task tasks[] = {
         {
-            .name = "grab brown",
-            .task_precompute = pokibrain_precompute_grab_cake_layer,
-            .reward_calculation = pokibrain_reward_calculation_grab_cake_layer,
-            .task_process = pokibrain_task_grab_cake_layer,
-            .completion_callback = pokibrain_completion_grab_cake_layer,
+            .name = "push",
+            .task_precompute = pokibrain_precompute_push_cake_layer_in_plate,
+            .reward_calculation = pokibrain_reward_calculation_push_cake_layer_in_plate,
+            .task_process = pokibrain_task_push_cake_layer_in_plate,
+            .completion_callback = pokibrain_completion_push_cake_layer_in_plate,
             .id = (uint32_t)LAYER_COLOR_BROWN,
         },
         {
-            .name = "grab pink",
-            .task_precompute = pokibrain_precompute_grab_cake_layer,
-            .reward_calculation = pokibrain_reward_calculation_grab_cake_layer,
-            .task_process = pokibrain_task_grab_cake_layer,
-            .completion_callback = pokibrain_completion_grab_cake_layer,
-            .id = (uint32_t)LAYER_COLOR_PINK,
-        },
-        {
-            .name = "grab yellow",
-            .task_precompute = pokibrain_precompute_grab_cake_layer,
-            .reward_calculation = pokibrain_reward_calculation_grab_cake_layer,
-            .task_process = pokibrain_task_grab_cake_layer,
-            .completion_callback = pokibrain_completion_grab_cake_layer,
+            .name = "push",
+            .task_precompute = pokibrain_precompute_push_cake_layer_in_plate,
+            .reward_calculation = pokibrain_reward_calculation_push_cake_layer_in_plate,
+            .task_process = pokibrain_task_push_cake_layer_in_plate,
+            .completion_callback = pokibrain_completion_push_cake_layer_in_plate,
             .id = (uint32_t)LAYER_COLOR_YELLOW,
         },
-        {.name = "put empty plate",
-         .task_precompute = pokibrain_precompute_put_cake_layer_in_plate,
-         .reward_calculation = pokibrain_reward_calculation_put_cake_layer_in_plate,
-         .task_process = pokibrain_task_put_cake_layer_in_plate,
-         .completion_callback = pokibrain_completion_put_cake_layer_in_plate,
-         .id = 0},
-        {.name = "put in build plate",
-         .task_precompute = pokibrain_precompute_put_cake_layer_in_plate,
-         .reward_calculation = pokibrain_reward_calculation_put_cake_layer_in_plate,
-         .task_process = pokibrain_task_put_cake_layer_in_plate,
-         .completion_callback = pokibrain_completion_put_cake_layer_in_plate,
-         .id = 1}};
+        {
+            .name = "push",
+            .task_precompute = pokibrain_precompute_push_cake_layer_in_plate,
+            .reward_calculation = pokibrain_reward_calculation_push_cake_layer_in_plate,
+            .task_process = pokibrain_task_push_cake_layer_in_plate,
+            .completion_callback = pokibrain_completion_push_cake_layer_in_plate,
+            .id = (uint32_t)LAYER_COLOR_PINK,
+        },
+        /*
+{
+.name = "grab brown",
+.task_precompute = pokibrain_precompute_grab_cake_layer,
+.reward_calculation = pokibrain_reward_calculation_grab_cake_layer,
+.task_process = pokibrain_task_grab_cake_layer,
+.completion_callback = pokibrain_completion_grab_cake_layer,
+.id = (uint32_t)LAYER_COLOR_BROWN,
+},
+{
+.name = "grab pink",
+.task_precompute = pokibrain_precompute_grab_cake_layer,
+.reward_calculation = pokibrain_reward_calculation_grab_cake_layer,
+.task_process = pokibrain_task_grab_cake_layer,
+.completion_callback = pokibrain_completion_grab_cake_layer,
+.id = (uint32_t)LAYER_COLOR_PINK,
+},
+{
+.name = "grab yellow",
+.task_precompute = pokibrain_precompute_grab_cake_layer,
+.reward_calculation = pokibrain_reward_calculation_grab_cake_layer,
+.task_process = pokibrain_task_grab_cake_layer,
+.completion_callback = pokibrain_completion_grab_cake_layer,
+.id = (uint32_t)LAYER_COLOR_YELLOW,
+},
+{.name = "put empty plate",
+.task_precompute = pokibrain_precompute_put_cake_layer_in_plate,
+.reward_calculation = pokibrain_reward_calculation_put_cake_layer_in_plate,
+.task_process = pokibrain_task_put_cake_layer_in_plate,
+.completion_callback = pokibrain_completion_put_cake_layer_in_plate,
+.id = 0},
+{.name = "put in build plate",
+.task_precompute = pokibrain_precompute_put_cake_layer_in_plate,
+.reward_calculation = pokibrain_reward_calculation_put_cake_layer_in_plate,
+.task_process = pokibrain_task_put_cake_layer_in_plate,
+.completion_callback = pokibrain_completion_put_cake_layer_in_plate,
+.id = 1}*/
+    };
     pokibrain_init(tasks, sizeof(tasks) / sizeof(tasks[0]), &world_context,
                    sizeof(struct pokibrain_user_context), strat_pre_think, strat_end_game_clbk);
 
