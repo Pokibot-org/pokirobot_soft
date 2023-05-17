@@ -97,7 +97,8 @@ static void path_manager_task(void *p0, void *p1, void *p2)
 
 // PUBLIC FUN
 // #define TEST
-uint8_t path_manager_find_path(point2_t start, point2_t end, path_manager_config_t config)
+uint8_t path_manager_find_path(point2_t start, point2_t end, obstacle_t *obstacle_list,
+                               uint8_t obstacle_list_len, path_manager_config_t config)
 {
 
     if (config.found_path_clbk == NULL) {
@@ -134,6 +135,15 @@ uint8_t path_manager_find_path(point2_t start, point2_t end, path_manager_config
 #else
     obstacle_manager_get_obstacle_snapshot(&pm_obj.obstacle_hold);
 #endif
+
+    if (obstacle_list) {
+        for (size_t i = 0; i < obstacle_list_len; i++) {
+            int ret = obstacle_holder_push(&pm_obj.obstacle_hold, &obstacle_list[i]);
+            if (ret) {
+                LOG_WRN("No space");
+            }
+        }
+    }
     pathfinding_configuration_t pathfinding_config;
     pathfinding_config.field_boundaries.min_x = 0;
     pathfinding_config.field_boundaries.min_y = 0;

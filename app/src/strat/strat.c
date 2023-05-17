@@ -312,7 +312,7 @@ int pokibrain_task_grab_cake_layer(struct pokibrain_callback_params *params)
     struct pokibrain_user_context *ctx = params->world_context;
 
     pos2_t layer_pos = ctx->precompute.grab.dock_pos;
-    if (nav_go_to_with_pathfinding(layer_pos)) {
+    if (nav_go_to_with_pathfinding(layer_pos, NULL, 0)) {
         return -1;
     }
 
@@ -379,7 +379,7 @@ int pokibrain_task_put_cake_layer_in_plate(struct pokibrain_callback_params *par
     struct plate *plate = &ctx->plate_list[ctx->precompute.put.plate_index];
 
     pos2_t plate_pos = ctx->precompute.put.dock_pos;
-    if (nav_go_to_with_pathfinding(plate_pos)) {
+    if (nav_go_to_with_pathfinding(plate_pos, NULL, 0)) {
         return -1;
     }
 
@@ -455,13 +455,24 @@ int pokibrain_precompute_push_cake_layer_in_plate(struct pokibrain_callback_para
     return 0;
 }
 
+int get_layers_as_obstacle(struct pokibrain_user_context *ctx, obstacle_t *obstacle_list)
+{
+    for (size_t i = 0; i < ARRAY_SIZE(layer_list); i++) {
+        obstacle_list[i] = (obstacle_t){.type = obstacle_type_circle,
+                                        .data.circle.coordinates = ctx->layer_list[i].point,
+                                        .data.circle.radius = CAKE_LAYER_RADIUS};
+    }
+}
+
 int pokibrain_task_push_cake_layer_in_plate(struct pokibrain_callback_params *params)
 {
     LOG_INF("RUNNING %s", __func__);
     struct pokibrain_user_context *ctx = params->world_context;
     // struct plate *plate = &ctx->plate_list[ctx->precompute.push.layer_index];
 
-    if (nav_go_to_with_pathfinding(ctx->precompute.push.push_dock_pos)) {
+    obstacle_t obstacles[ARRAY_SIZE(layer_list)];
+    int nb_obstacles = get_layers_as_obstacle(ctx, obstacles);
+    if (nav_go_to_with_pathfinding(ctx->precompute.push.push_dock_pos, obstacles, nb_obstacles)) {
         return -1;
     }
 

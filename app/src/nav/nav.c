@@ -27,7 +27,7 @@ void path_found_clbk(const path_node_t *node, void *user_data)
     k_sem_give(&path_found_sem);
 }
 
-int nav_go_to_with_pathfinding(pos2_t end_pos)
+int nav_go_to_with_pathfinding(pos2_t end_pos, obstacle_t *obstacle_list, uint8_t obstacle_list_len)
 {
     LOG_INF("Lauching pathfinding");
     path_manager_config_t path_config;
@@ -46,7 +46,7 @@ int nav_go_to_with_pathfinding(pos2_t end_pos)
 
     LOG_INF("From x:%f, y:%f |To x:%f, y:%f", start.x, start.y, end.x, end.y);
     k_sem_take(&path_found_sem, K_NO_WAIT);
-    uint8_t err = path_manager_find_path(start, end, path_config);
+    uint8_t err = path_manager_find_path(start, end, obstacle_list, obstacle_list_len, path_config);
     if (err) {
         LOG_ERR("problem when launching pathfinding %u", err);
         return -1;

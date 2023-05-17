@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 #include "pathfinding/pathfinding_types.h"
+#include "obstacles/obstacle.h"
 
 typedef void (*path_manager_found_path_clbk)(const path_node_t *, void *); // void * == user data
 typedef void (*path_manager_found_updated_path_clbk)(const path_node_t *, void *);
@@ -22,7 +23,8 @@ typedef struct path_manager_config {
     void *user_config;
 } path_manager_config_t;
 
-uint8_t path_manager_find_path(point2_t start, point2_t end, path_manager_config_t config);
+uint8_t path_manager_find_path(point2_t start, point2_t end, obstacle_t *obstacle_list,
+                               uint8_t obstacle_list_len, path_manager_config_t config);
 uint16_t path_manager_retrieve_path(point2_t *array, uint32_t array_size,
                                     point2_t **ptr_array_start, const path_node_t *end_node);
 #endif
