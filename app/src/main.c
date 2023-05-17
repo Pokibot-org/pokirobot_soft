@@ -97,11 +97,11 @@ int main(void)
     // _test_target();
     // _test_calibration_distance();
     // _test_calibration_angle();
-    // _test_calibration_mix();
+    _test_calibration_mix();
     // _test_connerie();
     // _test_pathfinding();
 
-    match_1();
+    // match_1();
 
     return 0;
 }

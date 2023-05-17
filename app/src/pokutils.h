@@ -28,7 +28,7 @@
 #define DEG_TO_RAD(_rad) (_rad * 180.0f / M_PI)
 
 #define SIGNF(_val)     (signbit(_val) ? -1.0f : 1.0f)
-#define NEG_SQRTF(_val) (SIGNF(_val) * sqrtf(fabs(_val)))
+#define NEG_SQRTF(_val) (SIGNF(_val) * sqrtf(fabsf(_val)))
 
 #define LOCKVAR(_type)                                                                             \
     struct {                                                                                       \

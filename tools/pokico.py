@@ -16,7 +16,7 @@ ANGLE_VMAX = 2*pi # ~1tr/s
 ANGLE_FACTOR = 0.7 * ANGLE_VMAX
 ANGLE_RAMP = 2.0 * ANGLE_VMAX * INTERVAL # 1/seconds to reach vmax
 WAYPOINT_ACCURACY = 20.0 # 30mm
-DIST_BIAS_VAL = 200.0
+DIST_BIAS_VAL = 150.0
 
 
 class Pos:
@@ -223,7 +223,7 @@ def task_waypoints(target, waypoints, limit=10.0):
 
         # new corrected speed
         delta1 = Pos.diff(wp1, robot.pos)
-        delta2 = Pos.diff(wp2, robot.pos)
+        delta2 = Pos.diff(wp2, wp1)
         robot.wvel = world_vel_from_delta2(delta1, delta2, robot.wvel)
         robot.lvel = local_vel_from_world(robot.pos, robot.wvel)
         robot.omni = omni_from_vel(robot.lvel)

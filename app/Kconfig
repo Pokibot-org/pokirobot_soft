@@ -9,7 +9,7 @@ config CONTROL_TASK
     default y
 config CONTROL_THREAD_STACK
     int "stack size"
-    default 1024
+    default 2048
 config CONTROL_THREAD_PRIORITY
     int "thread priority"
     default 5

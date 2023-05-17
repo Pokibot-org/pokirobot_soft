@@ -8,13 +8,15 @@
 #include "pokutils.h"
 
 #define CONTROL_MUTEX_TIMEOUT (K_MSEC(30))
+#define CONTROL_WAYPOINTS_N   256
 
 #define CONTROL_PERIOD_MS 2.0f
 #define ROBOT_L           160.404f
 #define WHEEL_PERIMETER   358.142f
 #define MM_TO_USTEPS      102657.14f
+#define DIST_BIAS         200.0f
 
-#define PLANAR_VMAX   700.0f // 200 mm/s
+#define PLANAR_VMAX   700.0f // 700 mm/s
 #define PLANAR_FACTOR (0.03f * PLANAR_VMAX)
 #define PLANAR_RAMP   (0.5f * PLANAR_VMAX * CONTROL_PERIOD_MS / 1000.0f) // 2 seconds to reach vmax
 
@@ -24,6 +26,13 @@
 
 #define CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT  5.0f             // 5mm
 #define CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT DEG_TO_RAD(3.0f) // 3 deg
+
+typedef struct waypoints {
+    pos2_t* wps;
+    int n;
+    int idx;
+    struct k_mutex lock;
+} waypoints_t;
 
 typedef struct omni3 {
     float v1;
@@ -40,7 +49,7 @@ typedef struct control {
     float planar_target_sensivity;
     float angular_target_sensivity;
     LOCKVAR(pos2_t) pos;
-    LOCKVAR(pos2_t) target;
+    waypoints_t waypoints;
     tmc2209_t *m1;
     tmc2209_t *m2;
     tmc2209_t *m3;
@@ -52,16 +61,16 @@ extern tmc2209_t train_motor_3;
 extern control_t shared_ctrl;
 
 int control_set_pos(control_t *dev, pos2_t pos);
-int control_set_target(control_t *dev, pos2_t target);
 int control_set_brake(control_t *dev, bool brake);
+int control_set_waypoints(control_t *dev, pos2_t* src, int n);
 int control_get_pos(control_t *dev, pos2_t *pos);
-int control_get_target(control_t *dev, pos2_t *target);
 
 int control_init(control_t *dev, tmc2209_t *m1, tmc2209_t *m2, tmc2209_t *m3);
 
 void control_force_motor_stop(void);
 
 vel2_t world_vel_from_delta(pos2_t delta, vel2_t prev_vel);
+vel2_t world_vel_from_delta2(pos2_t delta1, pos2_t delta2, vel2_t prev_vel);
 vel2_t local_vel_from_world(pos2_t pos, vel2_t world_vel);
 vel2_t world_vel_from_local(pos2_t pos, vel2_t local_vel);
 omni3_t omni_from_local_vel(vel2_t local_vel);
