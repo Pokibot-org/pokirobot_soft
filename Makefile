@@ -16,6 +16,8 @@ build_pc_app:
 run_pc_app:
 	./build-pc-app/zephyr/zephyr.elf
 
+run_pc_gui:
+	python tools/strat_visualizer/src/main.py
 rebuild:
 	west build -b nucleo_f446re app --pristine
 
