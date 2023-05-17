@@ -2,6 +2,7 @@
 #define POKUTILS_H
 
 #include <zephyr/kernel.h>
+#include <math.h>
 
 // needed with newlib
 // https://github.com/zephyrproject-rtos/zephyr/blob/main/lib/libc/minimal/include/math.h
@@ -23,6 +24,9 @@
 #define M_SQRT3	   1.73205080756887729352
 
 #define DEG_TO_RAD(_rad) (_rad * 180.0f / M_PI)
+
+#define SIGNF(_val)		(signbit(_val) ? -1.0f : 1.0f)
+#define NEG_SQRTF(_val) (SIGNF(_val) * sqrtf(fabs(_val)))
 
 #define LOCKVAR(_type)                                                                             \
 	struct {                                                                                       \

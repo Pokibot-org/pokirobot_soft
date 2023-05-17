@@ -34,7 +34,6 @@ extern "C" {
 struct kdtree;
 struct kdres;
 
-
 /* create a kd-tree for "k"-dimensional data */
 struct kdtree *kd_create(int k);
 
@@ -48,7 +47,7 @@ void kd_clear(struct kdtree *tree);
  * will be called on data pointers (see kd_insert) when nodes
  * are to be removed from the tree.
  */
-void kd_data_destructor(struct kdtree *tree, void (*destr)(void*));
+void kd_data_destructor(struct kdtree *tree, void (*destr)(void *));
 
 /* insert a node, specifying its position, and optional data */
 int kd_insert(struct kdtree *tree, const double *pos, void *data);
@@ -121,9 +120,8 @@ void *kd_res_item3f(struct kdres *set, float *x, float *y, float *z);
 /* equivalent to kd_res_item(set, 0) */
 void *kd_res_item_data(struct kdres *set);
 
-
 #ifdef __cplusplus
 }
 #endif
 
-#endif	/* _KDTREE_H_ */
+#endif /* _KDTREE_H_ */

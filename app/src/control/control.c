@@ -112,8 +112,8 @@ void control_force_motor_stop(void)
 vel2_t world_vel_from_delta(pos2_t delta, vel2_t prev_vel)
 {
 	// planar speed capping + acceleration ramp
-	float vx = PLANAR_FACTOR * delta.x;
-	float vy = PLANAR_FACTOR * delta.y;
+	float vx = PLANAR_FACTOR * NEG_SQRTF(delta.x);
+	float vy = PLANAR_FACTOR * NEG_SQRTF(delta.y);
 	const float planar_speed = sqrtf(vx * vx + vy * vy);
 	const float planar_speed_prev = sqrtf(prev_vel.vx * prev_vel.vx + prev_vel.vy * prev_vel.vy);
 	const float planar_speed_clamped =
@@ -125,8 +125,9 @@ vel2_t world_vel_from_delta(pos2_t delta, vel2_t prev_vel)
 	}
 	// angular speed capping + acceleration ramp
 	const float angular_speed_ramped = fabsf(prev_vel.w) + ANGULAR_RAMP;
-	float w = Z_CLAMP(ANGULAR_FACTOR * delta.a, MAX(-angular_speed_ramped, -ANGULAR_VMAX),
-					  MIN(angular_speed_ramped, ANGULAR_VMAX));
+	float w =
+		Z_CLAMP(ANGULAR_FACTOR * NEG_SQRTF(delta.a), MAX(-angular_speed_ramped, -ANGULAR_VMAX),
+				MIN(angular_speed_ramped, ANGULAR_VMAX));
 	// returning built vel
 	vel2_t world_vel = {
 		.vx = vx,
@@ -295,6 +296,7 @@ void _test_motor_cmd()
 		tmc2209_set_speed(&train_motor_1, 0);
 		tmc2209_set_speed(&train_motor_2, 0);
 		tmc2209_set_speed(&train_motor_3, 0);
+		k_sleep(K_MSEC(1000));
 		gpio_pin_toggle(led.port, led.pin);
 		tmc2209_set_speed(&train_motor_1, 10000);
 		tmc2209_set_speed(&train_motor_2, 20000);
@@ -383,7 +385,7 @@ void _test_calibration_distance()
 	k_sleep(K_MSEC(1000));
 	shared_ctrl.start = true;
 	// gpio_pin_toggle(led.port, led.pin);
-	control_set_target(&shared_ctrl, (pos2_t){0.0f, 1300.0f, 0.0f * M_PI});
+	control_set_target(&shared_ctrl, (pos2_t){3000.0f, 0.0f, 0.0f * M_PI});
 	LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y,
 			shared_ctrl.pos.val.a);
 	LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.target.val.x, shared_ctrl.target.val.y,
@@ -460,7 +462,7 @@ void _test_calibration_mix()
 			shared_ctrl.pos.val.a);
 	LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.target.val.x, shared_ctrl.target.val.y,
 			shared_ctrl.target.val.a);
-	control_set_target(&shared_ctrl, (pos2_t){0.0f, 1000.0f, 1.0f * M_PI});
+	control_set_target(&shared_ctrl, (pos2_t){0.0f, 1000.0f, -1.0f * M_PI});
 	k_sleep(K_MSEC(5000));
 	LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y,
 			shared_ctrl.pos.val.a);
