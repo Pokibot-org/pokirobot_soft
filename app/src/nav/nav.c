@@ -54,7 +54,6 @@ int nav_go_to_with_pathfinding(pos2_t end_pos, obstacle_t *obstacle_list, uint8_
     end.x = end_pos.x;
     end.y = end_pos.y;
 
-    LOG_INF("From x:%f, y:%f |To x:%f, y:%f", start.x, start.y, end.x, end.y);
     k_sem_take(&path_found_sem, K_NO_WAIT);
     uint8_t err = path_manager_find_path(start, end, obstacle_list, obstacle_list_len, path_config);
     if (err) {

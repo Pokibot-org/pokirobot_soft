@@ -94,17 +94,18 @@ int strat_set_target(pos2_t pos)
     return strat_set_waypoints(&pos, 1);
 }
 
-bool strat_wait_target(float planar_sensivity, float angular_sensivity, uint32_t timeout_ms)
+int strat_wait_target(float planar_sensivity, float angular_sensivity, uint32_t timeout_ms,
+                      uint32_t timeout_break_ms)
 {
     fake_ctrl.at_target = false;
     for (int i = 0; i < timeout_ms; i++) {
         if (fake_ctrl.at_target) {
             LOG_DBG("At target");
-            break;
+            return 0;
         }
         k_sleep(K_MSEC(1));
     }
-    return fake_ctrl.at_target;
+    return -1;
 }
 
 void strat_force_motor_stop(void)
@@ -123,7 +124,7 @@ int strat_move_robot_to(pos2_t pos, k_timeout_t timeout)
         return -1;
     }
 
-    if (!strat_wait_target_default(k_ticks_to_ms_near64(timeout.ticks))) {
+    if (strat_wait_target_default(k_ticks_to_ms_near64(timeout.ticks), 2000)) {
         return -2;
     }
     return 0;

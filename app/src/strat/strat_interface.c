@@ -26,9 +26,11 @@ int strat_set_waypoints(pos2_t *pos_list, int n)
     return control_set_waypoints(&shared_ctrl, pos_list, n);
 }
 
-int strat_wait_target(float planar_sensivity, float angular_sensivity, uint32_t timeout_target_ms, uint32_t timeout_brake_ms)
+int strat_wait_target(float planar_sensivity, float angular_sensivity, uint32_t timeout_target_ms,
+                      uint32_t timeout_brake_ms)
 {
-    return control_task_wait_target(planar_sensivity, angular_sensivity, timeout_target_ms, timeout_brake_ms);
+    return control_task_wait_target(planar_sensivity, angular_sensivity, timeout_target_ms,
+                                    timeout_brake_ms);
 }
 
 void strat_force_motor_stop(void)
@@ -46,7 +48,8 @@ int strat_move_robot_to(pos2_t pos, k_timeout_t timeout)
         return -1;
     }
 
-    if (!strat_wait_target_default(k_ticks_to_ms_near64(timeout.ticks), k_ticks_to_ms_near64(timeout.ticks))) {
+    if (strat_wait_target_default(k_ticks_to_ms_near64(timeout.ticks),
+                                  k_ticks_to_ms_near64(timeout.ticks))) {
         return -2;
     }
     return 0;

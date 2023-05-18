@@ -306,22 +306,19 @@ void init_current_node(path_node_t *current_node, path_node_t *parent_node, poin
         vec2_distance(current_node->coordinate, parent_node->coordinate);
 }
 
-void delete_closest_obstacle(point2_t pos, obstacle_holder_t *ob_hold)
+void delete_colliding_obstacles(pathfinding_object_t *obj, obstacle_holder_t *ob_hold, point2_t pos)
 {
-    float closest_dist = 1000000000;
-    size_t closest_index = 0;
+    obstacle_t robot = {
+        .type = obstacle_type_circle,
+        .data.circle = {.coordinates = pos, .radius = obj->config.radius_of_security}};
+
     for (size_t index_obstacle = 0; index_obstacle < ob_hold->write_head; index_obstacle++) {
-        obstacle_t *obj = &ob_hold->obstacles[index_obstacle];
-        point2_t pos_obstacle = obj->type == obstacle_type_rectangle
-                                    ? obj->data.rectangle.coordinates
-                                    : obj->data.circle.coordinates;
-        float dist = vec2_distance(pos, pos_obstacle);
-        if (dist < closest_dist) {
-            closest_dist = dist;
-            closest_index = index_obstacle;
+        obstacle_t *obstacle = &ob_hold->obstacles[index_obstacle];
+
+        if (obstacle_are_they_colliding(&robot, obstacle)) {
+            obstacle_holder_delete_index(ob_hold, index_obstacle);
         }
     }
-    obstacle_holder_delete_index(ob_hold, closest_index);
 }
 
 int pathfinding_find_path(pathfinding_object_t *obj, obstacle_holder_t *ob_hold, point2_t start,
@@ -376,10 +373,15 @@ int pathfinding_find_path(pathfinding_object_t *obj, obstacle_holder_t *ob_hold,
             OBSTACLE_COLLISION_DETECTED) {
             LOG_DBG("Collison, dumping node");
             obj->next_free_node_nb -= 1;
-            const uint8_t max_consec_coll = 20;
+            const uint16_t max_consec_coll = 256;
+            const uint16_t clenaup_coll = 20;
             obj->nb_consecutive_collision = MIN(obj->nb_consecutive_collision + 1, max_consec_coll);
+            if (clenaup_coll == obj->nb_consecutive_collision) {
+                LOG_WRN("delete_colliding_obstacles");
+                delete_colliding_obstacles(obj, ob_hold, closest_node_p->coordinate);
+            }
             if (max_consec_coll == obj->nb_consecutive_collision) {
-                delete_closest_obstacle(closest_node_p->coordinate, ob_hold);
+                return -PATHFINDING_ERROR_PATH_NOT_FOUND;
             }
             continue;
         }
