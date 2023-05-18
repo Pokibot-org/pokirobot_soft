@@ -46,7 +46,7 @@ int strat_move_robot_to(pos2_t pos, k_timeout_t timeout)
         return -1;
     }
 
-    if (!control_task_wait_target(30.0f, DEG_TO_RAD(10.0f), k_ticks_to_ms_near64(timeout.ticks))) {
+    if (!strat_wait_target_default(k_ticks_to_ms_near64(timeout.ticks))) {
         return -2;
     }
     return 0;

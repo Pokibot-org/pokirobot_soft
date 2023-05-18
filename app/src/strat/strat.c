@@ -250,7 +250,9 @@ uint32_t calculate_score(struct pokibrain_user_context *ctx)
     return score;
 };
 
-// ---------------------------------------- GRAB CAKE
+    // ---------------------------------------- GRAB CAKE
+
+#define PUSH_TOOL_OFFSET (M_PI + M_PI / 6)
 
 int get_layer_docking_pos(point2_t robot_point, point2_t layer_point, pos2_t *dock_pos)
 {
@@ -261,20 +263,19 @@ int get_layer_docking_pos(point2_t robot_point, point2_t layer_point, pos2_t *do
 
     dock_pos->x = layer_point.x - diff.dx * frac;
     dock_pos->y = layer_point.y - diff.dy * frac;
-    dock_pos->a = atan2f(diff.dy, diff.dx);
-
+    dock_pos->a = angle_modulo(atan2f(diff.dy, diff.dx) + PUSH_TOOL_OFFSET);
     return 0;
 }
 
 int get_aligned_plate_layer_docking_pos(point2_t plate_point, point2_t layer_point,
                                         pos2_t *dock_pos)
 {
-    const float docking_dist = ROBOT_RADIUS + CAKE_LAYER_RADIUS + 10;
-    vec2_t diff = vec2_normalize(point2_diff(layer_point, plate_point));
+    const float docking_dist = ROBOT_RADIUS + CAKE_LAYER_RADIUS + 20;
+    vec2_t diff = vec2_normalize(point2_diff(plate_point, layer_point));
 
-    dock_pos->x = layer_point.x + diff.dx * docking_dist;
-    dock_pos->y = layer_point.y + diff.dy * docking_dist;
-    dock_pos->a = atan2f(diff.dy, diff.dx);
+    dock_pos->x = layer_point.x - diff.dx * docking_dist;
+    dock_pos->y = layer_point.y - diff.dy * docking_dist;
+    dock_pos->a = angle_modulo(atan2f(diff.dy, diff.dx) + PUSH_TOOL_OFFSET);
     LOG_DBG("plate x,y %f,%f | layer x,y %f,%f | dock_pos x,y %f,%f", plate_point.x, plate_point.y,
             layer_point.x, layer_point.y, dock_pos->x, dock_pos->y);
     if (dock_pos->x - ROBOT_RADIUS < 0 || dock_pos->y - ROBOT_RADIUS < 0 ||
@@ -555,18 +556,33 @@ static void strat_end_game_clbk(void *world_context)
     }
 }
 
+const char *get_side_name(enum team_color color)
+{
+    switch (color) {
+        case TEAM_COLOR_BLUE:
+            return "BLUE";
+        case TEAM_COLOR_GREEN:
+            return "GREEN";
+        default:
+        case TEAM_COLOR_NONE:
+            return "UNKNOWN";
+    }
+}
+
 // -------------------------- PUBLIC FUNCTIONS ---------------------------
 
 void strat_init(enum team_color color)
 {
+    LOG_INF("Strat init with team side %s", get_side_name(color));
+
     static struct pokibrain_user_context world_context = {
         .nb_cherry_grabbed = 0,
         .nb_cake_layer_grabbed = 0,
     };
     world_context.team_color = (enum plate_color)color;
     pos2_t start_pos = world_context.team_color == PLATE_COLOR_BLUE
-                           ? CONVERT_POINT2_TO_POS2(plate_list[7].point, 0)
-                           : CONVERT_POINT2_TO_POS2(plate_list[3].point, M_PI);
+                           ? CONVERT_POINT2_TO_POS2(plate_list[7].point, -M_PI_2)
+                           : CONVERT_POINT2_TO_POS2(plate_list[3].point, M_PI_2);
     strat_set_robot_pos(start_pos);
 
     memcpy(world_context.layer_list, layer_list, sizeof(layer_list));

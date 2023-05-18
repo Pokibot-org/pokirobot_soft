@@ -151,7 +151,7 @@ uint8_t path_manager_find_path(point2_t start, point2_t end, obstacle_t *obstacl
     pathfinding_config.field_boundaries.max_x = TALBLE_X_MM;
     pathfinding_config.field_boundaries.max_y = TALBLE_Y_MM;
     pathfinding_config.delta_distance = 300.0f; // jump of Xmm
-    pathfinding_config.radius_of_security = ROBOT_MAX_RADIUS_MM + 5.0f;
+    pathfinding_config.radius_of_security = ROBOT_MAX_RADIUS_MM + 10.0f;
     pathfinding_object_configure(&pm_obj.pathfinding_obj, &pathfinding_config);
 
     path_manager_tid =

@@ -74,9 +74,14 @@ int nav_go_to_with_pathfinding(pos2_t end_pos, obstacle_t *obstacle_list, uint8_
 
     LOG_INF("Path found of size %u", path_size);
     revert_path_and_add_angle(path, path_pos, path_size, end_pos.a);
+
+    for (size_t i = 0; i < path_size; i++) {
+        LOG_WRN("x:%.2f y:%.2f a:%.2f", path_pos[i].x, path_pos[i].y, path_pos[i].a);
+    }
+
     strat_set_waypoints(path_pos, path_size);
     strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
-                      STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 5000);
+                      STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 16000);
 
     return 0;
 }

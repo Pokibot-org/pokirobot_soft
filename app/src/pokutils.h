@@ -82,5 +82,5 @@ float vec2_angle(vec2_t a, vec2_t b);
 float vec2_distance(point2_t a, point2_t b);
 
 pos2_t pos2_diff(const pos2_t target, const pos2_t orig);
-
+float angle_modulo(float a);
 #endif // UTILS_H

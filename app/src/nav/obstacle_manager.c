@@ -126,6 +126,7 @@ uint8_t process_lidar_message(obstacle_manager_t *obj, const lidar_message_t *me
 {
     float step = 0.0f;
     static bool obstacle_detected = false;
+    static uint8_t obstacle_detected_count = false;
     static uint8_t decimation_counter;
     static float old_end_angle;
     if (message->end_angle > message->start_angle) {
