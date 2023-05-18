@@ -306,6 +306,24 @@ void init_current_node(path_node_t *current_node, path_node_t *parent_node, poin
         vec2_distance(current_node->coordinate, parent_node->coordinate);
 }
 
+void delete_closest_obstacle(point2_t pos, obstacle_holder_t *ob_hold)
+{
+    float closest_dist = 1000000000;
+    size_t closest_index = 0;
+    for (size_t index_obstacle = 0; index_obstacle < ob_hold->write_head; index_obstacle++) {
+        obstacle_t *obj = &ob_hold->obstacles[index_obstacle];
+        point2_t pos_obstacle = obj->type == obstacle_type_rectangle
+                                    ? obj->data.rectangle.coordinates
+                                    : obj->data.circle.coordinates;
+        float dist = vec2_distance(pos, pos_obstacle);
+        if (dist < closest_dist) {
+            closest_dist = dist;
+            closest_index = index_obstacle;
+        }
+    }
+    obstacle_holder_delete_index(ob_hold, closest_index);
+}
+
 int pathfinding_find_path(pathfinding_object_t *obj, obstacle_holder_t *ob_hold, point2_t start,
                           point2_t end, path_node_t **end_node)
 {
@@ -322,6 +340,7 @@ int pathfinding_find_path(pathfinding_object_t *obj, obstacle_holder_t *ob_hold,
     obj->nodes[0].is_used = 1;
     obj->nodes[0].distance_to_start = 0;
     obj->next_free_node_nb = 1;
+    obj->nb_consecutive_collision = 0;
 
     if (start.x < obj->config.field_boundaries.min_x ||
         start.y < obj->config.field_boundaries.min_y ||
@@ -357,8 +376,14 @@ int pathfinding_find_path(pathfinding_object_t *obj, obstacle_holder_t *ob_hold,
             OBSTACLE_COLLISION_DETECTED) {
             LOG_DBG("Collison, dumping node");
             obj->next_free_node_nb -= 1;
+            const uint8_t max_consec_coll = 20;
+            obj->nb_consecutive_collision = MIN(obj->nb_consecutive_collision + 1, max_consec_coll);
+            if (max_consec_coll == obj->nb_consecutive_collision) {
+                delete_closest_obstacle(closest_node_p->coordinate, ob_hold);
+            }
             continue;
         }
+        obj->nb_consecutive_collision = 0;
         // Remaping nodes for RRT*
         path_node_t *to_be_remaped_nodes[PATHFINDING_GET_ARRAY_OF_CLOSEST_NODES_MAX_NUM] = {0};
         uint8_t nb_of_to_be_remaped_nodes =

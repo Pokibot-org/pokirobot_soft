@@ -21,10 +21,12 @@ typedef struct control {
     bool start;
     bool at_target;
     LOCKVAR(pos2_t) pos;
-    LOCKVAR(pos2_t) target;
     int socket_fd;
     bool is_socket_connected;
     bool running;
+    pos2_t waypoints[256];
+    int n_waypoints;
+    int current_waypoint;
 } control_t;
 control_t fake_ctrl;
 
@@ -57,10 +59,7 @@ control_t fake_ctrl;
     }
 
 CONTROL_LOCKVAR_SETTER(pos, pos2_t)
-CONTROL_LOCKVAR_SETTER(target, pos2_t)
-
 CONTROL_LOCKVAR_GETTER(pos, pos2_t)
-CONTROL_LOCKVAR_GETTER(target, pos2_t)
 
 int strat_set_robot_brake(bool brake)
 {
@@ -80,15 +79,19 @@ int strat_set_robot_pos(pos2_t pos)
     return control_set_pos(&fake_ctrl, pos);
 }
 
-int strat_set_target(pos2_t pos)
-{
-    return control_set_target(&fake_ctrl, pos);
-}
-
 int strat_set_waypoints(pos2_t *pos_list, int n)
 {
-    control_set_target(&fake_ctrl, pos_list[n - 1]);
+    k_mutex_lock(&fake_ctrl.pos.lock, K_MSEC(100));
+    memcpy(fake_ctrl.waypoints, pos_list, n * sizeof(pos2_t));
+    fake_ctrl.n_waypoints = n;
+    fake_ctrl.current_waypoint = 0;
+    k_mutex_unlock(&fake_ctrl.pos.lock);
     return 0;
+}
+
+int strat_set_target(pos2_t pos)
+{
+    return strat_set_waypoints(&pos, 1);
 }
 
 bool strat_wait_target(float planar_sensivity, float angular_sensivity, uint32_t timeout_ms)
@@ -145,13 +148,14 @@ void fake_control_task(void)
     char buffer[256];
     fake_ctrl.running = true;
     while (fake_ctrl.running) {
-        pos2_t current_pos, target_pos;
-        control_get_target(&fake_ctrl, &target_pos);
+        pos2_t current_pos;
         k_mutex_lock(&fake_ctrl.pos.lock, K_MSEC(100));
         current_pos = fake_ctrl.pos.val;
 
         point2_t current_point = {.x = current_pos.x, .y = current_pos.y};
-        point2_t target_point = {.x = target_pos.x, .y = target_pos.y};
+        point2_t target_point = {.x = fake_ctrl.waypoints[fake_ctrl.current_waypoint].x,
+                                 .y = fake_ctrl.waypoints[fake_ctrl.current_waypoint].y};
+        float target_angle = fake_ctrl.waypoints[fake_ctrl.current_waypoint].a;
 
         vec2_t diff = point2_diff(target_point, current_point);
         float dist = vec2_distance(target_point, current_point);
@@ -162,9 +166,13 @@ void fake_control_task(void)
 
         if (fabs(target_point.x - current_point.x) < precision &&
             fabs(target_point.y - current_point.y) < precision) {
-            fake_ctrl.at_target = true;
+            if (fake_ctrl.current_waypoint + 1 == fake_ctrl.n_waypoints) {
+                fake_ctrl.at_target = true;
+            } else {
+                fake_ctrl.current_waypoint += 1;
+            }
         }
-        fake_ctrl.pos.val = (pos2_t){.x = current_point.x, .y = current_point.y, .a = target_pos.a};
+        fake_ctrl.pos.val = (pos2_t){.x = current_point.x, .y = current_point.y, .a = target_angle};
         k_mutex_unlock(&fake_ctrl.pos.lock);
 
         snprintf(buffer, 256, "{\"pos\": {\"x\":%.2f, \"y\":%.2f, \"a\":%.2f}}", current_pos.x,
@@ -221,12 +229,23 @@ float camsense_x1_get_sensor_speed(void)
 void camsense_x1_kill(void)
 {
 }
+
+// POKPUSH
+
+int pokpush_deploy(void)
+{
+    return 0;
+}
+int pokpush_retract(void)
+{
+    return 0;
+}
+
 // INIT
 
 int fake_init(const struct device *dev)
 {
     INIT_LOCKVAR(fake_ctrl.pos);
-    INIT_LOCKVAR(fake_ctrl.target);
     socket_init();
     socket_send("{\"init\": \"ok\"}");
     return 0;

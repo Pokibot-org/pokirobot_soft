@@ -21,6 +21,7 @@ typedef struct pathfinding_object {
     path_node_t nodes[PATHFINDING_MAX_NUM_OF_NODES];
     pathfinding_configuration_t config;
     uint32_t next_free_node_nb;
+    uint32_t nb_consecutive_collision;
 } pathfinding_object_t;
 
 int pathfinding_object_configure(pathfinding_object_t *obj, pathfinding_configuration_t *config);

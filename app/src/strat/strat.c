@@ -457,14 +457,24 @@ int pokibrain_precompute_push_cake_layer_in_plate(struct pokibrain_callback_para
     return 0;
 }
 
-int get_layers_as_obstacle(struct pokibrain_user_context *ctx, obstacle_t *obstacle_list)
+int get_static_components_as_obstacle(struct pokibrain_user_context *ctx, obstacle_t *obstacle_list)
 {
     for (size_t i = 0; i < ARRAY_SIZE(layer_list); i++) {
         obstacle_list[i] = (obstacle_t){.type = obstacle_type_circle,
                                         .data.circle.coordinates = ctx->layer_list[i].point,
                                         .data.circle.radius = CAKE_LAYER_RADIUS};
     }
-    return ARRAY_SIZE(layer_list);
+
+    for (int index_dispenser = 0; index_dispenser < ARRAY_SIZE(dispenser_list); index_dispenser++) {
+        obstacle_list[ARRAY_SIZE(layer_list) + index_dispenser] = (obstacle_t){
+            .type = obstacle_type_rectangle,
+            .data.rectangle = {.coordinates = {.x = dispenser_list[index_dispenser].pos.x,
+                                               .y = dispenser_list[index_dispenser].pos.y},
+                               .height = CHERRY_DISPENSER_WIDTH,
+                               .width = CHERRY_DISPENSER_DEPTH}};
+    }
+
+    return ARRAY_SIZE(layer_list) + ARRAY_SIZE(dispenser_list);
 }
 
 int pokibrain_task_push_cake_layer_in_plate(struct pokibrain_callback_params *params)
@@ -474,8 +484,8 @@ int pokibrain_task_push_cake_layer_in_plate(struct pokibrain_callback_params *pa
     struct pokibrain_user_context *ctx = params->world_context;
     // struct plate *plate = &ctx->plate_list[ctx->precompute.push.layer_index];
 
-    obstacle_t obstacles[ARRAY_SIZE(layer_list)];
-    int nb_obstacles = get_layers_as_obstacle(ctx, obstacles);
+    obstacle_t obstacles[ARRAY_SIZE(layer_list) + ARRAY_SIZE(dispenser_list)];
+    int nb_obstacles = get_static_components_as_obstacle(ctx, obstacles);
     if (nav_go_to_with_pathfinding(ctx->precompute.push.push_dock_pos, obstacles, nb_obstacles)) {
         // hack
         strat_set_target((pos2_t){.x = BOARD_CENTER_X, .y = BOARD_CENTER_Y, .a = 0});
