@@ -242,8 +242,6 @@ uint32_t calculate_score(struct pokibrain_user_context *ctx)
     return score;
 };
 
-    // ---------------------------------------- GRAB CAKE
-
 #define PUSH_TOOL_OFFSET (M_PI + M_PI / 6)
 #define DOCKING_DIST     (ROBOT_RADIUS + CAKE_LAYER_RADIUS + 20)
 
@@ -277,113 +275,6 @@ int get_aligned_plate_layer_docking_pos(point2_t plate_point, point2_t layer_poi
     return 0;
 }
 
-int pokibrain_precompute_grab_cake_layer(struct pokibrain_callback_params *params)
-{
-    LOG_DBG("PRECOMPUTE %s", __func__);
-    struct pokibrain_user_context *ctx = params->world_context;
-    if (ctx->nb_cake_layer_grabbed != 0) {
-        return INT32_MIN;
-    }
-    enum layer_color color = (enum layer_color)params->self->id;
-    uint8_t index = 255;
-    if (get_closest_available_cake_layer_index(ctx, color, &index)) {
-        return INT32_MIN;
-    }
-
-    if (get_layer_docking_pos(CONVERT_POS2_TO_POINT2(ctx->robot_pos), ctx->layer_list[index].point,
-                              &ctx->precompute.grab.dock_pos)) {
-        return INT32_MIN;
-    }
-    ctx->precompute.grab.layer_index = index;
-
-    return 0;
-}
-
-int pokibrain_task_grab_cake_layer(struct pokibrain_callback_params *params)
-{
-    LOG_INF("RUNNING %s", __func__);
-    struct pokibrain_user_context *ctx = params->world_context;
-
-    pos2_t layer_pos = ctx->precompute.grab.dock_pos;
-    if (nav_go_to_with_pathfinding(layer_pos, NULL, 0)) {
-        return -1;
-    }
-
-    if (strat_grab_layer(layer_pos, K_SECONDS(6))) {
-        return -1;
-    }
-    return 0;
-}
-
-int32_t pokibrain_reward_calculation_grab_cake_layer(struct pokibrain_callback_params *params)
-{
-    LOG_DBG("REWARD CALC %s", __func__);
-    return 0;
-}
-
-int pokibrain_completion_grab_cake_layer(struct pokibrain_callback_params *params)
-{
-    LOG_DBG("COMPLETION %s", __func__);
-
-    struct pokibrain_user_context *ctx = params->world_context;
-
-    ctx->index_held_layer = ctx->precompute.grab.layer_index;
-    ctx->nb_cake_layer_grabbed = 1;
-    return 0;
-}
-
-// ---------------------------------------- PUT CAKE
-int pokibrain_precompute_put_cake_layer_in_plate(struct pokibrain_callback_params *params)
-{
-    LOG_DBG("PRECOMPUTE %s", __func__);
-    struct pokibrain_user_context *ctx = params->world_context;
-    if (ctx->nb_cake_layer_grabbed == 0) {
-        return INT32_MIN;
-    }
-
-    uint8_t index = 255;
-    if (params->self->id) {
-        if (get_closest_available_plate_index(ctx, CONVERT_POS2_TO_POINT2(ctx->robot_pos),
-                                              &index)) {
-            return INT32_MIN;
-        }
-    } else {
-        if (get_closest_in_build_plate_index(ctx, &index)) {
-            return INT32_MIN;
-        }
-    }
-
-    if (ctx->plate_list[index].cake_size >= CAKE_MAX_NB_LAYERS) {
-        return INT32_MIN;
-    }
-
-    if (get_layer_docking_pos(CONVERT_POS2_TO_POINT2(ctx->robot_pos), ctx->plate_list[index].point,
-                              &ctx->precompute.put.dock_pos)) {
-        return INT32_MIN;
-    }
-
-    ctx->precompute.put.plate_index = index;
-    return 0;
-}
-
-int pokibrain_task_put_cake_layer_in_plate(struct pokibrain_callback_params *params)
-{
-    LOG_INF("RUNNING %s", __func__);
-    struct pokibrain_user_context *ctx = params->world_context;
-    struct plate *plate = &ctx->plate_list[ctx->precompute.put.plate_index];
-
-    pos2_t plate_pos = ctx->precompute.put.dock_pos;
-    if (nav_go_to_with_pathfinding(plate_pos, NULL, 0)) {
-        return -1;
-    }
-
-    if (strat_put_layer(plate_pos, plate->cake_size, K_SECONDS(6))) {
-        return -1;
-    }
-
-    return 0;
-}
-
 void add_layer_to_plate(struct plate *target_plate, struct cake_layer *layer)
 {
     target_plate->cake_size += 1;
@@ -391,26 +282,55 @@ void add_layer_to_plate(struct plate *target_plate, struct cake_layer *layer)
     layer->point = target_plate->point;
 }
 
-int32_t
-pokibrain_reward_calculation_put_cake_layer_in_plate(struct pokibrain_callback_params *params)
+int get_static_components_as_obstacle(struct pokibrain_user_context *ctx, obstacle_t *obstacle_list)
 {
-    LOG_DBG("REWARD CALC %s", __func__);
-    struct pokibrain_user_context *ctx = params->world_context;
-    struct plate target_plate = ctx->plate_list[ctx->precompute.put.plate_index];
+    for (size_t i = 0; i < ARRAY_SIZE(layer_list); i++) {
+        obstacle_list[i] = (obstacle_t){.type = obstacle_type_circle,
+                                        .data.circle.coordinates = ctx->layer_list[i].point,
+                                        .data.circle.radius = CAKE_LAYER_RADIUS};
+    }
 
-    add_layer_to_plate(&target_plate, &ctx->layer_list[ctx->index_held_layer]);
-    int32_t score = MIN(target_plate.cake_size, CAKE_MAX_NB_LAYERS);
-    return OFFSET_SCORE(score);
+    for (int index_dispenser = 0; index_dispenser < ARRAY_SIZE(dispenser_list); index_dispenser++) {
+        obstacle_list[ARRAY_SIZE(layer_list) + index_dispenser] = (obstacle_t){
+            .type = obstacle_type_rectangle,
+            .data.rectangle = {.coordinates = {.x = dispenser_list[index_dispenser].pos.x,
+                                               .y = dispenser_list[index_dispenser].pos.y},
+                               .height = CHERRY_DISPENSER_WIDTH,
+                               .width = CHERRY_DISPENSER_DEPTH}};
+    }
+
+    return ARRAY_SIZE(layer_list) + ARRAY_SIZE(dispenser_list);
 }
 
-int pokibrain_completion_put_cake_layer_in_plate(struct pokibrain_callback_params *params)
+// GO HOME
+
+int pokibrain_task_go_home(struct pokibrain_callback_params *params)
+{
+    LOG_INF("RUNNING %s", __func__);
+    struct pokibrain_user_context *ctx = params->world_context;
+
+    pos2_t end_pos = ctx->team_color == PLATE_COLOR_BLUE
+                         ? CONVERT_POINT2_TO_POS2(plate_list[9].point, M_PI_2)
+                         : CONVERT_POINT2_TO_POS2(plate_list[5].point, -M_PI_2);
+    obstacle_t obstacles[ARRAY_SIZE(layer_list) + ARRAY_SIZE(dispenser_list)];
+    int nb_obstacles = get_static_components_as_obstacle(ctx, obstacles);
+    nav_go_to_with_pathfinding(end_pos, obstacles, nb_obstacles);
+    return 0;
+}
+
+int32_t pokibrain_reward_calculation_go_home(struct pokibrain_callback_params *params)
+{
+    LOG_DBG("REWARD CALC %s", __func__);
+    if (params->time_in_match_ms < 90 * 1000) {
+        return INT32_MIN;
+    }
+    return OFFSET_SCORE(105);
+}
+
+int pokibrain_completion_go_home(struct pokibrain_callback_params *params)
 {
     LOG_DBG("COMPLETION %s", __func__);
-    struct pokibrain_user_context *ctx = params->world_context;
-    struct plate *target_plate = &ctx->plate_list[ctx->precompute.put.plate_index];
-    add_layer_to_plate(target_plate, &ctx->layer_list[ctx->index_held_layer]);
-    ctx->nb_cake_layer_grabbed = 0;
-    ctx->index_held_layer = -1;
+
     return 0;
 }
 
@@ -421,9 +341,8 @@ int pokibrain_precompute_push_cake_layer_in_plate(struct pokibrain_callback_para
     LOG_DBG("PRECOMPUTE %s", __func__);
     struct pokibrain_user_context *ctx = params->world_context;
 
-    enum layer_color color = (enum layer_color)params->self->id;
-
-    if (get_closest_available_cake_layer_index(ctx, color, &ctx->precompute.push.layer_index)) {
+    ctx->precompute.push.layer_index = params->self->id;
+    if (ctx->layer_list[ctx->precompute.push.layer_index].in_plate) {
         return INT32_MIN;
     }
 
@@ -462,26 +381,6 @@ int pokibrain_precompute_push_cake_layer_in_plate(struct pokibrain_callback_para
     }
 
     return 0;
-}
-
-int get_static_components_as_obstacle(struct pokibrain_user_context *ctx, obstacle_t *obstacle_list)
-{
-    for (size_t i = 0; i < ARRAY_SIZE(layer_list); i++) {
-        obstacle_list[i] = (obstacle_t){.type = obstacle_type_circle,
-                                        .data.circle.coordinates = ctx->layer_list[i].point,
-                                        .data.circle.radius = CAKE_LAYER_RADIUS};
-    }
-
-    for (int index_dispenser = 0; index_dispenser < ARRAY_SIZE(dispenser_list); index_dispenser++) {
-        obstacle_list[ARRAY_SIZE(layer_list) + index_dispenser] = (obstacle_t){
-            .type = obstacle_type_rectangle,
-            .data.rectangle = {.coordinates = {.x = dispenser_list[index_dispenser].pos.x,
-                                               .y = dispenser_list[index_dispenser].pos.y},
-                               .height = CHERRY_DISPENSER_WIDTH,
-                               .width = CHERRY_DISPENSER_DEPTH}};
-    }
-
-    return ARRAY_SIZE(layer_list) + ARRAY_SIZE(dispenser_list);
 }
 
 int pokibrain_task_push_cake_layer_in_plate(struct pokibrain_callback_params *params)
@@ -525,7 +424,9 @@ pokibrain_reward_calculation_push_cake_layer_in_plate(struct pokibrain_callback_
     }
     add_layer_to_plate(&target_plate, &ctx->layer_list[ctx->precompute.push.layer_index]);
     int32_t score = MIN(target_plate.cake_size, CAKE_MAX_NB_LAYERS);
-    return OFFSET_SCORE(score);
+    return OFFSET_SCORE(score) -
+           (int)vec2_distance(CONVERT_POS2_TO_POINT2(ctx->robot_pos),
+                              ctx->layer_list[ctx->precompute.push.layer_index].point);
 }
 
 int pokibrain_completion_push_cake_layer_in_plate(struct pokibrain_callback_params *params)
@@ -592,6 +493,15 @@ const char *get_side_name(enum team_color color)
 
 // -------------------------- PUBLIC FUNCTIONS ---------------------------
 
+#define DECLARE_PUSH_TASK(_id)                                                                     \
+    {                                                                                              \
+        .name = "push" STRINGIFY(_id), .task_precompute = pokibrain_precompute_push_cake_layer_in_plate,                \
+                  .reward_calculation = pokibrain_reward_calculation_push_cake_layer_in_plate,     \
+                  .task_process = pokibrain_task_push_cake_layer_in_plate,                         \
+                  .completion_callback = pokibrain_completion_push_cake_layer_in_plate,            \
+                  .id = (uint32_t)_id,                                                             \
+    }
+
 void strat_init(enum team_color color)
 {
     LOG_INF("Strat init with team side %s", get_side_name(color));
@@ -612,30 +522,23 @@ void strat_init(enum team_color color)
     memcpy(world_context.dispenser_list, dispenser_list, sizeof(dispenser_list));
 
     static struct pokibrain_task tasks[] = {
-        {
-            .name = "push brown",
-            .task_precompute = pokibrain_precompute_push_cake_layer_in_plate,
-            .reward_calculation = pokibrain_reward_calculation_push_cake_layer_in_plate,
-            .task_process = pokibrain_task_push_cake_layer_in_plate,
-            .completion_callback = pokibrain_completion_push_cake_layer_in_plate,
-            .id = (uint32_t)LAYER_COLOR_BROWN,
-        },
-        {
-            .name = "push yellow",
-            .task_precompute = pokibrain_precompute_push_cake_layer_in_plate,
-            .reward_calculation = pokibrain_reward_calculation_push_cake_layer_in_plate,
-            .task_process = pokibrain_task_push_cake_layer_in_plate,
-            .completion_callback = pokibrain_completion_push_cake_layer_in_plate,
-            .id = (uint32_t)LAYER_COLOR_YELLOW,
-        },
-        {
-            .name = "push pink",
-            .task_precompute = pokibrain_precompute_push_cake_layer_in_plate,
-            .reward_calculation = pokibrain_reward_calculation_push_cake_layer_in_plate,
-            .task_process = pokibrain_task_push_cake_layer_in_plate,
-            .completion_callback = pokibrain_completion_push_cake_layer_in_plate,
-            .id = (uint32_t)LAYER_COLOR_PINK,
-        },
+        DECLARE_PUSH_TASK(0),
+        DECLARE_PUSH_TASK(1),
+        DECLARE_PUSH_TASK(2),
+        DECLARE_PUSH_TASK(3),
+        DECLARE_PUSH_TASK(4),
+        DECLARE_PUSH_TASK(5),
+        DECLARE_PUSH_TASK(6),
+        DECLARE_PUSH_TASK(7),
+        DECLARE_PUSH_TASK(8),
+        DECLARE_PUSH_TASK(9),
+        DECLARE_PUSH_TASK(10),
+        DECLARE_PUSH_TASK(11),
+        {.name = "go home",
+         .task_precompute = NULL,
+         .completion_callback = pokibrain_completion_go_home,
+         .task_process = pokibrain_task_go_home,
+         .reward_calculation = pokibrain_reward_calculation_go_home}
         /*
 {
 .name = "grab brown",
