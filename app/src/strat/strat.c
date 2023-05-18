@@ -584,6 +584,7 @@ void strat_init(enum team_color color)
                            ? CONVERT_POINT2_TO_POS2(plate_list[7].point, -M_PI_2)
                            : CONVERT_POINT2_TO_POS2(plate_list[3].point, M_PI_2);
     strat_set_robot_pos(start_pos);
+    strat_set_target(start_pos);
 
     memcpy(world_context.layer_list, layer_list, sizeof(layer_list));
     memcpy(world_context.plate_list, plate_list, sizeof(plate_list));
