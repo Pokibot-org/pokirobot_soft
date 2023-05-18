@@ -6,7 +6,7 @@
 #include "pathfinding_errors.h"
 #include "pathfinding_types.h"
 
-#define PATHFINDING_MAX_NUM_OF_NODES 512
+#define PATHFINDING_MAX_NUM_OF_NODES 256
 
 typedef struct pathfinding_configuration {
     boundaries_t field_boundaries;

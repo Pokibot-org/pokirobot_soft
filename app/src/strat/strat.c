@@ -245,12 +245,12 @@ uint32_t calculate_score(struct pokibrain_user_context *ctx)
     // ---------------------------------------- GRAB CAKE
 
 #define PUSH_TOOL_OFFSET (M_PI + M_PI / 6)
+#define DOCKING_DIST     (ROBOT_RADIUS + CAKE_LAYER_RADIUS + 20)
 
 int get_layer_docking_pos(point2_t robot_point, point2_t layer_point, pos2_t *dock_pos)
 {
-    const float docking_dist = ROBOT_RADIUS + CAKE_LAYER_RADIUS;
     float segment_len = vec2_distance(robot_point, layer_point);
-    float frac = docking_dist / segment_len;
+    float frac = DOCKING_DIST / segment_len;
     vec2_t diff = point2_diff(layer_point, robot_point);
 
     dock_pos->x = layer_point.x - diff.dx * frac;
@@ -262,11 +262,10 @@ int get_layer_docking_pos(point2_t robot_point, point2_t layer_point, pos2_t *do
 int get_aligned_plate_layer_docking_pos(point2_t plate_point, point2_t layer_point,
                                         pos2_t *dock_pos)
 {
-    const float docking_dist = ROBOT_RADIUS + CAKE_LAYER_RADIUS + 20;
     vec2_t diff = vec2_normalize(point2_diff(plate_point, layer_point));
 
-    dock_pos->x = layer_point.x - diff.dx * docking_dist;
-    dock_pos->y = layer_point.y - diff.dy * docking_dist;
+    dock_pos->x = layer_point.x - diff.dx * DOCKING_DIST;
+    dock_pos->y = layer_point.y - diff.dy * DOCKING_DIST;
     dock_pos->a = angle_modulo(atan2f(diff.dy, diff.dx) + PUSH_TOOL_OFFSET);
     LOG_DBG("plate x,y %f,%f | layer x,y %f,%f | dock_pos x,y %f,%f", plate_point.x, plate_point.y,
             layer_point.x, layer_point.y, dock_pos->x, dock_pos->y);
@@ -537,7 +536,6 @@ int pokibrain_completion_push_cake_layer_in_plate(struct pokibrain_callback_para
     for (size_t i = 0; i < ctx->precompute.push.pushed_layers; i++) {
         add_layer_to_plate(target_plate,
                            &ctx->layer_list[ctx->precompute.push.pushed_layer_index[i]]);
-        LOG_ERR("will push x:%f y:%f", ctx->layer_list[i].point.x, ctx->layer_list[i].point.y);
     }
 
     return 0;
