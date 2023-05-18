@@ -83,7 +83,6 @@ struct plate {
     enum plate_color color;
     point2_t point;
     uint8_t cake_size;
-    enum layer_color cake_layer_colors[CAKE_MAX_NB_LAYERS];
 };
 
 const static struct plate plate_list[] = {
@@ -132,6 +131,8 @@ struct push_layer_precompute_storage {
     uint8_t layer_index;
     pos2_t push_dock_pos;
     pos2_t deposit_pos;
+    uint8_t pushed_layer_index[ARRAY_SIZE(layer_list)];
+    uint32_t pushed_layers;
 };
 
 struct pokibrain_user_context {
@@ -176,7 +177,8 @@ int get_closest_available_cake_layer_index(struct pokibrain_user_context *ctx,
     return ret;
 };
 
-int get_closest_available_plate_index(struct pokibrain_user_context *ctx, uint8_t *index)
+int get_closest_available_plate_index(struct pokibrain_user_context *ctx, point2_t point,
+                                      uint8_t *index)
 {
     float best_dist = MAXFLOAT;
     int ret = -1;
@@ -186,10 +188,10 @@ int get_closest_available_plate_index(struct pokibrain_user_context *ctx, uint8_
         if (plate->color != ctx->team_color) {
             continue;
         }
-        if (plate->cake_size != 0) {
+        if (plate->cake_size >= 3) {
             continue;
         }
-        float dist = vec2_distance(CONVERT_POS2_TO_POINT2(ctx->robot_pos), plate->point);
+        float dist = vec2_distance(point, plate->point);
         if (dist <= best_dist) {
             ret = 0;
             best_dist = dist;
@@ -224,16 +226,6 @@ int get_closest_in_build_plate_index(struct pokibrain_user_context *ctx, uint8_t
 
 // ---------------------------- STRAT TASKS ----------------------------
 
-bool is_golden_recipe(const struct plate *plate)
-{
-    if (plate->cake_size != 3) {
-        return false;
-    }
-    return plate->cake_layer_colors[0] == LAYER_COLOR_BROWN &&
-           plate->cake_layer_colors[1] == LAYER_COLOR_YELLOW &&
-           plate->cake_layer_colors[2] == LAYER_COLOR_PINK;
-}
-
 uint32_t calculate_score(struct pokibrain_user_context *ctx)
 {
     uint32_t score = 0;
@@ -245,7 +237,7 @@ uint32_t calculate_score(struct pokibrain_user_context *ctx)
         if (plate->cake_size == 0) {
             continue;
         }
-        score += plate->cake_size + is_golden_recipe(plate) * 4;
+        score += MIN(plate->cake_size, 3);
     }
     return score;
 };
@@ -352,7 +344,8 @@ int pokibrain_precompute_put_cake_layer_in_plate(struct pokibrain_callback_param
 
     uint8_t index = 255;
     if (params->self->id) {
-        if (get_closest_available_plate_index(ctx, &index)) {
+        if (get_closest_available_plate_index(ctx, CONVERT_POS2_TO_POINT2(ctx->robot_pos),
+                                              &index)) {
             return INT32_MIN;
         }
     } else {
@@ -394,7 +387,6 @@ int pokibrain_task_put_cake_layer_in_plate(struct pokibrain_callback_params *par
 
 void add_layer_to_plate(struct plate *target_plate, struct cake_layer *layer)
 {
-    target_plate->cake_layer_colors[target_plate->cake_size] = layer->color;
     target_plate->cake_size += 1;
     layer->in_plate = true;
     layer->point = target_plate->point;
@@ -408,10 +400,7 @@ pokibrain_reward_calculation_put_cake_layer_in_plate(struct pokibrain_callback_p
     struct plate target_plate = ctx->plate_list[ctx->precompute.put.plate_index];
 
     add_layer_to_plate(&target_plate, &ctx->layer_list[ctx->index_held_layer]);
-    int32_t score = 1 * target_plate.cake_size + is_golden_recipe(&target_plate) * 4 +
-                    (target_plate.cake_layer_colors[0] == LAYER_COLOR_BROWN) +
-                    (target_plate.cake_layer_colors[1] == LAYER_COLOR_YELLOW) +
-                    (target_plate.cake_layer_colors[2] == LAYER_COLOR_PINK);
+    int32_t score = MIN(target_plate.cake_size, CAKE_MAX_NB_LAYERS);
     return OFFSET_SCORE(score);
 }
 
@@ -433,12 +422,15 @@ int pokibrain_precompute_push_cake_layer_in_plate(struct pokibrain_callback_para
     LOG_DBG("PRECOMPUTE %s", __func__);
     struct pokibrain_user_context *ctx = params->world_context;
 
-    if (get_closest_available_plate_index(ctx, &ctx->precompute.push.plate_index)) {
-        return INT32_MIN;
-    }
     enum layer_color color = (enum layer_color)params->self->id;
 
     if (get_closest_available_cake_layer_index(ctx, color, &ctx->precompute.push.layer_index)) {
+        return INT32_MIN;
+    }
+
+    if (get_closest_available_plate_index(ctx,
+                                          ctx->layer_list[ctx->precompute.push.layer_index].point,
+                                          &ctx->precompute.push.plate_index)) {
         return INT32_MIN;
     }
 
@@ -452,6 +444,22 @@ int pokibrain_precompute_push_cake_layer_in_plate(struct pokibrain_callback_para
                               ctx->plate_list[ctx->precompute.push.plate_index].point,
                               &ctx->precompute.push.deposit_pos)) {
         return INT32_MIN;
+    }
+
+    ctx->precompute.push.pushed_layers = 0;
+    for (size_t i = 0; i < ARRAY_SIZE(layer_list); i++) {
+        point2_t coll_pos;
+        obstacle_t layer_obstacle = {
+            .type = obstacle_type_circle,
+            .data.circle = {.radius = CAKE_LAYER_RADIUS, .coordinates = ctx->layer_list[i].point}};
+
+        if (obstacle_get_point_of_collision_with_segment(
+                ctx->layer_list[ctx->precompute.push.layer_index].point,
+                ctx->plate_list[ctx->precompute.push.plate_index].point, &layer_obstacle,
+                ROBOT_RADIUS, &coll_pos) == OBSTACLE_COLLISION_DETECTED) {
+            ctx->precompute.push.pushed_layer_index[ctx->precompute.push.pushed_layers] = i;
+            ctx->precompute.push.pushed_layers += 1;
+        }
     }
 
     return 0;
@@ -488,8 +496,8 @@ int pokibrain_task_push_cake_layer_in_plate(struct pokibrain_callback_params *pa
     int nb_obstacles = get_static_components_as_obstacle(ctx, obstacles);
     if (nav_go_to_with_pathfinding(ctx->precompute.push.push_dock_pos, obstacles, nb_obstacles)) {
         // hack
-        strat_set_target((pos2_t){.x = BOARD_CENTER_X, .y = BOARD_CENTER_Y, .a = 0});
-        // ctx->layer_list[ctx->precompute.push.layer_index].in_plate = true;
+        // strat_set_target((pos2_t){.x = BOARD_CENTER_X, .y = BOARD_CENTER_Y, .a = 0});
+        ctx->layer_list[ctx->precompute.push.layer_index].in_plate = true;
         ret = -1;
         goto exit;
     }
@@ -512,12 +520,12 @@ pokibrain_reward_calculation_push_cake_layer_in_plate(struct pokibrain_callback_
     LOG_DBG("REWARD CALC %s", __func__);
     struct pokibrain_user_context *ctx = params->world_context;
     struct plate target_plate = ctx->plate_list[ctx->precompute.push.plate_index];
-
+    for (size_t i = 0; i < ctx->precompute.push.pushed_layers; i++) {
+        add_layer_to_plate(&target_plate,
+                           &ctx->layer_list[ctx->precompute.push.pushed_layer_index[i]]);
+    }
     add_layer_to_plate(&target_plate, &ctx->layer_list[ctx->precompute.push.layer_index]);
-    int32_t score = 1 * target_plate.cake_size + is_golden_recipe(&target_plate) * 4 +
-                    (target_plate.cake_layer_colors[0] == LAYER_COLOR_BROWN) +
-                    (target_plate.cake_layer_colors[1] == LAYER_COLOR_YELLOW) +
-                    (target_plate.cake_layer_colors[2] == LAYER_COLOR_PINK);
+    int32_t score = MIN(target_plate.cake_size, CAKE_MAX_NB_LAYERS);
     return OFFSET_SCORE(score);
 }
 
@@ -526,7 +534,12 @@ int pokibrain_completion_push_cake_layer_in_plate(struct pokibrain_callback_para
     LOG_DBG("COMPLETION %s", __func__);
     struct pokibrain_user_context *ctx = params->world_context;
     struct plate *target_plate = &ctx->plate_list[ctx->precompute.push.plate_index];
-    add_layer_to_plate(target_plate, &ctx->layer_list[ctx->precompute.push.layer_index]);
+    for (size_t i = 0; i < ctx->precompute.push.pushed_layers; i++) {
+        add_layer_to_plate(target_plate,
+                           &ctx->layer_list[ctx->precompute.push.pushed_layer_index[i]]);
+        LOG_ERR("will push x:%f y:%f", ctx->layer_list[i].point.x, ctx->layer_list[i].point.y);
+    }
+
     return 0;
 }
 
@@ -591,8 +604,8 @@ void strat_init(enum team_color color)
     };
     world_context.team_color = (enum plate_color)color;
     pos2_t start_pos = world_context.team_color == PLATE_COLOR_BLUE
-                           ? CONVERT_POINT2_TO_POS2(plate_list[7].point, -M_PI_2)
-                           : CONVERT_POINT2_TO_POS2(plate_list[3].point, M_PI_2);
+                           ? CONVERT_POINT2_TO_POS2(plate_list[8].point, M_PI_2)
+                           : CONVERT_POINT2_TO_POS2(plate_list[4].point, -M_PI_2);
     strat_set_robot_pos(start_pos);
     strat_set_target(start_pos);
 
