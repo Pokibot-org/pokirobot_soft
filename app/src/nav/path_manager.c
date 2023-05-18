@@ -62,7 +62,7 @@ static void path_manager_task(void *p0, void *p1, void *p2)
 {
 
     path_manager_object_t *pm_obj = (path_manager_object_t *)p0;
-    path_node_t *pn_end;
+    path_node_t *pn_end = NULL;
 
     LOG_INF("path_manager_task start");
     int err = pathfinding_find_path(&pm_obj->pathfinding_obj, &pm_obj->obstacle_hold, pm_obj->start,
@@ -71,17 +71,14 @@ static void path_manager_task(void *p0, void *p1, void *p2)
         LOG_WRN("Path not found err %d", err);
     } else {
         LOG_INF("Path found");
-    }
-
-    if (pm_obj->conf.nb_node_optimisation != 0) {
-        err = pathfinding_optimize_path(&pm_obj->pathfinding_obj, &pm_obj->obstacle_hold, pn_end,
-                                        pm_obj->conf.nb_node_optimisation);
-        if (err) {
-            LOG_WRN("Err in path optimize %d", err);
+        if (pm_obj->conf.nb_node_optimisation != 0) {
+            err = pathfinding_optimize_path(&pm_obj->pathfinding_obj, &pm_obj->obstacle_hold,
+                                            pn_end, pm_obj->conf.nb_node_optimisation);
+            if (err) {
+                LOG_WRN("Err in path optimize %d", err);
+            }
         }
     }
-    // TODO: handle err code
-    // pbd(&pm_obj->pathfinding_obj);
 
     if (pm_obj->conf.found_path_clbk != NULL) {
         // LOG_INF("Calling found_path_clbk %d", pm_obj->conf.found_path_clbk);

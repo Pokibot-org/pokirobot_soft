@@ -54,31 +54,46 @@ int nav_go_to_with_pathfinding(pos2_t end_pos, obstacle_t *obstacle_list, uint8_
     end.x = end_pos.x;
     end.y = end_pos.y;
 
-    k_sem_take(&path_found_sem, K_NO_WAIT);
-    uint8_t err = path_manager_find_path(start, end, obstacle_list, obstacle_list_len, path_config);
-    if (err) {
-        LOG_ERR("problem when launching pathfinding %u", err);
-        return -1;
+    uint64_t previous = k_uptime_get();
+    while (previous - k_uptime_get() < 30000) {
+
+        k_sem_take(&path_found_sem, K_NO_WAIT);
+        uint8_t err =
+            path_manager_find_path(start, end, obstacle_list, obstacle_list_len, path_config);
+        if (err) {
+            LOG_ERR("problem when launching pathfinding %u", err);
+            return -1;
+        }
+        LOG_INF("Waiting for path to be found");
+        if (k_sem_take(&path_found_sem, K_SECONDS(4))) {
+            LOG_WRN("No path found, timeout");
+            return -2;
+        }
+
+        if (path_size == 0) {
+            LOG_WRN("No path found");
+            return -2;
+        }
+
+        LOG_INF("Path found of size %u", path_size);
+        revert_path_and_add_angle(path, path_pos, path_size, end_pos.a);
+
+        strat_set_waypoints(path_pos, path_size);
+        int ret = strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
+                                    STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 2000);
+        switch (ret) {
+            case STRAT_WAIT_OK:
+                return 0;
+            case STRAT_WAIT_TIMEOUT_BRAKE:
+                continue;
+            case STRAT_WAIT_TIMEOUT_TARGET:
+                return -1;
+            default:
+                return -255;
+        }
     }
-    LOG_INF("Waiting for path to be found");
-    if (k_sem_take(&path_found_sem, K_SECONDS(5))) {
-        LOG_WRN("No path found, timeout");
-        return -2;
-    }
 
-    if (path_size == 0) {
-        LOG_WRN("No path found");
-        return -2;
-    }
-
-    LOG_INF("Path found of size %u", path_size);
-    revert_path_and_add_angle(path, path_pos, path_size, end_pos.a);
-
-    strat_set_waypoints(path_pos, path_size);
-    strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
-                      STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 16000, 3000);
-
-    return 0;
+    return -1;
 }
 
 void collision_callback(bool collision)
