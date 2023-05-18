@@ -5,6 +5,7 @@
 #include "pokutils.h"
 #include <stdint.h>
 #include "nav/nav.h"
+#include "pokpush/pokpush.h"
 
 LOG_MODULE_REGISTER(strategy);
 
@@ -467,6 +468,7 @@ int get_layers_as_obstacle(struct pokibrain_user_context *ctx, obstacle_t *obsta
 
 int pokibrain_task_push_cake_layer_in_plate(struct pokibrain_callback_params *params)
 {
+    int ret = 0;
     LOG_INF("RUNNING %s", __func__);
     struct pokibrain_user_context *ctx = params->world_context;
     // struct plate *plate = &ctx->plate_list[ctx->precompute.push.layer_index];
@@ -477,14 +479,20 @@ int pokibrain_task_push_cake_layer_in_plate(struct pokibrain_callback_params *pa
         // hack
         strat_set_target((pos2_t){.x = BOARD_CENTER_X, .y = BOARD_CENTER_Y, .a = 0});
         // ctx->layer_list[ctx->precompute.push.layer_index].in_plate = true;
-        return -1;
+        ret = -1;
+        goto exit;
     }
+
+    pokpush_deploy();
 
     if (strat_move_robot_to(ctx->precompute.push.deposit_pos, K_SECONDS(8))) {
-        return -1;
+        ret = -1;
+        goto exit;
     }
 
-    return 0;
+exit:
+    pokpush_retract();
+    return ret;
 }
 
 int32_t

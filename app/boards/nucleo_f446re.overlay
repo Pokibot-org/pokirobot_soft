@@ -12,9 +12,9 @@
         red-pwm-led = &red_pwm_led;
         green-pwm-led = &green_pwm_led;
         blue-pwm-led = &blue_pwm_led;
-        servo-pokpush = &servo_0;
+        servo-pokpush = &servo_2;
         servo-arm = &servo_1;
-        servo-orientation = &servo_2;
+        servo-orientation = &servo_0;
         sw-power = &button6;
     };
 
@@ -53,37 +53,37 @@
     pwmleds {
         compatible = "pwm-leds";
         green_pwm_led: green_pwm_led {
-            pwms = <&pwm1 1 0 PWM_POLARITY_NORMAL>;
+            pwms = <&pwm1 0 0 PWM_POLARITY_NORMAL>;
             label = "Green PWM LED";
             status = "okay";
         };
         blue_pwm_led: blue_pwm_led {
-            pwms = <&pwm3 1 0 PWM_POLARITY_NORMAL>;
+            pwms = <&pwm3 0 0 PWM_POLARITY_NORMAL>;
             label = "Blue PWM LED";
             status = "okay";
         };
         red_pwm_led: red_pwm_led {
-            pwms = <&pwm3 2 0 PWM_POLARITY_NORMAL>;
+            pwms = <&pwm3 1 0 PWM_POLARITY_NORMAL>;
             label = "Red PWM LED";
             status = "okay";
         };
         servo_0: servo_0 {
-            pwms = <&pwm3 3 20000000 PWM_POLARITY_NORMAL>;
+            pwms = <&pwm3 2 20000000 PWM_POLARITY_NORMAL>;
             label = "Servo 0";
             status = "okay";
         };
         servo_1: servo_1 {
-			pwms = <&pwm2 1 20000000 PWM_POLARITY_NORMAL>;
+			pwms = <&pwm2 0 20000000 PWM_POLARITY_NORMAL>;
 			label = "Servo 1";
 			status = "okay";
 		};
         servo_2: servo_2 {
-			pwms = <&pwm2 2 20000000 PWM_POLARITY_NORMAL>;
+			pwms = <&pwm2 1 20000000 PWM_POLARITY_NORMAL>;
 			label = "Servo 2";
 			status = "okay";
 		};
 		servo_3: servo_3 {
-			pwms = <&pwm2 3 20000000 PWM_POLARITY_NORMAL>;
+			pwms = <&pwm2 2 20000000 PWM_POLARITY_NORMAL>;
 			label = "Servo 3";
 			status = "okay";
 		};

@@ -46,15 +46,18 @@ static int pokpush_init(const struct device *dev)
 
 SYS_INIT(pokpush_init, APPLICATION, 90);
 
-int pokpush_open(void)
+int pokpush_deploy(void)
 {
+    LOG_DBG("deploying");
     int err = 0;
-    err |= servo_pwm_set_angle(&obj.servo, M_PI / 2);
+    err |= servo_pwm_set_angle(&obj.servo, M_PI * 4 / 10);
     return err;
 }
-int pokpush_close(void)
+int pokpush_retract(void)
 {
+    LOG_DBG("retracting");
+
     int err = 0;
-    err |= servo_pwm_set_angle(&obj.servo, 3 * M_PI / 2);
+    err |= servo_pwm_set_angle(&obj.servo, M_PI * 80 / 100);
     return err;
 }
