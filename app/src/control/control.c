@@ -589,3 +589,144 @@ void _test_connerie()
     k_sleep(K_MSEC(15000));
     shared_ctrl.brake = true;
 }
+
+void _test_drawing()
+{
+    LOG_INF("_test_drawing");
+#if !(CONFIG_CONTROL_TASK)
+    LOG_ERR("control task not launched");
+#endif
+    shared_ctrl.start_init = true;
+    while (1) {
+        if (!shared_ctrl.ready) {
+            k_sleep(K_MSEC(100));
+            continue;
+        }
+        break;
+    }
+    LOG_DBG("alive");
+    // gpio_pin_toggle(led.port, led.pin);
+    pos2_t target = (pos2_t){0.0f, 0.0f, 0.0f};
+    control_set_pos(&shared_ctrl, (pos2_t){0.0f, 0.0f, 0.0f});
+    control_set_waypoints(&shared_ctrl, &target, 1);
+    k_sleep(K_MSEC(1000));
+    shared_ctrl.start = true;
+
+    // start of drawing
+    pos2_t draw_wps[] = {
+        (pos2_t){ .x = 46.0f,  .y = 202.0f, .a = 0.0f},
+        (pos2_t){ .x = 44.0f,  .y = 202.0f, .a = 0.0f},
+        (pos2_t){ .x = 40.0f,  .y = 199.0f, .a = 0.0f},
+        (pos2_t){ .x = 36.0f,  .y = 195.0f, .a = 0.0f},
+        (pos2_t){ .x = 34.0f,  .y = 190.0f, .a = 0.0f},
+        (pos2_t){ .x = 34.0f,  .y = 190.0f, .a = 0.0f},
+        (pos2_t){ .x = 34.0f,  .y = 168.0f, .a = 0.0f},
+        (pos2_t){ .x = 26.0f,  .y = 161.0f, .a = 0.0f},
+        (pos2_t){ .x = 19.0f,  .y = 154.0f, .a = 0.0f},
+        (pos2_t){ .x = 13.0f,  .y = 146.0f, .a = 0.0f},
+        (pos2_t){ .x = 8.0f,  .y = 138.0f, .a = 0.0f},
+        (pos2_t){ .x = 5.0f,  .y = 129.0f, .a = 0.0f},
+        (pos2_t){ .x = 2.0f,  .y = 119.0f, .a = 0.0f},
+        (pos2_t){ .x = 0.0f,  .y = 109.0f, .a = 0.0f},
+        (pos2_t){ .x = 0.0f,  .y = 98.0f, .a = 0.0f},
+        (pos2_t){ .x = 0.0f,  .y = 98.0f, .a = 0.0f},
+        (pos2_t){ .x = 0.0f,  .y = 98.0f, .a = 0.0f},
+        (pos2_t){ .x = 0.0f,  .y = 89.0f, .a = 0.0f},
+        (pos2_t){ .x = 1.0f,  .y = 80.0f, .a = 0.0f},
+        (pos2_t){ .x = 3.0f,  .y = 71.0f, .a = 0.0f},
+        (pos2_t){ .x = 6.0f,  .y = 61.0f, .a = 0.0f},
+        (pos2_t){ .x = 12.0f,  .y = 52.0f, .a = 0.0f},
+        (pos2_t){ .x = 18.0f,  .y = 43.0f, .a = 0.0f},
+        (pos2_t){ .x = 27.0f,  .y = 34.0f, .a = 0.0f},
+        (pos2_t){ .x = 38.0f,  .y = 24.0f, .a = 0.0f},
+        (pos2_t){ .x = 38.0f,  .y = 12.0f, .a = 0.0f},
+        (pos2_t){ .x = 38.0f,  .y = 12.0f, .a = 0.0f},
+        (pos2_t){ .x = 40.0f,  .y = 7.0f, .a = 0.0f},
+        (pos2_t){ .x = 42.0f,  .y = 3.0f, .a = 0.0f},
+        (pos2_t){ .x = 47.0f,  .y = 0.0f, .a = 0.0f},
+        (pos2_t){ .x = 47.0f,  .y = 0.0f, .a = 0.0f},
+        (pos2_t){ .x = 47.0f,  .y = 0.0f, .a = 0.0f},
+        (pos2_t){ .x = 51.0f,  .y = 1.0f, .a = 0.0f},
+        (pos2_t){ .x = 53.0f,  .y = 2.0f, .a = 0.0f},
+        (pos2_t){ .x = 55.0f,  .y = 4.0f, .a = 0.0f},
+        (pos2_t){ .x = 56.0f,  .y = 6.0f, .a = 0.0f},
+        (pos2_t){ .x = 57.0f,  .y = 10.0f, .a = 0.0f},
+        (pos2_t){ .x = 58.0f,  .y = 14.0f, .a = 0.0f},
+        (pos2_t){ .x = 63.0f,  .y = 12.0f, .a = 0.0f},
+        (pos2_t){ .x = 70.0f,  .y = 10.0f, .a = 0.0f},
+        (pos2_t){ .x = 79.0f,  .y = 9.0f, .a = 0.0f},
+        (pos2_t){ .x = 88.0f,  .y = 9.0f, .a = 0.0f},
+        (pos2_t){ .x = 95.0f,  .y = 8.0f, .a = 0.0f},
+        (pos2_t){ .x = 103.0f,  .y = 9.0f, .a = 0.0f},
+        (pos2_t){ .x = 110.0f,  .y = 11.0f, .a = 0.0f},
+        (pos2_t){ .x = 117.0f,  .y = 14.0f, .a = 0.0f},
+        (pos2_t){ .x = 119.0f,  .y = 7.0f, .a = 0.0f},
+        (pos2_t){ .x = 121.0f,  .y = 3.0f, .a = 0.0f},
+        (pos2_t){ .x = 124.0f,  .y = 1.0f, .a = 0.0f},
+        (pos2_t){ .x = 127.0f,  .y = 0.0f, .a = 0.0f},
+        (pos2_t){ .x = 127.0f,  .y = 0.0f, .a = 0.0f},
+        (pos2_t){ .x = 127.0f,  .y = 0.0f, .a = 0.0f},
+        (pos2_t){ .x = 130.0f,  .y = 0.0f, .a = 0.0f},
+        (pos2_t){ .x = 132.0f,  .y = 1.0f, .a = 0.0f},
+        (pos2_t){ .x = 135.0f,  .y = 4.0f, .a = 0.0f},
+        (pos2_t){ .x = 138.0f,  .y = 11.0f, .a = 0.0f},
+        (pos2_t){ .x = 138.0f,  .y = 11.0f, .a = 0.0f},
+        (pos2_t){ .x = 137.0f,  .y = 25.0f, .a = 0.0f},
+        (pos2_t){ .x = 151.0f,  .y = 37.0f, .a = 0.0f},
+        (pos2_t){ .x = 157.0f,  .y = 44.0f, .a = 0.0f},
+        (pos2_t){ .x = 163.0f,  .y = 52.0f, .a = 0.0f},
+        (pos2_t){ .x = 169.0f,  .y = 61.0f, .a = 0.0f},
+        (pos2_t){ .x = 173.0f,  .y = 72.0f, .a = 0.0f},
+        (pos2_t){ .x = 174.0f,  .y = 77.0f, .a = 0.0f},
+        (pos2_t){ .x = 176.0f,  .y = 84.0f, .a = 0.0f},
+        (pos2_t){ .x = 176.0f,  .y = 90.0f, .a = 0.0f},
+        (pos2_t){ .x = 177.0f,  .y = 97.0f, .a = 0.0f},
+        (pos2_t){ .x = 177.0f,  .y = 97.0f, .a = 0.0f},
+        (pos2_t){ .x = 177.0f,  .y = 97.0f, .a = 0.0f},
+        (pos2_t){ .x = 176.0f,  .y = 108.0f, .a = 0.0f},
+        (pos2_t){ .x = 174.0f,  .y = 118.0f, .a = 0.0f},
+        (pos2_t){ .x = 171.0f,  .y = 128.0f, .a = 0.0f},
+        (pos2_t){ .x = 167.0f,  .y = 137.0f, .a = 0.0f},
+        (pos2_t){ .x = 163.0f,  .y = 145.0f, .a = 0.0f},
+        (pos2_t){ .x = 157.0f,  .y = 153.0f, .a = 0.0f},
+        (pos2_t){ .x = 150.0f,  .y = 161.0f, .a = 0.0f},
+        (pos2_t){ .x = 142.0f,  .y = 168.0f, .a = 0.0f},
+        (pos2_t){ .x = 142.0f,  .y = 189.0f, .a = 0.0f},
+        (pos2_t){ .x = 142.0f,  .y = 189.0f, .a = 0.0f},
+        (pos2_t){ .x = 140.0f,  .y = 194.0f, .a = 0.0f},
+        (pos2_t){ .x = 138.0f,  .y = 199.0f, .a = 0.0f},
+        (pos2_t){ .x = 134.0f,  .y = 202.0f, .a = 0.0f},
+        (pos2_t){ .x = 129.0f,  .y = 204.0f, .a = 0.0f},
+        (pos2_t){ .x = 129.0f,  .y = 204.0f, .a = 0.0f},
+        (pos2_t){ .x = 129.0f,  .y = 204.0f, .a = 0.0f},
+        (pos2_t){ .x = 125.0f,  .y = 203.0f, .a = 0.0f},
+        (pos2_t){ .x = 122.0f,  .y = 202.0f, .a = 0.0f},
+        (pos2_t){ .x = 119.0f,  .y = 200.0f, .a = 0.0f},
+        (pos2_t){ .x = 117.0f,  .y = 197.0f, .a = 0.0f},
+        (pos2_t){ .x = 116.0f,  .y = 194.0f, .a = 0.0f},
+        (pos2_t){ .x = 114.0f,  .y = 191.0f, .a = 0.0f},
+        (pos2_t){ .x = 113.0f,  .y = 183.0f, .a = 0.0f},
+        (pos2_t){ .x = 107.0f,  .y = 184.0f, .a = 0.0f},
+        (pos2_t){ .x = 101.0f,  .y = 185.0f, .a = 0.0f},
+        (pos2_t){ .x = 95.0f,  .y = 186.0f, .a = 0.0f},
+        (pos2_t){ .x = 89.0f,  .y = 186.0f, .a = 0.0f},
+        (pos2_t){ .x = 76.0f,  .y = 185.0f, .a = 0.0f},
+        (pos2_t){ .x = 63.0f,  .y = 183.0f, .a = 0.0f},
+        (pos2_t){ .x = 62.0f,  .y = 189.0f, .a = 0.0f},
+        (pos2_t){ .x = 60.0f,  .y = 195.0f, .a = 0.0f},
+        (pos2_t){ .x = 59.0f,  .y = 197.0f, .a = 0.0f},
+        (pos2_t){ .x = 57.0f,  .y = 200.0f, .a = 0.0f},
+        (pos2_t){ .x = 53.0f,  .y = 202.0f, .a = 0.0f},
+        (pos2_t){ .x = 49.0f,  .y = 202.0f, .a = 0.0f},
+    };
+    int draw_wps_len = 104;
+    // end of drawing
+    // scale
+    float scaling = 4.0f;
+    for (int i = 0; i < draw_wps_len; i++) {
+        draw_wps[i].x *= scaling;
+        draw_wps[i].y *= scaling;
+    }
+    control_set_waypoints(&shared_ctrl, draw_wps, draw_wps_len);
+    control_task_wait_target_default(100000.0f, 10.0f);
+}

@@ -86,7 +86,7 @@ void control_task_wait_ready();
 int control_task_wait_target(float planar_sensivity, float angular_sensivity, uint32_t timeout_target_ms, uint32_t timeout_brake_ms);
 #define control_task_wait_target_default(_timeout_target_ms, _timeout_brake_ms)                                              \
     control_task_wait_target(CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT,                            \
-                             CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT, _target_timeout_ms, _brake_timeout_ms)
+                             CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT, _timeout_target_ms, _timeout_brake_ms)
 
 void _test_gconf();
 void _test_motor_cmd();
