@@ -36,7 +36,7 @@
 #define CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT  2.0f
 #define CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT DEG_TO_RAD(3.0f)
 #define WP_DIST_BIAS                               30.0f
-#define WP_SENSITIVITY                             10.0f
+#define WP_SENSITIVITY                             40.0f
 
 typedef struct waypoints {
     pos2_t *wps;

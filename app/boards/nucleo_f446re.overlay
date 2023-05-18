@@ -132,7 +132,7 @@
 
 &usart2 {
     status = "okay";
-    current-speed = < 115200 >;
+    current-speed = <921600>;
 };
 
 &uart5 {

@@ -329,16 +329,13 @@ static int control_task(void)
         }
         // update next waypoints
         LOG_DBG("dist: %.2f | prev: %.2f | delta: %e", wp_dist, dist_prev, wp_dist - dist_prev);
-        if (dist_prev >= 0.0f && ((wp_dist > dist_prev && wp_dist <= WP_SENSITIVITY) ||
-                                  wp_dist < CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT)
-            // (wp_dist-dist_prev <= WP_DELTA_THRESHOLD && wp_dist <= WP_SENSITIVITY)
-            // || wp_dist <= CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT)
+        if (idx < n && dist_prev >= 0.0f && (
+            (wp_dist > dist_prev && wp_dist <= WP_SENSITIVITY) ||
+            wp_dist < CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT)
         ) {
             shared_ctrl.waypoints.idx = MIN(shared_ctrl.waypoints.idx + 1, shared_ctrl.waypoints.n);
             dist_prev = -1.0f;
-            if (shared_ctrl.waypoints.n > 0) {
-                LOG_INF("idx: %d", shared_ctrl.waypoints.idx);
-            }
+            LOG_INF("idx: %d", shared_ctrl.waypoints.idx);
         } else {
             dist_prev = wp_dist;
         }
@@ -350,6 +347,7 @@ static int control_task(void)
         tmc2209_set_speed(shared_ctrl.m3, (int32_t)(motors_v.v3 * MM_TO_USTEPS / WHEEL_PERIMETER));
     continue_nocommit:
         // sleep
+        LOG_DBG("idx: %d", shared_ctrl.waypoints.idx);
         LOG_DBG("pos: %.2f %.2f %.2f", pos.x, pos.y, pos.a);
         LOG_DBG("target: %.2f %.2f %.2f", wp1.x, wp1.y, wp1.a);
         LOG_DBG("next: %.2f %.2f %.2f", wp2.x, wp2.y, wp2.a);
