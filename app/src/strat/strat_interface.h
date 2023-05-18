@@ -3,7 +3,7 @@
 #include "pokutils.h"
 
 #define ROBOT_RADIUS                             190
-#define STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT  5.0f             // 5mm
+#define STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT  2.0f             // 2mm
 #define STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT DEG_TO_RAD(3.0f) // 3 deg
 #define STRAT_WAIT_OK                            0
 #define STRAT_WAIT_TIMEOUT_TARGET                (-1)
