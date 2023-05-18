@@ -103,8 +103,12 @@ static uint32_t pokibrain_get_time_in_match_ms(void)
 
 static void pokibrain_match_timer(struct k_timer *timer_id)
 {
-    pokibrain_events_t ev = POKIBRAIN_DIE;
-    k_msgq_put(&event_queue, &ev, K_NO_WAIT);
+    k_timer_stop(&timer);
+    k_msgq_purge(&event_queue);
+    brain.running = false;
+    if (brain.end_clbk) {
+        brain.end_clbk(brain.world_context);
+    }
 }
 
 static void pokibrain_periodic_timer(struct k_timer *timer_id)
