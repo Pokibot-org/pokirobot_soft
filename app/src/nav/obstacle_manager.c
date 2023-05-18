@@ -41,7 +41,7 @@ K_SEM_DEFINE(obsacle_holder_lock, 1, 1);
 #define CAMSENSE_OFFSET_IN_ROBOT    (-180.0f * 3.0f / 4.0f)
 #define CAMSENSE_CENTER_OFFSET_DEG  (CAMSENSE_OFFSET_IN_ROBOT)
 // #define LIDAR_COUNTER_CLOCKWISE
-#define LIDAR_DETECTION_DISTANCE_MM 220
+#define LIDAR_DETECTION_DISTANCE_MM 180
 // 360 == detecting obstacles even behind
 // #define LIDAR_DETECTION_ANGLE UNUSED
 // FUNC
@@ -76,7 +76,7 @@ uint8_t process_point(obstacle_manager_t *obj, uint16_t point_distance, float po
     // LOG_INF("IN PROCESS POINT: angle: %f, distance: %d", point_angle,
     // point_distance);
 
-    if (point_distance < ROBOT_MAX_RADIUS_MM) // in robot do nothing
+    if (point_distance < ROBOT_MAX_RADIUS_MM - 30.0f) // in robot do nothing
     {
         // LOG_INF("Point in robot");
         return 0;
@@ -126,7 +126,8 @@ uint8_t process_lidar_message(obstacle_manager_t *obj, const lidar_message_t *me
 {
     float step = 0.0f;
     static bool obstacle_detected = false;
-    static uint8_t obstacle_detected_count = false;
+    const uint8_t max_detect_count = 2;
+    static uint8_t obstacle_detected_count = 0;
     static uint8_t decimation_counter;
     static float old_end_angle;
     if (message->end_angle > message->start_angle) {
@@ -140,8 +141,13 @@ uint8_t process_lidar_message(obstacle_manager_t *obj, const lidar_message_t *me
                 obj->obstacles_holders[obj->current_obs_holder_index].write_head);
         obstacle_holder_clear(&obj->obstacles_holders[obj->current_obs_holder_index]);
         obj->current_obs_holder_index = !obj->current_obs_holder_index;
+        if (obstacle_detected) {
+            obstacle_detected_count = MIN(obstacle_detected_count + 1, max_detect_count);
+        } else {
+            obstacle_detected_count = 0;
+        }
         if (obj->collision_callback) {
-            obj->collision_callback(obstacle_detected);
+            obj->collision_callback(obstacle_detected_count == max_detect_count);
         }
         obstacle_detected = false;
     }
