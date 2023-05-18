@@ -12,10 +12,9 @@
         red-pwm-led = &red_pwm_led;
         green-pwm-led = &green_pwm_led;
         blue-pwm-led = &blue_pwm_led;
-        servo-orientation = &servo_0;
+        servo-pokpush = &servo_0;
         servo-arm = &servo_1;
-        servo-dicristaline1 = &servo_2;
-        servo-dicristaline2 = &servo_3;
+        servo-orientation = &servo_2;
         sw-power = &button6;
     };
 

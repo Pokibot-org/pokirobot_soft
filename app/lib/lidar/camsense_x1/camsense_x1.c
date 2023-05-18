@@ -69,7 +69,7 @@ typedef struct camsense_x1_obj {
     uint16_t current_number_of_points;
 } camsense_x1_obj_t;
 
-camsense_x1_obj_t obj = {0};
+static camsense_x1_obj_t obj = {0};
 
 // PRIVATE FUNC
 /**
