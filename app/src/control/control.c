@@ -328,12 +328,13 @@ static int control_task(void)
         }
         // update next waypoints
         LOG_DBG("dist: %.2f | prev: %.2f | delta: %e", wp_dist, dist_prev, wp_dist - dist_prev);
-        if (dist_prev >= 0.0f && ((wp_dist > dist_prev && wp_dist <= WP_SENSITIVITY))
+        if (dist_prev >= 0.0f && ((wp_dist > dist_prev && wp_dist <= WP_SENSITIVITY) || wp_dist < CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT)
             // (wp_dist-dist_prev <= WP_DELTA_THRESHOLD && wp_dist <= WP_SENSITIVITY)
             // || wp_dist <= CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT)
         ) {
-            shared_ctrl.waypoints.idx += 1;
+            shared_ctrl.waypoints.idx = MIN(shared_ctrl.waypoints.idx+1, shared_ctrl.waypoints.n);
             dist_prev = -1.0f;
+            LOG_INF("idx: %d", shared_ctrl.waypoints.idx);
         } else {
             dist_prev = wp_dist;
         }
@@ -722,10 +723,11 @@ void _test_drawing()
     int draw_wps_len = 104;
     // end of drawing
     // scale
-    float scaling = 4.0f;
+    float scaling = 3.0f;
     for (int i = 0; i < draw_wps_len; i++) {
         draw_wps[i].x *= scaling;
         draw_wps[i].y *= scaling;
+        LOG_DBG("p[%d]: %.2f %.2f %.2f", i, draw_wps[i].x, draw_wps[i].y, draw_wps[i].a);
     }
     control_set_waypoints(&shared_ctrl, draw_wps, draw_wps_len);
     control_task_wait_target_default(100000.0f, 10.0f);

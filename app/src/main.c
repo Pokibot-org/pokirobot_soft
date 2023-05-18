@@ -101,6 +101,7 @@ int main(void)
     // _test_calibration_distance();
     // _test_calibration_angle();
     // _test_calibration_mix();
+    // _test_drawing();
     // _test_connerie();
     // _test_pathfinding();
 

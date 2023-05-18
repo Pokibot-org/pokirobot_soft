@@ -95,5 +95,6 @@ void _test_calibration_distance();
 void _test_calibration_angle();
 void _test_calibration_mix();
 void _test_connerie();
+void _test_drawing();
 
 #endif
