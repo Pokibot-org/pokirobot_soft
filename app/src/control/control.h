@@ -14,7 +14,6 @@
 #define ROBOT_L           160.404f
 #define WHEEL_PERIMETER   358.142f
 #define MM_TO_USTEPS      102657.14f
-#define DIST_BIAS         200.0f
 
 #define PLANAR_VMAX   700.0f // 700 mm/s
 #define PLANAR_FACTOR (0.03f * PLANAR_VMAX)
@@ -26,6 +25,10 @@
 
 #define CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT  5.0f             // 5mm
 #define CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT DEG_TO_RAD(3.0f) // 3 deg
+
+#define WP_DIST_BIAS         200.0f
+#define WP_SENSITIVITY       300.0f
+#define WP_DELTA_THRESHOLD   1.0f * CONTROL_PERIOD_MS / 1000.0f
 
 typedef struct waypoints {
     pos2_t* wps;

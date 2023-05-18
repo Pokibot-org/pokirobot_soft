@@ -157,7 +157,7 @@ vel2_t world_vel_from_delta2(pos2_t delta1, pos2_t delta2, vel2_t prev_vel)
 {
     // compute biases
     float dist1 = sqrtf(delta1.x * delta1.x + delta1.y * delta1.y);
-    float bias1 = MIN(dist1 / DIST_BIAS, 1.0f);
+    float bias1 = MIN(dist1 / WP_DIST_BIAS, 1.0f);
     float bias2 = 1.0f - bias1;
     // planar speed capping + acceleration ramp
     float vx = PLANAR_FACTOR * (bias1 * NEG_SQRTF(delta1.x) + bias2 * NEG_SQRTF(delta2.x));
@@ -307,7 +307,7 @@ static int control_task(void)
         } else {
             pos2_t delta1 = pos2_diff(wp1, pos);
             pos2_t delta2 = pos2_diff(wp2, pos);
-            wp_dist = vec2_abs((vec2_t){delta2.x, delta2.y});
+            wp_dist = vec2_abs((vec2_t){delta1.x, delta1.y});
             if (idx == (n - 1) && wp_dist < CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT &&
                 delta2.a < CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT) {
                 shared_ctrl.at_target = true;
@@ -320,8 +320,11 @@ static int control_task(void)
             motors_v = omni_from_local_vel(local_vel);
         }
         // update next waypoints
-        if (dist_prev >= 0.0f &&
-            (wp_dist > dist_prev || wp_dist < CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT)) {
+        LOG_DBG("dist: %.2f | prev: %.2f | delta: %e", wp_dist, dist_prev, wp_dist-dist_prev);
+        if (dist_prev >= 0.0f && ((wp_dist >= dist_prev && wp_dist <= WP_SENSITIVITY))
+            // (wp_dist-dist_prev <= WP_DELTA_THRESHOLD && wp_dist <= WP_SENSITIVITY)
+            // || wp_dist <= CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT)
+        ) {
             shared_ctrl.waypoints.idx += 1;
             dist_prev = -1.0f;
         } else {
