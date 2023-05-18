@@ -1,6 +1,7 @@
 {
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "Debug pc_app",
             "type": "cppdbg",
@@ -92,6 +93,19 @@
             "servertype": "openocd",
             "configFiles": [
                 "${workspaceRoot}/boards/arm/nucleo_g491re/support/openocd.cfg"
+            ]
+        },
+        {
+            "name": "Debug nucleo_f446re",
+            "device": "nucleo_f446re",
+            "gdbPath": "arm-none-eabi-gdb",
+            "cwd": "${workspaceRoot}",
+            "executable": "${workspaceRoot}/build/zephyr/zephyr.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "configFiles": [
+                "${workspaceRoot}/../zephyr/boards/arm/nucleo_f446re/support/openocd.cfg"
             ]
         }
     ]

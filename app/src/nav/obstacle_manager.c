@@ -11,7 +11,7 @@
 LOG_MODULE_REGISTER(obstacle_manager, 3);
 
 // DEFINES
-#define MAX_LIDAR_MESSAGE                  12
+#define MAX_LIDAR_MESSAGE                  32
 #define CHECK_IF_OBSTACLE_INSIDE_TABLE     0
 #define OBSTACLE_MANAGER_DECIMATION_FACTOR 4
 // TYPES
@@ -32,7 +32,7 @@ typedef struct obstacle_manager {
     obstacle_manager_collision_clbk collision_callback;
 } obstacle_manager_t;
 
-K_MSGQ_DEFINE(obstacle_manager_msgq, sizeof(obstacle_manager_message_t), 10, 1);
+K_MSGQ_DEFINE(obstacle_manager_msgq, sizeof(obstacle_manager_message_t), 32, 1);
 
 // PRIVATE VAR
 static obstacle_manager_t obs_man_obj = {0};

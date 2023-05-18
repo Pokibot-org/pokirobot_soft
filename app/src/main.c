@@ -87,6 +87,8 @@ void match_1()
     return;
 }
 
+#include "strat/strat_interface.h"
+
 int main(void)
 {
     LOG_INF("BOOTING");
@@ -96,11 +98,26 @@ int main(void)
     // _test_target();
     // _test_calibration_distance();
     // _test_calibration_angle();
-    _test_calibration_mix();
+    // _test_calibration_mix();
     // _test_connerie();
     // _test_pathfinding();
 
     // match_1();
+    shared_ctrl.start_init = true;
 
+    control_task_wait_ready();
+
+    shared_ctrl.start = true;
+
+    pos2_t path_pos[] = {
+        {.x = 0, .y = 1000, .a = 0},
+        {.x = 1000, .y = 1000, .a = 0},
+        {.x = 1000, .y = 0, .a = 0},
+        {.x = 0, .y = 0, .a = 0},
+    };
+    strat_set_waypoints(path_pos, 4);
+    strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
+                      STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 50000);
+    LOG_ERR("HAAAAAAAAAAAAAAAAAAAAAA");
     return 0;
 }

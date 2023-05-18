@@ -42,7 +42,7 @@ int strat_move_robot_to(pos2_t pos, k_timeout_t timeout)
         shared_ctrl.start = true;
     }
 
-    if (control_set_target(&shared_ctrl, pos)) {
+    if (strat_set_target(pos)) {
         return -1;
     }
 

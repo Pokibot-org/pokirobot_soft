@@ -107,6 +107,7 @@ uint8_t path_manager_find_path(point2_t start, point2_t end, obstacle_t *obstacl
 
     if (path_manager_tid != NULL) {
         k_thread_abort(path_manager_tid);
+        path_manager_tid = NULL;
     }
     pm_obj.start = start;
     pm_obj.end = end;

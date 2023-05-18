@@ -474,10 +474,13 @@ int pokibrain_task_push_cake_layer_in_plate(struct pokibrain_callback_params *pa
     obstacle_t obstacles[ARRAY_SIZE(layer_list)];
     int nb_obstacles = get_layers_as_obstacle(ctx, obstacles);
     if (nav_go_to_with_pathfinding(ctx->precompute.push.push_dock_pos, obstacles, nb_obstacles)) {
+        // hack
+        strat_set_target((pos2_t){.x = BOARD_CENTER_X, .y = BOARD_CENTER_Y, .a = 0});
+        // ctx->layer_list[ctx->precompute.push.layer_index].in_plate = true;
         return -1;
     }
 
-    if (strat_move_robot_to(ctx->precompute.push.deposit_pos, K_SECONDS(4))) {
+    if (strat_move_robot_to(ctx->precompute.push.deposit_pos, K_SECONDS(8))) {
         return -1;
     }
 
@@ -564,7 +567,7 @@ void strat_init(enum team_color color)
 
     static struct pokibrain_task tasks[] = {
         {
-            .name = "push",
+            .name = "push brown",
             .task_precompute = pokibrain_precompute_push_cake_layer_in_plate,
             .reward_calculation = pokibrain_reward_calculation_push_cake_layer_in_plate,
             .task_process = pokibrain_task_push_cake_layer_in_plate,
@@ -572,7 +575,7 @@ void strat_init(enum team_color color)
             .id = (uint32_t)LAYER_COLOR_BROWN,
         },
         {
-            .name = "push",
+            .name = "push yellow",
             .task_precompute = pokibrain_precompute_push_cake_layer_in_plate,
             .reward_calculation = pokibrain_reward_calculation_push_cake_layer_in_plate,
             .task_process = pokibrain_task_push_cake_layer_in_plate,
@@ -580,7 +583,7 @@ void strat_init(enum team_color color)
             .id = (uint32_t)LAYER_COLOR_YELLOW,
         },
         {
-            .name = "push",
+            .name = "push pink",
             .task_precompute = pokibrain_precompute_push_cake_layer_in_plate,
             .reward_calculation = pokibrain_reward_calculation_push_cake_layer_in_plate,
             .task_process = pokibrain_task_push_cake_layer_in_plate,
