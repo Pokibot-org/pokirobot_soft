@@ -571,9 +571,9 @@ static void strat_end_game_clbk(void *world_context)
     LOG_INF("SCORE %d", calculate_score(ctx));
     nav_stop();
     strat_set_robot_brake(true);
-    strat_force_motor_stop();
-    k_sched_lock();
     while (1) {
+        strat_force_motor_stop();
+        k_sched_lock();
     }
 }
 

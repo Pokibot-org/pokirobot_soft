@@ -41,7 +41,7 @@ K_SEM_DEFINE(obsacle_holder_lock, 1, 1);
 #define CAMSENSE_OFFSET_IN_ROBOT    (-180.0f * 3.0f / 4.0f)
 #define CAMSENSE_CENTER_OFFSET_DEG  (CAMSENSE_OFFSET_IN_ROBOT)
 // #define LIDAR_COUNTER_CLOCKWISE
-#define LIDAR_DETECTION_DISTANCE_MM 180
+#define LIDAR_DETECTION_DISTANCE_MM 260
 // 360 == detecting obstacles even behind
 // #define LIDAR_DETECTION_ANGLE UNUSED
 // FUNC
@@ -73,8 +73,7 @@ uint8_t process_point(obstacle_manager_t *obj, uint16_t point_distance, float po
     pos2_t actual_robot_pos;
     strat_get_robot_pos(&actual_robot_pos);
 
-    // LOG_INF("IN PROCESS POINT: angle: %f, distance: %d", point_angle,
-    // point_distance);
+    // LOG_INF("IN PROCESS POINT: angle: %f, distance: %d", point_angle, point_distance);
 
     if (point_distance < ROBOT_MAX_RADIUS_MM - 30.0f) // in robot do nothing
     {
@@ -160,9 +159,10 @@ uint8_t process_lidar_message(obstacle_manager_t *obj, const lidar_message_t *me
         }
 
         // Filter some noisy data
-        if (message->points[i].quality == 0) {
+        if (message->points[i].quality <= 20) {
             continue;
         }
+
 #ifdef LIDAR_COUNTER_CLOCKWISE
 // float point_angle =
 //     360.0f - ((message->start_angle + step * i) +
