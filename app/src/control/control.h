@@ -10,6 +10,10 @@
 #define CONTROL_MUTEX_TIMEOUT (K_MSEC(30))
 #define CONTROL_WAYPOINTS_N   256
 
+#define CONTROL_WAIT_OK             0
+#define CONTROL_WAIT_TIMEOUT_TARGET (-1)
+#define CONTROL_WAIT_TIMEOUT_BRAKE  (-2)
+
 #define CONTROL_PERIOD_MS 2.0f
 #define ROBOT_L           160.404f
 #define WHEEL_PERIMETER   358.142f
@@ -28,7 +32,6 @@
 
 #define WP_DIST_BIAS       100.0f
 #define WP_SENSITIVITY     300.0f
-#define WP_DELTA_THRESHOLD 1.0f * CONTROL_PERIOD_MS / 1000.0f
 
 typedef struct waypoints {
     pos2_t *wps;
@@ -80,10 +83,10 @@ omni3_t omni_from_local_vel(vel2_t local_vel);
 vel2_t local_vel_from_omni(omni3_t omni);
 
 void control_task_wait_ready();
-bool control_task_wait_target(float planar_sensivity, float angular_sensivity, uint32_t timeout_ms);
-#define control_task_wait_target_default(_timeout_ms)                                              \
+int control_task_wait_target(float planar_sensivity, float angular_sensivity, uint32_t timeout_target_ms, uint32_t timeout_brake_ms);
+#define control_task_wait_target_default(_timeout_target_ms, _timeout_brake_ms)                                              \
     control_task_wait_target(CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT,                            \
-                             CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT, _timeout_ms)
+                             CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT, _target_timeout_ms, _brake_timeout_ms)
 
 void _test_gconf();
 void _test_motor_cmd();

@@ -81,7 +81,7 @@ int nav_go_to_with_pathfinding(pos2_t end_pos, obstacle_t *obstacle_list, uint8_
 
     strat_set_waypoints(path_pos, path_size);
     strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
-                      STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 16000);
+                      STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 16000, 3000);
 
     return 0;
 }

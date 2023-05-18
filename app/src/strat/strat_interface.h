@@ -11,10 +11,10 @@ int strat_get_robot_pos(pos2_t *pos);
 int strat_set_robot_pos(pos2_t pos);
 int strat_set_target(pos2_t pos);
 int strat_set_waypoints(pos2_t *pos_list, int n);
-bool strat_wait_target(float planar_sensivity, float angular_sensivity, uint32_t timeout_ms);
-#define strat_wait_target_default(_timeout_ms)                                                     \
+int strat_wait_target(float planar_sensivity, float angular_sensivity, uint32_t timeout_target_ms, uint32_t timeout_brake_ms);
+#define strat_wait_target_default(_timeout_target_ms, _timeout_brake_ms)                           \
     strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,                                     \
-                      STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, _timeout_ms)
+                      STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, _timeout_target_ms, _timeout_target_ms)
 void strat_force_motor_stop(void);
 
 int strat_move_robot_to(pos2_t pos, k_timeout_t timeout);

@@ -233,18 +233,25 @@ void control_task_wait_ready()
     }
 }
 
-bool control_task_wait_target(float planar_sensivity, float angular_sensivity, uint32_t timeout_ms)
+int control_task_wait_target(float planar_sensivity, float angular_sensivity, uint32_t timeout_target_ms, uint32_t timeout_brake_ms)
 {
+    uint32_t target_timeout_cnt = 0;
+    uint32_t brake_timeout_cnt = 0;
     shared_ctrl.planar_target_sensivity = planar_sensivity;
     shared_ctrl.angular_target_sensivity = angular_sensivity;
     shared_ctrl.at_target = false;
-    for (int i = 0; i < timeout_ms; i++) {
-        if (shared_ctrl.at_target) {
-            break;
+    while (!shared_ctrl.at_target) {
+        target_timeout_cnt += 1;
+        brake_timeout_cnt = shared_ctrl.brake ? brake_timeout_cnt + 1 : 0;
+        if (target_timeout_cnt > timeout_target_ms) {
+            return CONTROL_WAIT_TIMEOUT_TARGET;
+        }
+        if (brake_timeout_cnt > timeout_brake_ms) {
+            return CONTROL_WAIT_TIMEOUT_BRAKE;
         }
         k_sleep(K_MSEC(1));
     }
-    return shared_ctrl.at_target;
+    return CONTROL_WAIT_OK;
 }
 
 static void control_task_wait_start()
