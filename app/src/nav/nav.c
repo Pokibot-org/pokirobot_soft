@@ -106,7 +106,7 @@ void collision_callback(bool collision)
     if (collision) {
         LOG_DBG("Collision detected");
     }
-    strat_set_robot_brake(collision);
+    // strat_set_robot_brake(collision);
 }
 
 void nav_init(void)
