@@ -65,10 +65,10 @@ const static struct cake_layer layer_list[] = {
     (struct cake_layer){.color = LAYER_COLOR_PINK, .point = {.x = 225, .y = BOARD_SIZE_Y - 575}},
     (struct cake_layer){.color = LAYER_COLOR_PINK,
                         .point = {.x = BOARD_SIZE_X - 225, .y = BOARD_SIZE_Y - 575}},
-    (struct cake_layer){.color = LAYER_COLOR_PINK, .point = {.x = 225, .y = 775}},
-    (struct cake_layer){.color = LAYER_COLOR_PINK, .point = {.x = BOARD_SIZE_X - 225, .y = 775}},
-    (struct cake_layer){.color = LAYER_COLOR_PINK, .point = {.x = 225, .y = BOARD_SIZE_Y - 775}},
-    (struct cake_layer){.color = LAYER_COLOR_PINK,
+    (struct cake_layer){.color = LAYER_COLOR_YELLOW, .point = {.x = 225, .y = 775}},
+    (struct cake_layer){.color = LAYER_COLOR_YELLOW, .point = {.x = BOARD_SIZE_X - 225, .y = 775}},
+    (struct cake_layer){.color = LAYER_COLOR_YELLOW, .point = {.x = 225, .y = BOARD_SIZE_Y - 775}},
+    (struct cake_layer){.color = LAYER_COLOR_YELLOW,
                         .point = {.x = BOARD_SIZE_X - 225, .y = BOARD_SIZE_Y - 775}},
 
 };
@@ -102,6 +102,9 @@ const static struct plate plate_list[] = {
                    .point = {.x = BOARD_SIZE_X - 225, .y = BOARD_CENTER_Y + 375}},
     (struct plate){.color = PLATE_COLOR_BLUE, .point = {.x = 225, .y = BOARD_SIZE_Y - 225}},
 };
+
+#define ID_END_PLATE_GREEN 4
+#define ID_END_PLATE_BLUE  9
 
 struct cherry_dispenser {
     pos2_t pos;
@@ -188,7 +191,7 @@ int get_closest_available_plate_index(struct pokibrain_user_context *ctx, point2
         if (plate->color != ctx->team_color) {
             continue;
         }
-        if (plate->cake_size >= 3) {
+        if (plate->cake_size >= 2) {
             continue;
         }
         float dist = vec2_distance(point, plate->point);
@@ -245,6 +248,18 @@ uint32_t calculate_score(struct pokibrain_user_context *ctx)
 #define PUSH_TOOL_OFFSET (M_PI + M_PI / 6)
 #define DOCKING_DIST     (ROBOT_RADIUS + CAKE_LAYER_RADIUS + 20)
 
+int get_home_docking_pos(point2_t robot_point, point2_t layer_point, pos2_t *dock_pos)
+{
+    float segment_len = vec2_distance(robot_point, layer_point);
+    float frac = ROBOT_RADIUS * 2 / segment_len;
+    vec2_t diff = point2_diff(layer_point, robot_point);
+
+    dock_pos->x = layer_point.x - diff.dx * frac;
+    dock_pos->y = layer_point.y - diff.dy * frac;
+    dock_pos->a = angle_modulo(atan2f(diff.dy, diff.dx) + PUSH_TOOL_OFFSET);
+    return 0;
+}
+
 int get_layer_docking_pos(point2_t robot_point, point2_t layer_point, pos2_t *dock_pos)
 {
     float segment_len = vec2_distance(robot_point, layer_point);
@@ -299,7 +314,25 @@ int get_static_components_as_obstacle(struct pokibrain_user_context *ctx, obstac
                                .width = CHERRY_DISPENSER_DEPTH}};
     }
 
-    return ARRAY_SIZE(layer_list) + ARRAY_SIZE(dispenser_list);
+    obstacle_list[ARRAY_SIZE(layer_list) + ARRAY_SIZE(dispenser_list)] =
+        (obstacle_t){.type = obstacle_type_circle,
+                     .data.circle.coordinates =
+                         ctx->plate_list[ctx->team_color == PLATE_COLOR_BLUE ? ID_END_PLATE_GREEN
+                                                                             : ID_END_PLATE_BLUE]
+                             .point,
+                     .data.circle.radius = CAKE_LAYER_RADIUS * 2};
+
+    // for (size_t i = 0; i < ARRAY_SIZE(plate_list); i++) {
+    //     if (ctx->plate_list[i].color == ctx->team_color || i == ID_END_PLATE_BLUE ||
+    //         i == ID_END_PLATE_GREEN) {
+    //         obstacle_list[ARRAY_SIZE(layer_list) + ARRAY_SIZE(dispenser_list) + i] =
+    //             (obstacle_t){.type = obstacle_type_none};
+    //     } else {
+
+    //     }
+    // }
+
+    return ARRAY_SIZE(layer_list) + ARRAY_SIZE(dispenser_list) + 1;
 }
 
 // GO HOME
@@ -309,20 +342,24 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
     LOG_INF("RUNNING %s", __func__);
     struct pokibrain_user_context *ctx = params->world_context;
 
-    pos2_t end_pos = ctx->team_color == PLATE_COLOR_BLUE
-                         ? CONVERT_POINT2_TO_POS2(plate_list[9].point, M_PI_2)
-                         : CONVERT_POINT2_TO_POS2(plate_list[5].point, -M_PI_2);
-    obstacle_t obstacles[ARRAY_SIZE(layer_list) + ARRAY_SIZE(dispenser_list)];
+    point2_t end_point = ctx->team_color == PLATE_COLOR_BLUE ? plate_list[ID_END_PLATE_BLUE].point
+                                                             : plate_list[ID_END_PLATE_GREEN].point;
+    pos2_t docking_pos;
+    get_home_docking_pos((point2_t){.x = BOARD_CENTER_X, .y = BOARD_CENTER_Y}, end_point,
+                         &docking_pos);
+    obstacle_t
+        obstacles[ARRAY_SIZE(layer_list) + ARRAY_SIZE(dispenser_list) + ARRAY_SIZE(plate_list)];
     int nb_obstacles = get_static_components_as_obstacle(ctx, obstacles);
-    nav_go_to_with_pathfinding(end_pos, obstacles, nb_obstacles);
+    nav_go_to_with_pathfinding(docking_pos, obstacles, nb_obstacles);
+    k_sleep(K_SECONDS(1));
     return 0;
 }
 
 int32_t pokibrain_reward_calculation_go_home(struct pokibrain_callback_params *params)
 {
     LOG_DBG("REWARD CALC %s", __func__);
-    if (params->time_in_match_ms < 90 * 1000) {
-        return INT32_MIN;
+    if (params->time_in_match_ms < 85 * 1000) {
+        return INT32_MIN + 1;
     }
     return OFFSET_SCORE(105);
 }
@@ -344,6 +381,16 @@ int pokibrain_precompute_push_cake_layer_in_plate(struct pokibrain_callback_para
     ctx->precompute.push.layer_index = params->self->id;
     if (ctx->layer_list[ctx->precompute.push.layer_index].in_plate) {
         return INT32_MIN;
+    }
+
+    if (ctx->team_color == PLATE_COLOR_BLUE) {
+        if (params->self->id == 6 || params->self->id == 10) {
+            return INT32_MIN;
+        }
+    } else {
+        if (params->self->id == 7 || params->self->id == 11) {
+            return INT32_MIN;
+        }
     }
 
     if (get_closest_available_plate_index(ctx,
@@ -373,8 +420,8 @@ int pokibrain_precompute_push_cake_layer_in_plate(struct pokibrain_callback_para
 
         if (obstacle_get_point_of_collision_with_segment(
                 ctx->layer_list[ctx->precompute.push.layer_index].point,
-                ctx->plate_list[ctx->precompute.push.plate_index].point, &layer_obstacle,
-                ROBOT_RADIUS, &coll_pos) == OBSTACLE_COLLISION_DETECTED) {
+                ctx->plate_list[ctx->precompute.push.plate_index].point, &layer_obstacle, 20,
+                &coll_pos) == OBSTACLE_COLLISION_DETECTED) {
             ctx->precompute.push.pushed_layer_index[ctx->precompute.push.pushed_layers] = i;
             ctx->precompute.push.pushed_layers += 1;
         }
@@ -390,7 +437,8 @@ int pokibrain_task_push_cake_layer_in_plate(struct pokibrain_callback_params *pa
     struct pokibrain_user_context *ctx = params->world_context;
     // struct plate *plate = &ctx->plate_list[ctx->precompute.push.layer_index];
 
-    obstacle_t obstacles[ARRAY_SIZE(layer_list) + ARRAY_SIZE(dispenser_list)];
+    obstacle_t
+        obstacles[ARRAY_SIZE(layer_list) + ARRAY_SIZE(dispenser_list) + ARRAY_SIZE(plate_list)];
     int nb_obstacles = get_static_components_as_obstacle(ctx, obstacles);
     if (nav_go_to_with_pathfinding(ctx->precompute.push.push_dock_pos, obstacles, nb_obstacles)) {
         // hack
@@ -422,7 +470,7 @@ pokibrain_reward_calculation_push_cake_layer_in_plate(struct pokibrain_callback_
         add_layer_to_plate(&target_plate,
                            &ctx->layer_list[ctx->precompute.push.pushed_layer_index[i]]);
     }
-    add_layer_to_plate(&target_plate, &ctx->layer_list[ctx->precompute.push.layer_index]);
+    // add_layer_to_plate(&target_plate, &ctx->layer_list[ctx->precompute.push.layer_index]);
     int32_t score = MIN(target_plate.cake_size, CAKE_MAX_NB_LAYERS);
     return OFFSET_SCORE(score) -
            (int)vec2_distance(CONVERT_POS2_TO_POINT2(ctx->robot_pos),
@@ -495,7 +543,7 @@ const char *get_side_name(enum team_color color)
 
 #define DECLARE_PUSH_TASK(_id)                                                                     \
     {                                                                                              \
-        .name = "push" STRINGIFY(_id), .task_precompute = pokibrain_precompute_push_cake_layer_in_plate,                \
+        .name = "push " STRINGIFY(_id), .task_precompute = pokibrain_precompute_push_cake_layer_in_plate,                \
                   .reward_calculation = pokibrain_reward_calculation_push_cake_layer_in_plate,     \
                   .task_process = pokibrain_task_push_cake_layer_in_plate,                         \
                   .completion_callback = pokibrain_completion_push_cake_layer_in_plate,            \
