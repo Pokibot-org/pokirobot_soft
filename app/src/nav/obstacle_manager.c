@@ -75,7 +75,7 @@ uint8_t process_point(obstacle_manager_t *obj, uint16_t point_distance, float po
 
     // LOG_INF("IN PROCESS POINT: angle: %f, distance: %d", point_angle, point_distance);
 
-    if (point_distance < ROBOT_MAX_RADIUS_MM - 30.0f) // in robot do nothing
+    if (point_distance < ROBOT_MIN_RADIUS_MM) // in robot do nothing
     {
         // LOG_INF("Point in robot");
         return 0;
@@ -101,15 +101,15 @@ uint8_t process_point(obstacle_manager_t *obj, uint16_t point_distance, float po
     float flip_angle = 2.0f * M_PI - point_angle_rad - 1.25f;
     float delta_angle = fabsf(angle_modulo(flip_angle - robot_dir));
     // if (point_distance < ROBOT_MAX_RADIUS_MM + LIDAR_DETECTION_DISTANCE_MM) {
-    //     LOG_ERR("flip_angle: %.3f", flip_angle);
+    //     LOG_ERR("dist: %u", point_distance);
     // }
 
     // if it is a near obstacle change return code
     if ((point_distance < ROBOT_MAX_RADIUS_MM + LIDAR_DETECTION_DISTANCE_MM) &&
-        (delta_angle < M_PI / 4)) {
+        (delta_angle < M_PI / 3)) {
         LOG_DBG("Obstacle detected | robot_dir: %.3f, angle_modulo(point_angle_rad): %.3f, diff "
                 "%.3f, tresh %.3f",
-                robot_dir, angle_modulo(point_angle_rad), delta_angle, M_PI / 4);
+                robot_dir, angle_modulo(point_angle_rad), delta_angle, M_PI / 3);
         return_code = 1;
     }
 
@@ -136,8 +136,8 @@ uint8_t process_lidar_message(obstacle_manager_t *obj, const lidar_message_t *me
 {
     float step = 0.0f;
     static bool obstacle_detected = false;
-    const uint8_t max_detect_count = 2;
-    static uint8_t obstacle_detected_count = 0;
+    // const uint8_t max_detect_count = 1;
+    // static uint8_t obstacle_detected_count = 0;
     static uint8_t decimation_counter;
     static float old_end_angle;
     if (message->end_angle > message->start_angle) {
@@ -151,13 +151,14 @@ uint8_t process_lidar_message(obstacle_manager_t *obj, const lidar_message_t *me
                 obj->obstacles_holders[obj->current_obs_holder_index].write_head);
         obstacle_holder_clear(&obj->obstacles_holders[obj->current_obs_holder_index]);
         obj->current_obs_holder_index = !obj->current_obs_holder_index;
-        if (obstacle_detected) {
-            obstacle_detected_count = MIN(obstacle_detected_count + 1, max_detect_count);
-        } else {
-            obstacle_detected_count = 0;
-        }
+        // if (obstacle_detected) {
+        //     obstacle_detected_count = MIN(obstacle_detected_count + 1, max_detect_count);
+        // } else {
+        //     obstacle_detected_count = 0;
+        // }
         if (obj->collision_callback) {
-            obj->collision_callback(obstacle_detected_count == max_detect_count);
+            // obj->collision_callback(obstacle_detected_count == max_detect_count);
+            obj->collision_callback(obstacle_detected);
         }
         obstacle_detected = false;
     }

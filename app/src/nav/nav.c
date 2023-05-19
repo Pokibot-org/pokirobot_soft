@@ -55,7 +55,7 @@ int nav_go_to_with_pathfinding(pos2_t end_pos, obstacle_t *obstacle_list, uint8_
     end.y = end_pos.y;
 
     uint64_t previous = k_uptime_get();
-    while (previous - k_uptime_get() < 30000) {
+    while (k_uptime_get() - previous < 30 * 1000) {
 
         k_sem_take(&path_found_sem, K_NO_WAIT);
         uint8_t err =
@@ -80,18 +80,23 @@ int nav_go_to_with_pathfinding(pos2_t end_pos, obstacle_t *obstacle_list, uint8_
 
         strat_set_waypoints(path_pos, path_size);
         int ret = strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
-                                    STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 2000);
+                                    STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 5000);
         switch (ret) {
             case STRAT_WAIT_OK:
+                LOG_INF("Go to with pf ok");
                 return 0;
             case STRAT_WAIT_TIMEOUT_BRAKE:
+                LOG_WRN("Timeout with brake");
                 continue;
             case STRAT_WAIT_TIMEOUT_TARGET:
+                LOG_ERR("Timeout");
                 return -1;
             default:
                 return -255;
         }
     }
+
+    LOG_ERR("Timeout");
 
     return -1;
 }

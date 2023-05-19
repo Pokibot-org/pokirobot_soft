@@ -18,7 +18,6 @@ typedef void (*path_manager_found_updated_path_clbk)(const path_node_t *, void *
  */
 typedef struct path_manager_config {
     path_manager_found_path_clbk found_path_clbk;
-    path_manager_found_updated_path_clbk found_updated_path_clbk;
     uint32_t nb_node_optimisation;
     void *user_config;
 } path_manager_config_t;

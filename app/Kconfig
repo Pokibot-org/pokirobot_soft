@@ -19,7 +19,7 @@ config OBSTACLE_MANAGER_THREAD_STACK
     default 1024
 config OBSTACLE_MANAGER_THREAD_PRIORITY
     int "Thread priority"
-    default 10
+    default 6
 
 config PATH_MANAGER_THREAD_STACK
     int "Stack size"

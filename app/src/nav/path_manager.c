@@ -86,10 +86,6 @@ static void path_manager_task(void *p0, void *p1, void *p2)
     } else {
         LOG_ERR("found_path_clbk is null");
     }
-    if (pm_obj->conf.found_updated_path_clbk != NULL) {
-        // Do obstacle check
-        LOG_INF("found_updated_path_clbk not null");
-    }
 }
 
 // PUBLIC FUN
@@ -148,7 +144,7 @@ uint8_t path_manager_find_path(point2_t start, point2_t end, obstacle_t *obstacl
     pathfinding_config.field_boundaries.max_x = TALBLE_X_MM - 5;
     pathfinding_config.field_boundaries.max_y = TALBLE_Y_MM - 5;
     pathfinding_config.delta_distance = 200.0f; // jump of Xmm
-    pathfinding_config.radius_of_security = ROBOT_MAX_RADIUS_MM;
+    pathfinding_config.radius_of_security = ROBOT_MAX_RADIUS_MM + 10;
     pathfinding_object_configure(&pm_obj.pathfinding_obj, &pathfinding_config);
 
     path_manager_tid =

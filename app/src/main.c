@@ -81,7 +81,6 @@ void match_1()
     LOG_INF("side= %d", side);
     enum team_color color = side ? TEAM_COLOR_GREEN : TEAM_COLOR_BLUE;
     strat_init(color);
-    k_sleep(K_MSEC(500)); // delay before going away not to let the key halfway in
     shared_ctrl.start = true;
 
     strat_run();
@@ -91,6 +90,7 @@ void match_1()
 }
 
 #include "strat/strat_interface.h"
+#include "nav/nav.h"
 
 int main(void)
 {
@@ -108,22 +108,21 @@ int main(void)
     // _test_pathfinding();
     // _test_pokarm_stepper();
 
-    match_1();
-    // shared_ctrl.start_init = true;
+    // match_1();
+    nav_init();
+    shared_ctrl.start_init = true;
 
-    // control_task_wait_ready();
+    control_task_wait_ready();
 
-    // shared_ctrl.start = true;
+    control_set_pos(&shared_ctrl, (pos2_t){.x = 200, .y = 200, .a = -M_PI_2});
+    shared_ctrl.start = true;
 
-    // pos2_t path_pos[] = {
-    //     {.x = 0, .y = 1000, .a = 0},
-    //     {.x = 1000, .y = 1000, .a = 0},
-    //     {.x = 1000, .y = 0, .a = 0},
-    //     {.x = 0, .y = 0, .a = 0},
-    // };
-    // strat_set_waypoints(path_pos, 4);
-    // strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
-    //                   STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 50000);
+    nav_go_to_with_pathfinding((pos2_t){.x = 2000 - 200, .y = 200, .a = -M_PI_2}, NULL, 0);
+
+    while (1) {
+        k_sleep(K_SECONDS(1));
+    }
+
     LOG_ERR("HAAAAAAAAAAAAAAAAAAAAAA");
     return 0;
 }
