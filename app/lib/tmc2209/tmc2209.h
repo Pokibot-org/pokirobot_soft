@@ -24,6 +24,7 @@
 #define TMC2209_MSTEP_ADDR_SELECT  1
 #define TMC2209_MSTEP_REG_SELECT   1
 #define TMC2209_MRES_256           0
+#define TMC2209_MRES_1             0x1000
 
 // registers
 #define TMC2209_REG_GCONF        0x00
@@ -79,6 +80,7 @@ int tmc2209_set_speed(tmc2209_t *dev, int32_t speed);
 int tmc2209_set_senddelay(tmc2209_t *dev, uint32_t senddelay);
 int tmc2209_set_mres(tmc2209_t *dev, uint32_t mres);
 int tmc2209_set_ihold(tmc2209_t *dev, uint32_t ihold);
+int tmc2209_set_irun(tmc2209_t *dev, uint32_t irun);
 int tmc2209_get_gconf(tmc2209_t *dev, uint32_t *gconf);
 int tmc2209_get_ifcnt(tmc2209_t *dev, uint32_t *ifcnt);
 

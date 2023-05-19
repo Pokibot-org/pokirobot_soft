@@ -25,7 +25,7 @@ typedef struct pokarm {
     servo_pwm_t servo_arm;
     tmc2209_t z_stepper;
 } pokarm_t;
-static pokarm_t obj = {
+static pokarm_t shared_pokarm = {
     .servo_orientation.spec = PWM_DT_SPEC_GET(DT_ALIAS(servo_orientation)),
     .servo_arm.spec = PWM_DT_SPEC_GET(DT_ALIAS(servo_arm)),
 };
@@ -39,12 +39,14 @@ int pokarm_init(void)
                                              .max_angle = M_PI,
                                              .min_pulse = 500000,
                                              .max_pulse = 2500000};
-    obj.servo_orientation.config = servo_config;
-    obj.servo_arm.config = servo_config;
+    shared_pokarm.servo_orientation.config = servo_config;
+    shared_pokarm.servo_arm.config = servo_config;
 
-    err |= servo_pwm_init(&obj.servo_orientation);
-    err |= servo_pwm_init(&obj.servo_arm);
-    err |= tmc2209_init(&obj.z_stepper, &steppers_uart_hdb, 3);
+    err |= servo_pwm_init(&shared_pokarm.servo_orientation);
+    err |= servo_pwm_init(&shared_pokarm.servo_arm);
+    err |= tmc2209_init(&shared_pokarm.z_stepper, &steppers_uart_hdb, 3);
+    err |= tmc2209_set_irun(&shared_pokarm.z_stepper, 8);
+    err |= tmc2209_set_mres(&shared_pokarm.z_stepper, TMC2209_MRES_1);
     if (err) {
         LOG_ERR("Error in init %d", err);
     }
@@ -55,21 +57,21 @@ int pokarm_init(void)
 int pokarm_up(void)
 {
     int err = 0;
-    err |= servo_pwm_set_angle(&obj.servo_arm, 0);
+    err |= servo_pwm_set_angle(&shared_pokarm.servo_arm, 0);
     return err;
 }
 
 int pokarm_pos_flat_hexagone(void)
 {
     int err = 0;
-    err |= servo_pwm_set_angle(&obj.servo_arm, M_PI * 3 / 4);
+    err |= servo_pwm_set_angle(&shared_pokarm.servo_arm, M_PI * 3 / 4);
     return err;
 }
 
 int pokarm_pos_put_haxagone_display(void)
 {
     int err = 0;
-    err |= servo_pwm_set_angle(&obj.servo_arm, M_PI / 2);
+    err |= servo_pwm_set_angle(&shared_pokarm.servo_arm, M_PI / 2);
     return err;
 }
 
@@ -79,7 +81,7 @@ void pokarm_test(void)
     int err;
     uint8_t steps = 6;
     for (float angle = 0; angle < M_PI; angle += (M_PI / steps)) {
-        err = servo_pwm_set_angle(&obj.servo_arm, angle);
+        err = servo_pwm_set_angle(&shared_pokarm.servo_arm, angle);
         if (err) {
             LOG_WRN("err %d", err);
         }
@@ -88,4 +90,53 @@ void pokarm_test(void)
     while (1) {
         k_sleep(K_MSEC(1000));
     }
+}
+
+void _test_pokarm_stepper(void)
+{
+    LOG_INF("test pokarm stepper");
+    pokarm_init();
+    LOG_INF("0");
+    tmc2209_set_speed(&shared_pokarm.z_stepper, 0);
+    k_sleep(K_MSEC(1000));
+    LOG_INF("10");
+    tmc2209_set_speed(&shared_pokarm.z_stepper, 48000);
+    k_sleep(K_MSEC(3000));
+    LOG_INF("0");
+    tmc2209_set_speed(&shared_pokarm.z_stepper, 0);
+    k_sleep(K_MSEC(1000));
+    LOG_INF("-10");
+    tmc2209_set_speed(&shared_pokarm.z_stepper, -42000);
+    k_sleep(K_MSEC(3000));
+    LOG_INF("0");
+    tmc2209_set_speed(&shared_pokarm.z_stepper, 0);
+    tmc2209_set_ihold(&shared_pokarm.z_stepper, 0);
+    k_sleep(K_MSEC(1000));
+    LOG_INF("test done");
+}
+
+void _test_pokarm_drawing(void) {
+//    LOG_INF("_test_pokarm_drawing");
+//#if !(CONFIG_CONTROL_TASK)
+//    LOG_ERR("control task not launched");
+//#endif
+//    shared_ctrl.start_init = true;
+//    while (1) {
+//        if (!shared_ctrl.ready) {
+//            k_sleep(K_MSEC(100));
+//            continue;
+//        }
+//        break;
+//    }
+//    LOG_DBG("alive");
+//    // gpio_pin_toggle(led.port, led.pin);
+//    pos2_t target = (pos2_t){0.0f, 0.0f, 0.0f};
+//    control_set_pos(&shared_ctrl, (pos2_t){0.0f, 0.0f, 0.0f});
+//    control_set_waypoints(&shared_ctrl, &target, 1);
+//    k_sleep(K_MSEC(1000));
+//    shared_ctrl.start = true;
+//
+//    // start of drawing
+//
+//    // end of drawing
 }

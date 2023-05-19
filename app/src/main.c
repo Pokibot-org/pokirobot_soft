@@ -4,6 +4,7 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
 
+#include "pokarm/pokarm.h"
 #include "control/control.h"
 #include "hmi/hmi_led.h"
 #include "tirette/tirette.h"
@@ -104,8 +105,10 @@ int main(void)
     // _test_drawing();
     // _test_connerie();
     // _test_pathfinding();
+    // _test_pathfinding();
+    _test_pokarm_stepper();
 
-    match_1();
+    // match_1();
     // shared_ctrl.start_init = true;
 
     // control_task_wait_ready();

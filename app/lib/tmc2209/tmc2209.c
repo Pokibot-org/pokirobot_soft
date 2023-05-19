@@ -123,7 +123,17 @@ int tmc2209_set_senddelay(tmc2209_t *dev, uint32_t senddelay)
 int tmc2209_set_ihold(tmc2209_t *dev, uint32_t ihold)
 {
     int ret = 0;
-    uint32_t data = TMC2209_IHOLD_IRUN_DEFAULT | FIELD_PREP(GENMASK(4, 0), ihold);
+    // uint32_t data = TMC2209_IHOLD_IRUN_DEFAULT | FIELD_PREP(GENMASK(4, 0), ihold);
+    uint32_t data = (TMC2209_IHOLD_IRUN_DEFAULT & !FIELD_PREP(GENMASK(4, 0), 0)) | FIELD_PREP(GENMASK(4, 0), ihold);
+    ret = tmc2209_wrequest(dev, TMC2209_REG_IHOLD_IRUN, data);
+    return ret;
+}
+
+int tmc2209_set_irun(tmc2209_t *dev, uint32_t irun)
+{
+    int ret = 0;
+    // uint32_t data = TMC2209_IHOLD_IRUN_DEFAULT | FIELD_PREP(GENMASK(12, 8), irun);
+    uint32_t data = (TMC2209_IHOLD_IRUN_DEFAULT & !FIELD_PREP(GENMASK(12, 8), 0)) | FIELD_PREP(GENMASK(12, 8), irun);
     ret = tmc2209_wrequest(dev, TMC2209_REG_IHOLD_IRUN, data);
     return ret;
 }
@@ -131,9 +141,11 @@ int tmc2209_set_ihold(tmc2209_t *dev, uint32_t ihold)
 int tmc2209_set_mres(tmc2209_t *dev, uint32_t mres)
 {
     int ret = 0;
-    uint32_t gconf = TMC2209_GCONF_DEFAULT | FIELD_PREP(GENMASK(7, 7), TMC2209_MSTEP_REG_SELECT);
+    // uint32_t gconf = TMC2209_GCONF_DEFAULT | FIELD_PREP(GENMASK(7, 7), TMC2209_MSTEP_REG_SELECT);
+    uint32_t gconf = (TMC2209_GCONF_DEFAULT & !FIELD_PREP(GENMASK(7, 7), 0)) | FIELD_PREP(GENMASK(7, 7), TMC2209_MSTEP_REG_SELECT);
     ret |= tmc2209_wrequest(dev, TMC2209_REG_GCONF, gconf);
-    uint32_t chopconf = TMC2209_CHOPCONF_DEFAULT | FIELD_PREP(GENMASK(27, 24), mres);
+    // uint32_t chopconf = TMC2209_CHOPCONF_DEFAULT | FIELD_PREP(GENMASK(27, 24), mres);
+    uint32_t chopconf = (TMC2209_CHOPCONF_DEFAULT & !FIELD_PREP(GENMASK(27, 24), 0)) | FIELD_PREP(GENMASK(27, 24), mres);
     ret |= tmc2209_wrequest(dev, TMC2209_REG_CHOPCONF, chopconf);
     return ret;
 }

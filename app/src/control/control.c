@@ -84,6 +84,7 @@ int control_init(control_t *ctrl, tmc2209_t *m1, tmc2209_t *m2, tmc2209_t *m3)
     ctrl->at_target = false;
     ctrl->planar_target_sensivity = CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT;
     ctrl->angular_target_sensivity = CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT;
+    ctrl->dir_angle = 0.0f;
     INIT_LOCKVAR(ctrl->pos);
     k_mutex_init(&ctrl->waypoints.lock);
     control_set_pos(ctrl, (pos2_t){0.0f, 0.0f, 0.0f});
@@ -307,26 +308,30 @@ static int control_task(void)
             .y = pos.y + world_vel.vy * CONTROL_PERIOD_MS / 1000.0f,
             .a = pos.a + world_vel.w * CONTROL_PERIOD_MS / 1000.0f,
         };
+
         // update speed
+        pos2_t delta1 = pos2_diff(wp1, pos);
+        pos2_t delta2 = pos2_diff(wp2, pos);
+        wp_dist = vec2_abs((vec2_t){delta1.x, delta1.y});
+        if (idx >= (n - 1) && wp_dist < CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT &&
+            delta2.a < CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT) {
+            shared_ctrl.at_target = true;
+        } else {
+            shared_ctrl.at_target = false;
+        }
+        // world_vel = world_vel_from_delta(delta1, world_vel);
+        world_vel = world_vel_from_delta2(delta1, delta2, world_vel);
+        local_vel = local_vel_from_world(pos, world_vel);
+        motors_v = omni_from_local_vel(local_vel);
+        shared_ctrl.dir_angle = atan2f(world_vel.vy, world_vel.vx);
+
+        // brake if required
         if (shared_ctrl.brake) {
             world_vel = (vel2_t){.vx = 0.0f, .vy = 0.0f, .w = 0.0f};
             local_vel = (vel2_t){.vx = 0.0f, .vy = 0.0f, .w = 0.0f};
             motors_v = (omni3_t){.v1 = 0.0f, .v2 = 0.0f, .v3 = 0.0f};
-        } else {
-            pos2_t delta1 = pos2_diff(wp1, pos);
-            pos2_t delta2 = pos2_diff(wp2, pos);
-            wp_dist = vec2_abs((vec2_t){delta1.x, delta1.y});
-            if (idx >= (n - 1) && wp_dist < CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT &&
-                delta2.a < CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT) {
-                shared_ctrl.at_target = true;
-            } else {
-                shared_ctrl.at_target = false;
-            }
-            // world_vel = world_vel_from_delta(delta1, world_vel);
-            world_vel = world_vel_from_delta2(delta1, delta2, world_vel);
-            local_vel = local_vel_from_world(pos, world_vel);
-            motors_v = omni_from_local_vel(local_vel);
         }
+
         // update next waypoints
         LOG_DBG("dist: %.2f | prev: %.2f | delta: %e", wp_dist, dist_prev, wp_dist - dist_prev);
         if (idx < n && dist_prev >= 0.0f && (

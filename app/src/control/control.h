@@ -59,6 +59,7 @@ typedef struct control {
     bool at_target;
     float planar_target_sensivity;
     float angular_target_sensivity;
+    float dir_angle;
     LOCKVAR(pos2_t) pos;
     waypoints_t waypoints;
     tmc2209_t *m1;
