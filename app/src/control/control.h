@@ -14,13 +14,13 @@
 #define CONTROL_WAIT_TIMEOUT_TARGET (-1)
 #define CONTROL_WAIT_TIMEOUT_BRAKE  (-2)
 
-#define CONTROL_PERIOD_MS 2.0f
+#define CONTROL_PERIOD_MS 1.0f
 #define ROBOT_L           160.404f
 #define WHEEL_PERIMETER   358.142f
 #define MM_TO_USTEPS      102657.14f
 
-#define PLANAR_VMAX   400.0f // 700 mm/s
-#define PLANAR_FACTOR (0.03f * PLANAR_VMAX)
+#define PLANAR_VMAX   700.0f // 700 mm/s
+#define PLANAR_FACTOR (0.04f * PLANAR_VMAX)
 #define PLANAR_RAMP   (1.5f * PLANAR_VMAX * CONTROL_PERIOD_MS / 1000.0f) // 2 seconds to reach vmax
 
 #define ANGULAR_VMAX   (0.7f * M_PI) // 0.5 rotation/s
@@ -35,8 +35,8 @@
 // drawing
 #define CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT  2.0f
 #define CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT DEG_TO_RAD(3.0f)
-#define WP_DIST_BIAS                               30.0f
-#define WP_SENSITIVITY                             40.0f
+#define WP_DIST_BIAS                               20.0f
+#define WP_SENSITIVITY                             30.0f
 
 typedef struct waypoints {
     pos2_t *wps;

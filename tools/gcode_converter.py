@@ -59,7 +59,7 @@ def convert_gcode(lines):
     print("// drawing end")
     print()
     print(f"pos2_t wps{i}[] = {{")
-    print(f"(pos2_t){{.x = 0.0f, .y = 0.0f, .a = -2.0f}},")
+    print(f"(pos2_t){{.x = 0.0f, .y = 0.0f, .a = 10.0f * M_PI}},")
     print("};")
     print(f"control_set_waypoints(&shared_ctrl, wps{i}, wps_len);")
     print("control_task_wait_target_default(15.0f, 10.0f);")

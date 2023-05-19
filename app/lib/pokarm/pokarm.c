@@ -47,7 +47,7 @@ int pokarm_init(void)
     err |= servo_pwm_init(&shared_pokarm.servo_orientation);
     err |= servo_pwm_init(&shared_pokarm.servo_arm);
     err |= tmc2209_init(&shared_pokarm.z_stepper, &steppers_uart_hdb, 3);
-    err |= tmc2209_set_ihold_irun(&shared_pokarm.z_stepper, 1, 8);
+    err |= tmc2209_set_ihold_irun(&shared_pokarm.z_stepper, 1, 6);
     err |= tmc2209_set_mres(&shared_pokarm.z_stepper, TMC2209_MRES_1);
     if (err) {
         LOG_ERR("Error in init %d", err);
@@ -126,9 +126,9 @@ void pen_up(void)
 
 void pen_down(void)
 {
-    tmc2209_set_speed(&shared_pokarm.z_stepper, 49000);
+    tmc2209_set_speed(&shared_pokarm.z_stepper, -49000);
     k_sleep(K_MSEC(500));
-    tmc2209_set_speed(&shared_pokarm.z_stepper, 0);
+    tmc2209_set_speed(&shared_pokarm.z_stepper, -500);
 }
 
 void _test_pokarm_drawing(void) {
@@ -144,6 +144,7 @@ void _test_pokarm_drawing(void) {
         }
         break;
     }
+    pokarm_init();
     LOG_DBG("alive");
     // gpio_pin_toggle(led.port, led.pin);
     pos2_t target = (pos2_t){0.0f, 0.0f, 0.0f};
@@ -190,6 +191,35 @@ void _test_pokarm_drawing(void) {
     };
     wps_len = ARRAY_SIZE(wps1);
     control_set_waypoints(&shared_ctrl, wps1, wps_len);
+    control_task_wait_target_default(100000.0f, 10.0f);
+
+    pen_up();
+    pos2_t wps18[] = {
+        (pos2_t){.x = 384, .y = 582, .a = 0.0f},
+    };
+    wps_len = ARRAY_SIZE(wps18);
+    control_set_waypoints(&shared_ctrl, wps18, wps_len);
+    control_task_wait_target_default(100000.0f, 10.0f);
+
+    pen_down();
+    pos2_t wps19[] = {
+        (pos2_t){.x = 387, .y = 582, .a = 0.0f},
+        (pos2_t){.x = 393, .y = 579, .a = 0.0f},
+        (pos2_t){.x = 396, .y = 576, .a = 0.0f},
+        (pos2_t){.x = 396, .y = 570, .a = 0.0f},
+        (pos2_t){.x = 396, .y = 522, .a = 0.0f},
+        (pos2_t){.x = 396, .y = 516, .a = 0.0f},
+        (pos2_t){.x = 393, .y = 513, .a = 0.0f},
+        (pos2_t){.x = 390, .y = 507, .a = 0.0f},
+        (pos2_t){.x = 384, .y = 507, .a = 0.0f},
+        (pos2_t){.x = 378, .y = 507, .a = 0.0f},
+        (pos2_t){.x = 375, .y = 510, .a = 0.0f},
+        (pos2_t){.x = 372, .y = 516, .a = 0.0f},
+        (pos2_t){.x = 372, .y = 519, .a = 0.0f},
+        (pos2_t){.x = 372, .y = 570, .a = 0.0f},
+    };
+    wps_len = ARRAY_SIZE(wps19);
+    control_set_waypoints(&shared_ctrl, wps19, wps_len);
     control_task_wait_target_default(100000.0f, 10.0f);
 
     pen_up();
@@ -524,35 +554,6 @@ void _test_pokarm_drawing(void) {
     control_task_wait_target_default(100000.0f, 10.0f);
 
     pen_up();
-    pos2_t wps18[] = {
-        (pos2_t){.x = 384, .y = 582, .a = 0.0f},
-    };
-    wps_len = ARRAY_SIZE(wps18);
-    control_set_waypoints(&shared_ctrl, wps18, wps_len);
-    control_task_wait_target_default(100000.0f, 10.0f);
-
-    pen_down();
-    pos2_t wps19[] = {
-        (pos2_t){.x = 387, .y = 582, .a = 0.0f},
-        (pos2_t){.x = 393, .y = 579, .a = 0.0f},
-        (pos2_t){.x = 396, .y = 576, .a = 0.0f},
-        (pos2_t){.x = 396, .y = 570, .a = 0.0f},
-        (pos2_t){.x = 396, .y = 522, .a = 0.0f},
-        (pos2_t){.x = 396, .y = 516, .a = 0.0f},
-        (pos2_t){.x = 393, .y = 513, .a = 0.0f},
-        (pos2_t){.x = 390, .y = 507, .a = 0.0f},
-        (pos2_t){.x = 384, .y = 507, .a = 0.0f},
-        (pos2_t){.x = 378, .y = 507, .a = 0.0f},
-        (pos2_t){.x = 375, .y = 510, .a = 0.0f},
-        (pos2_t){.x = 372, .y = 516, .a = 0.0f},
-        (pos2_t){.x = 372, .y = 519, .a = 0.0f},
-        (pos2_t){.x = 372, .y = 570, .a = 0.0f},
-    };
-    wps_len = ARRAY_SIZE(wps19);
-    control_set_waypoints(&shared_ctrl, wps19, wps_len);
-    control_task_wait_target_default(100000.0f, 10.0f);
-
-    pen_up();
     pos2_t wps20[] = {
         (pos2_t){.x = 0, .y = 0, .a = 0.0f},
     };
@@ -564,7 +565,7 @@ void _test_pokarm_drawing(void) {
     // drawing end
 
     pos2_t wps21[] = {
-        (pos2_t){.x = 0.0f, .y = 0.0f, .a = -2.0f},
+        (pos2_t){.x = 0.0f, .y = 0.0f, .a = 10.0f  * M_PI},
     };
     control_set_waypoints(&shared_ctrl, wps21, wps_len);
     control_task_wait_target_default(15.0f, 10.0f);

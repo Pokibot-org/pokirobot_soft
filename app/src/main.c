@@ -107,21 +107,22 @@ int main(void)
     // _test_pathfinding();
     // _test_pathfinding();
     // _test_pokarm_stepper();
+    _test_pokarm_drawing();
 
     // match_1();
-    nav_init();
-    shared_ctrl.start_init = true;
+    // nav_init();
+    // shared_ctrl.start_init = true;
 
-    control_task_wait_ready();
+    // control_task_wait_ready();
 
-    control_set_pos(&shared_ctrl, (pos2_t){.x = 200, .y = 200, .a = -M_PI_2});
-    shared_ctrl.start = true;
+    // control_set_pos(&shared_ctrl, (pos2_t){.x = 200, .y = 200, .a = -M_PI_2});
+    // shared_ctrl.start = true;
 
-    nav_go_to_with_pathfinding((pos2_t){.x = 2000 - 200, .y = 200, .a = -M_PI_2}, NULL, 0);
+    // nav_go_to_with_pathfinding((pos2_t){.x = 2000 - 200, .y = 200, .a = -M_PI_2}, NULL, 0);
 
-    while (1) {
-        k_sleep(K_SECONDS(1));
-    }
+    // while (1) {
+    //     k_sleep(K_SECONDS(1));
+    // }
 
     LOG_ERR("HAAAAAAAAAAAAAAAAAAAAAA");
     return 0;
