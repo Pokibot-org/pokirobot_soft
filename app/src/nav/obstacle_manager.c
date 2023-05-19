@@ -43,7 +43,6 @@ K_SEM_DEFINE(obsacle_holder_lock, 1, 1);
 // #define LIDAR_COUNTER_CLOCKWISE
 #define LIDAR_DETECTION_DISTANCE_MM 230
 // 360 == detecting obstacles even behind
-// #define LIDAR_DETECTION_ANGLE UNUSED
 // FUNC
 
 void obstacle_manager_send_message(const obstacle_manager_message_t *msg)
@@ -72,6 +71,7 @@ uint8_t process_point(obstacle_manager_t *obj, uint16_t point_distance, float po
     };
     pos2_t actual_robot_pos;
     strat_get_robot_pos(&actual_robot_pos);
+    float robot_dir = strat_get_robot_dir_angle();
 
     // LOG_INF("IN PROCESS POINT: angle: %f, distance: %d", point_angle, point_distance);
 
@@ -81,26 +81,37 @@ uint8_t process_point(obstacle_manager_t *obj, uint16_t point_distance, float po
         return 0;
     }
 
-    // if it is a near obstacle change return code
-    if ((point_distance < ROBOT_MAX_RADIUS_MM + LIDAR_DETECTION_DISTANCE_MM)) {
-        LOG_DBG("Obstacle detected | angle: %.3hi, distance: %.5hu", (int16_t)(point_angle),
-                point_distance);
-        return_code = 1;
-    }
-
     // Calculate point in robot frame of reference
     float point_angle_rad = point_angle * (M_PI / 180.0f);
     float point_x_local = cosf(point_angle_rad) * point_distance;
     float point_y_local = sinf(point_angle_rad) * point_distance;
 
-    float point_x_world = actual_robot_pos.x + point_x_local * cos(actual_robot_pos.a) -
-                          point_y_local * sin(actual_robot_pos.a);
+    float point_x_robot =
+        point_x_local * cosf(actual_robot_pos.a) - point_y_local * sinf(actual_robot_pos.a);
+    float point_y_robot =
+        point_x_local * sinf(actual_robot_pos.a) + point_y_local * cosf(actual_robot_pos.a);
 
-    float point_y_world = actual_robot_pos.y + point_x_local * sin(actual_robot_pos.a) +
-                          point_y_local * cos(actual_robot_pos.a);
+    float point_x_world = actual_robot_pos.x + point_x_robot;
+    float point_y_world = actual_robot_pos.y + point_y_robot;
+
     // Calculate point in table frame of reference
     new_obstacle.data.circle.coordinates.x = point_x_world;
     new_obstacle.data.circle.coordinates.y = -point_y_world;
+
+    float flip_angle = 2.0f * M_PI - point_angle_rad - 1.25f;
+    float delta_angle = fabsf(angle_modulo(flip_angle - robot_dir));
+    // if (point_distance < ROBOT_MAX_RADIUS_MM + LIDAR_DETECTION_DISTANCE_MM) {
+    //     LOG_ERR("flip_angle: %.3f", flip_angle);
+    // }
+
+    // if it is a near obstacle change return code
+    if ((point_distance < ROBOT_MAX_RADIUS_MM + LIDAR_DETECTION_DISTANCE_MM) &&
+        (delta_angle < M_PI / 4)) {
+        LOG_DBG("Obstacle detected | robot_dir: %.3f, angle_modulo(point_angle_rad): %.3f, diff "
+                "%.3f, tresh %.3f",
+                robot_dir, angle_modulo(point_angle_rad), delta_angle, M_PI / 4);
+        return_code = 1;
+    }
 
 #if CHECK_IF_OBSTACLE_INSIDE_TABLE
     // REMOVE THE POINTS IF THERE ARE NOT IN THE TABLE!

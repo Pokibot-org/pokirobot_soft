@@ -323,7 +323,7 @@ static int control_task(void)
         world_vel = world_vel_from_delta2(delta1, delta2, world_vel);
         local_vel = local_vel_from_world(pos, world_vel);
         motors_v = omni_from_local_vel(local_vel);
-        shared_ctrl.dir_angle = atan2f(world_vel.vy, world_vel.vx);
+        shared_ctrl.dir_angle = atan2f(local_vel.vy, local_vel.vx);
 
         // brake if required
         if (shared_ctrl.brake) {
@@ -334,10 +334,9 @@ static int control_task(void)
 
         // update next waypoints
         LOG_DBG("dist: %.2f | prev: %.2f | delta: %e", wp_dist, dist_prev, wp_dist - dist_prev);
-        if (idx < n && dist_prev >= 0.0f && (
-            (wp_dist > dist_prev && wp_dist <= WP_SENSITIVITY) ||
-            wp_dist < CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT)
-        ) {
+        if (idx < n && dist_prev >= 0.0f &&
+            ((wp_dist > dist_prev && wp_dist <= WP_SENSITIVITY) ||
+             wp_dist < CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT)) {
             shared_ctrl.waypoints.idx = MIN(shared_ctrl.waypoints.idx + 1, shared_ctrl.waypoints.n);
             dist_prev = -1.0f;
             LOG_INF("idx: %d", shared_ctrl.waypoints.idx);

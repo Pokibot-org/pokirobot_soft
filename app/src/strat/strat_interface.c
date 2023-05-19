@@ -11,6 +11,11 @@ int strat_get_robot_pos(pos2_t *pos)
     return control_get_pos(&shared_ctrl, pos);
 }
 
+float strat_get_robot_dir_angle(void)
+{
+    return shared_ctrl.dir_angle;
+}
+
 int strat_set_robot_pos(pos2_t pos)
 {
     return control_set_pos(&shared_ctrl, pos);

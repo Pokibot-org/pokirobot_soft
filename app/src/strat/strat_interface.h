@@ -13,6 +13,7 @@ int strat_set_robot_brake(bool brake);
 int strat_get_robot_pos(pos2_t *pos);
 int strat_set_robot_pos(pos2_t pos);
 int strat_set_target(pos2_t pos);
+float strat_get_robot_dir_angle(void);
 int strat_set_waypoints(pos2_t *pos_list, int n);
 int strat_wait_target(float planar_sensivity, float angular_sensivity, uint32_t timeout_target_ms,
                       uint32_t timeout_brake_ms);
