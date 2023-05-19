@@ -49,6 +49,19 @@ control_t shared_ctrl;
         return -1;                                                                                 \
     }
 
+
+int control_get_pos_internal(control_t *dev, pos2_t* pos) {
+    int err = 0;
+    READ_LOCKVAR(dev->pos, *pos, err, K_MSEC((uint64_t)CONTROL_PERIOD_MS));
+    if (err) {
+        LOG_ERR("could not lock pos mutex for write access (internal)");
+        goto exit_error;
+    }
+    return 0;
+exit_error:
+    return -1;
+}
+
 CONTROL_LOCKVAR_SETTER(pos, pos2_t)
 CONTROL_LOCKVAR_GETTER(pos, pos2_t)
 
@@ -284,22 +297,30 @@ static int control_task(void)
     LOG_INF("control task wait");
     control_task_wait_start();
     LOG_INF("control task start");
+    bool wp_init = false;
     while (shared_ctrl.ready) {
+        bool skip_write = false;
         int n, idx;
         pos2_t wp1, wp2;
         // lock the waypoint structure
-        int err = k_mutex_lock(&shared_ctrl.waypoints.lock, CONTROL_MUTEX_TIMEOUT);
+        int err = k_mutex_lock(&shared_ctrl.waypoints.lock, K_MSEC((uint64_t)CONTROL_PERIOD_MS));
         if (err) {
             LOG_ERR("could not lock waypoints mutex for read access");
-            goto continue_nocommit;
+            skip_write = true;
+            if (!wp_init) {
+                goto continue_nocommit;
+            }
         }
         // get next waypoints
-        n = shared_ctrl.waypoints.n;
-        idx = shared_ctrl.waypoints.idx;
-        wp1 = shared_ctrl.waypoints.wps[MIN(idx, n - 1)];
-        wp2 = shared_ctrl.waypoints.wps[MIN(idx + 1, n - 1)];
+        if (!skip_write) {
+            wp_init = true;
+            n = shared_ctrl.waypoints.n;
+            idx = shared_ctrl.waypoints.idx;
+            wp1 = shared_ctrl.waypoints.wps[MIN(idx, n - 1)];
+            wp2 = shared_ctrl.waypoints.wps[MIN(idx + 1, n - 1)];
+        }
         // update pos
-        control_get_pos(&shared_ctrl, &pos);
+        control_get_pos_internal(&shared_ctrl, &pos);
         // control_get_motors_v(&shared_ctrl, &motors_v);
         // local_vel = local_vel_from_omni(motors_v);
         // world_vel = world_vel_from_local(old_pos, local_vel);
@@ -333,18 +354,21 @@ static int control_task(void)
         }
 
         // update next waypoints
-        LOG_DBG("dist: %.2f | prev: %.2f | delta: %e", wp_dist, dist_prev, wp_dist - dist_prev);
-        if (idx < n && dist_prev >= 0.0f &&
-            ((wp_dist > dist_prev && wp_dist <= WP_SENSITIVITY) ||
-             wp_dist < CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT)) {
-            shared_ctrl.waypoints.idx = MIN(shared_ctrl.waypoints.idx + 1, shared_ctrl.waypoints.n);
-            dist_prev = -1.0f;
-            LOG_INF("idx: %d", shared_ctrl.waypoints.idx);
-        } else {
-            dist_prev = wp_dist;
+        if (!skip_write) {
+            LOG_DBG("dist: %.2f | prev: %.2f | delta: %e", wp_dist, dist_prev, wp_dist - dist_prev);
+            if (idx < n && dist_prev >= 0.0f && (
+                (wp_dist > dist_prev && wp_dist <= WP_SENSITIVITY) ||
+                wp_dist < CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT)
+            ) {
+                shared_ctrl.waypoints.idx = MIN(shared_ctrl.waypoints.idx + 1, shared_ctrl.waypoints.n);
+                dist_prev = -1.0f;
+                LOG_INF("idx: %d", shared_ctrl.waypoints.idx);
+            } else {
+                dist_prev = wp_dist;
+            }
+            // release mutex and commit transaction
+            k_mutex_unlock(&shared_ctrl.waypoints.lock);
         }
-        // release mutex and commit transaction
-        k_mutex_unlock(&shared_ctrl.waypoints.lock);
         control_set_pos(&shared_ctrl, pos);
         tmc2209_set_speed(shared_ctrl.m1, (int32_t)(motors_v.v1 * MM_TO_USTEPS / WHEEL_PERIMETER));
         tmc2209_set_speed(shared_ctrl.m2, (int32_t)(motors_v.v2 * MM_TO_USTEPS / WHEEL_PERIMETER));
