@@ -81,6 +81,7 @@ int tmc2209_set_senddelay(tmc2209_t *dev, uint32_t senddelay);
 int tmc2209_set_mres(tmc2209_t *dev, uint32_t mres);
 int tmc2209_set_ihold(tmc2209_t *dev, uint32_t ihold);
 int tmc2209_set_irun(tmc2209_t *dev, uint32_t irun);
+int tmc2209_set_ihold_irun(tmc2209_t *dev, uint32_t ihold, uint32_t irun);
 int tmc2209_get_gconf(tmc2209_t *dev, uint32_t *gconf);
 int tmc2209_get_ifcnt(tmc2209_t *dev, uint32_t *ifcnt);
 

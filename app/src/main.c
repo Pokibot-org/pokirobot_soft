@@ -106,9 +106,9 @@ int main(void)
     // _test_connerie();
     // _test_pathfinding();
     // _test_pathfinding();
-    _test_pokarm_stepper();
+    // _test_pokarm_stepper();
 
-    // match_1();
+    match_1();
     // shared_ctrl.start_init = true;
 
     // control_task_wait_ready();

@@ -6,6 +6,7 @@
 
 #include "servo_pwm/servo_pwm.h"
 #include "shared.h"
+#include "control/control.h"
 #include "tmc2209/tmc2209.h"
 #include <zephyr/logging/log.h>
 
@@ -45,7 +46,7 @@ int pokarm_init(void)
     err |= servo_pwm_init(&shared_pokarm.servo_orientation);
     err |= servo_pwm_init(&shared_pokarm.servo_arm);
     err |= tmc2209_init(&shared_pokarm.z_stepper, &steppers_uart_hdb, 3);
-    err |= tmc2209_set_irun(&shared_pokarm.z_stepper, 8);
+    err |= tmc2209_set_ihold_irun(&shared_pokarm.z_stepper, 1, 8);
     err |= tmc2209_set_mres(&shared_pokarm.z_stepper, TMC2209_MRES_1);
     if (err) {
         LOG_ERR("Error in init %d", err);

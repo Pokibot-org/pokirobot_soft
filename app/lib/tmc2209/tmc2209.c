@@ -82,7 +82,7 @@ int tmc2209_init(tmc2209_t *dev, uart_hdb_t *uart_hdb, uint8_t addr)
     dev->addr = addr;
     tmc2209_set_senddelay(dev, 2);
     tmc2209_set_mres(dev, TMC2209_MRES_256);
-    tmc2209_set_ihold(dev, 1);
+    tmc2209_set_ihold_irun(dev, 24, 31);
     tmc2209_set_speed(dev, 0);
     LOG_INF("tmc2209 <%p> init ok", (void *)dev);
     return ret;
@@ -137,6 +137,14 @@ int tmc2209_set_irun(tmc2209_t *dev, uint32_t irun)
     ret = tmc2209_wrequest(dev, TMC2209_REG_IHOLD_IRUN, data);
     return ret;
 }
+int tmc2209_set_ihold_irun(tmc2209_t *dev, uint32_t ihold, uint32_t irun)
+{
+    int ret = 0;
+    uint32_t data = (TMC2209_IHOLD_IRUN_DEFAULT & !FIELD_PREP(GENMASK(4, 0), 0) & !FIELD_PREP(GENMASK(12, 8), 0)) | FIELD_PREP(GENMASK(4, 0), ihold) | FIELD_PREP(GENMASK(12, 8), irun);
+    ret = tmc2209_wrequest(dev, TMC2209_REG_IHOLD_IRUN, data);
+    return ret;
+}
+
 
 int tmc2209_set_mres(tmc2209_t *dev, uint32_t mres)
 {
