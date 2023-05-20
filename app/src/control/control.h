@@ -20,7 +20,7 @@
 #define MM_TO_USTEPS      102657.14f
 
 #define PLANAR_VMAX   700.0f // 700 mm/s
-#define PLANAR_FACTOR (0.04f * PLANAR_VMAX)
+#define PLANAR_FACTOR (0.08f * PLANAR_VMAX)
 #define PLANAR_RAMP   (1.5f * PLANAR_VMAX * CONTROL_PERIOD_MS / 1000.0f) // 2 seconds to reach vmax
 
 #define ANGULAR_VMAX   (0.7f * M_PI) // 0.5 rotation/s
@@ -33,10 +33,10 @@
 // #define WP_DIST_BIAS                               100.0f
 // #define WP_SENSITIVITY                             300.0f
 // drawing
-#define CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT  2.0f
+#define CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT  3.0f
 #define CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT DEG_TO_RAD(3.0f)
-#define WP_DIST_BIAS                               20.0f
-#define WP_SENSITIVITY                             30.0f
+#define WP_DIST_BIAS                               15.0f
+#define WP_SENSITIVITY                             25.0f
 
 typedef struct waypoints {
     pos2_t *wps;

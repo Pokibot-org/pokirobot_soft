@@ -107,7 +107,9 @@ int main(void)
     // _test_pathfinding();
     // _test_pathfinding();
     // _test_pokarm_stepper();
-    _test_pokarm_drawing();
+
+    // drawing_poki2();
+    drawing_pokicake();
 
     // match_1();
     // nav_init();

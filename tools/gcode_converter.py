@@ -7,7 +7,7 @@ G_REGEX = re.compile(r"(G\d+) X(\d+) Y(\d+);")
 
 def convert_gcode(lines):
     _write = False
-    scaling = 3
+    scaling = 2
     i = 0
     print("int wps_len;")
     print("pen_up();")
@@ -25,7 +25,7 @@ def convert_gcode(lines):
                 print("};")
                 print(f"wps_len = ARRAY_SIZE(wps{i});")
                 print(f"control_set_waypoints(&shared_ctrl, wps{i}, wps_len);")
-                print("control_task_wait_target_default(100000.0f, 10.0f);")
+                print("control_task_wait_target_default(((float)wps_len*1000.0f, 10.0f);")
                 print()
                 i += 1
                 print("pen_up();")
@@ -39,7 +39,7 @@ def convert_gcode(lines):
                 print("};")
                 print(f"wps_len = ARRAY_SIZE(wps{i});")
                 print(f"control_set_waypoints(&shared_ctrl, wps{i}, wps_len);")
-                print("control_task_wait_target_default(100000.0f, 10.0f);")
+                print("control_task_wait_target_default(((float)wps_len*1000.0f, 10.0f);")
                 print()
                 i += 1
                 print("pen_down();")
@@ -53,7 +53,7 @@ def convert_gcode(lines):
     print(f"wps_len = ARRAY_SIZE(wps{i});")
     print("pen_up();")
     print(f"control_set_waypoints(&shared_ctrl, wps{i}, wps_len);")
-    print("control_task_wait_target_default(100000.0f, 10.0f);")
+    print("control_task_wait_target_default(((float)wps_len*1000.0f, 10.0f);")
     print()
     i += 1
     print("// drawing end")
