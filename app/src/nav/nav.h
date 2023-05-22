@@ -4,6 +4,8 @@
 #include "pokutils.h"
 #include "obstacles/obstacle.h"
 
+#define LIDAR_FILTER 2
+
 int nav_go_to_with_pathfinding(pos2_t end_pos, obstacle_t *obstacle_list,
                                uint8_t obstacle_list_len);
 void nav_init(void);

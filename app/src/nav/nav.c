@@ -80,7 +80,7 @@ int nav_go_to_with_pathfinding(pos2_t end_pos, obstacle_t *obstacle_list, uint8_
 
         strat_set_waypoints(path_pos, path_size);
         int ret = strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
-                                    STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 5000);
+                                    STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 3000);
         switch (ret) {
             case STRAT_WAIT_OK:
                 LOG_INF("Go to with pf ok");
@@ -103,10 +103,18 @@ int nav_go_to_with_pathfinding(pos2_t end_pos, obstacle_t *obstacle_list, uint8_
 
 void collision_callback(bool collision)
 {
+    static int cnt = 0;
     if (collision) {
+        cnt = MIN(cnt+1, LIDAR_FILTER);
         LOG_DBG("Collision detected");
+    } else {
+        cnt = MAX(cnt-1, 0);
     }
-    strat_set_robot_brake(collision);
+    if (cnt >= LIDAR_FILTER) {
+        strat_set_robot_brake(true);
+    } else if (cnt <= 0) {
+        strat_set_robot_brake(false);
+    }
 }
 
 void nav_init(void)

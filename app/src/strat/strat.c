@@ -52,24 +52,18 @@ struct cake_layer {
 };
 
 const static struct cake_layer layer_list[] = {
-    (struct cake_layer){.color = LAYER_COLOR_BROWN,
-                        .point = {.x = BOARD_CENTER_X - 275, .y = BOARD_CENTER_Y - 375}},
-    (struct cake_layer){.color = LAYER_COLOR_BROWN,
-                        .point = {.x = BOARD_CENTER_X + 275, .y = BOARD_CENTER_Y - 375}},
-    (struct cake_layer){.color = LAYER_COLOR_BROWN,
-                        .point = {.x = BOARD_CENTER_X - 275, .y = BOARD_CENTER_Y + 375}},
-    (struct cake_layer){.color = LAYER_COLOR_BROWN,
-                        .point = {.x = BOARD_CENTER_X + 275, .y = BOARD_CENTER_Y + 375}},
-    (struct cake_layer){.color = LAYER_COLOR_PINK, .point = {.x = 225, .y = 575}},
-    (struct cake_layer){.color = LAYER_COLOR_PINK, .point = {.x = BOARD_SIZE_X - 225, .y = 575}},
-    (struct cake_layer){.color = LAYER_COLOR_PINK, .point = {.x = 225, .y = BOARD_SIZE_Y - 575}},
-    (struct cake_layer){.color = LAYER_COLOR_PINK,
-                        .point = {.x = BOARD_SIZE_X - 225, .y = BOARD_SIZE_Y - 575}},
-    (struct cake_layer){.color = LAYER_COLOR_YELLOW, .point = {.x = 225, .y = 775}},
-    (struct cake_layer){.color = LAYER_COLOR_YELLOW, .point = {.x = BOARD_SIZE_X - 225, .y = 775}},
-    (struct cake_layer){.color = LAYER_COLOR_YELLOW, .point = {.x = 225, .y = BOARD_SIZE_Y - 775}},
-    (struct cake_layer){.color = LAYER_COLOR_YELLOW,
-                        .point = {.x = BOARD_SIZE_X - 225, .y = BOARD_SIZE_Y - 775}},
+    // (struct cake_layer){.color = LAYER_COLOR_BROWN, .point = {.x = BOARD_CENTER_X - 275, .y = BOARD_CENTER_Y - 375}},
+    // (struct cake_layer){.color = LAYER_COLOR_BROWN, .point = {.x = BOARD_CENTER_X + 275, .y = BOARD_CENTER_Y - 375}},
+    // (struct cake_layer){.color = LAYER_COLOR_BROWN, .point = {.x = BOARD_CENTER_X - 275, .y = BOARD_CENTER_Y + 375}},
+    // (struct cake_layer){.color = LAYER_COLOR_BROWN, .point = {.x = BOARD_CENTER_X + 275, .y = BOARD_CENTER_Y + 375}},
+    // (struct cake_layer){.color = LAYER_COLOR_PINK, .point = {.x = 225, .y = 575}},
+    // (struct cake_layer){.color = LAYER_COLOR_PINK, .point = {.x = BOARD_SIZE_X - 225, .y = 575}},
+    // (struct cake_layer){.color = LAYER_COLOR_PINK, .point = {.x = 225, .y = BOARD_SIZE_Y - 575}},
+    // (struct cake_layer){.color = LAYER_COLOR_PINK, .point = {.x = BOARD_SIZE_X - 225, .y = BOARD_SIZE_Y - 575}},
+    // (struct cake_layer){.color = LAYER_COLOR_YELLOW, .point = {.x = 225, .y = 775}},
+    // (struct cake_layer){.color = LAYER_COLOR_YELLOW, .point = {.x = BOARD_SIZE_X - 225, .y = 775}},
+    // (struct cake_layer){.color = LAYER_COLOR_YELLOW, .point = {.x = 225, .y = BOARD_SIZE_Y - 775}},
+    // (struct cake_layer){.color = LAYER_COLOR_YELLOW, .point = {.x = BOARD_SIZE_X - 225, .y = BOARD_SIZE_Y - 775}},
 
 };
 
@@ -344,6 +338,7 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
 
     point2_t end_point = ctx->team_color == PLATE_COLOR_BLUE ? plate_list[ID_END_PLATE_BLUE].point
                                                              : plate_list[ID_END_PLATE_GREEN].point;
+    LOG_ERR("color: %d", ctx->team_color);
     pos2_t docking_pos;
     get_home_docking_pos((point2_t){.x = BOARD_CENTER_X, .y = BOARD_CENTER_Y}, end_point,
                          &docking_pos);
@@ -570,18 +565,18 @@ void strat_init(enum team_color color)
     memcpy(world_context.dispenser_list, dispenser_list, sizeof(dispenser_list));
 
     static struct pokibrain_task tasks[] = {
-        DECLARE_PUSH_TASK(0),
-        DECLARE_PUSH_TASK(1),
-        DECLARE_PUSH_TASK(2),
-        DECLARE_PUSH_TASK(3),
-        DECLARE_PUSH_TASK(4),
-        DECLARE_PUSH_TASK(5),
-        DECLARE_PUSH_TASK(6),
-        DECLARE_PUSH_TASK(7),
-        DECLARE_PUSH_TASK(8),
-        DECLARE_PUSH_TASK(9),
-        DECLARE_PUSH_TASK(10),
-        DECLARE_PUSH_TASK(11),
+        // DECLARE_PUSH_TASK(0),
+        // DECLARE_PUSH_TASK(1),
+        // DECLARE_PUSH_TASK(2),
+        // DECLARE_PUSH_TASK(3),
+        // DECLARE_PUSH_TASK(4),
+        // DECLARE_PUSH_TASK(5),
+        // DECLARE_PUSH_TASK(6),
+        // DECLARE_PUSH_TASK(7),
+        // DECLARE_PUSH_TASK(8),
+        // DECLARE_PUSH_TASK(9),
+        // DECLARE_PUSH_TASK(10),
+        // DECLARE_PUSH_TASK(11),
         {.name = "go home",
          .task_precompute = NULL,
          .completion_callback = pokibrain_completion_go_home,

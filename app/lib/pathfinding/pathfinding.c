@@ -377,7 +377,7 @@ int pathfinding_find_path(pathfinding_object_t *obj, obstacle_holder_t *ob_hold,
             const uint16_t clenaup_coll = 20;
             obj->nb_consecutive_collision = MIN(obj->nb_consecutive_collision + 1, max_consec_coll);
             if (clenaup_coll == obj->nb_consecutive_collision) {
-                LOG_WRN("delete_colliding_obstacles");
+                LOG_DBG("delete_colliding_obstacles");
                 delete_colliding_obstacles(obj, ob_hold, closest_node_p->coordinate);
             }
             if (max_consec_coll == obj->nb_consecutive_collision) {

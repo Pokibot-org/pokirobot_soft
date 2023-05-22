@@ -82,34 +82,45 @@ uint8_t process_point(obstacle_manager_t *obj, uint16_t point_distance, float po
     }
 
     // Calculate point in robot frame of reference
-    float point_angle_rad = point_angle * (M_PI / 180.0f);
-    float point_x_local = cosf(point_angle_rad) * point_distance;
-    float point_y_local = sinf(point_angle_rad) * point_distance;
+    // START OLD
+    // float point_angle_rad = point_angle * (M_PI / 180.0f);
+    // float point_x_local = cosf(point_angle_rad) * point_distance;
+    // float point_y_local = sinf(point_angle_rad) * point_distance;
 
-    float point_x_robot =
-        point_x_local * cosf(actual_robot_pos.a) - point_y_local * sinf(actual_robot_pos.a);
-    float point_y_robot =
-        point_x_local * sinf(actual_robot_pos.a) + point_y_local * cosf(actual_robot_pos.a);
+    // float point_x_robot =
+    //     point_x_local * cosf(actual_robot_pos.a) - point_y_local * sinf(actual_robot_pos.a);
+    // float point_y_robot =
+    //     point_x_local * sinf(actual_robot_pos.a) + point_y_local * cosf(actual_robot_pos.a);
 
-    float point_x_world = actual_robot_pos.x + point_x_robot;
-    float point_y_world = actual_robot_pos.y + point_y_robot;
+    // float point_x_world = actual_robot_pos.x + point_x_robot;
+    // float point_y_world = actual_robot_pos.y + point_y_robot;
 
-    // Calculate point in table frame of reference
-    new_obstacle.data.circle.coordinates.x = point_x_world;
-    new_obstacle.data.circle.coordinates.y = -point_y_world;
+    // // Calculate point in table frame of reference
+    // new_obstacle.data.circle.coordinates.x = point_x_world;
+    // new_obstacle.data.circle.coordinates.y = -point_y_world;
 
-    float flip_angle = 2.0f * M_PI - point_angle_rad - 1.25f;
-    float delta_angle = fabsf(angle_modulo(flip_angle - robot_dir));
-    // if (point_distance < ROBOT_MAX_RADIUS_MM + LIDAR_DETECTION_DISTANCE_MM) {
-    //     LOG_ERR("dist: %u", point_distance);
-    // }
+    // float flip_angle = 2.0f * M_PI - point_angle_rad - 1.25f;
+    // float delta_angle = fabsf(angle_modulo(flip_angle - robot_dir));
+
+    // END OLD
+    float point_angle_rad = DEG_TO_RAD(point_angle);
+    float point_a_lidar = 2.0f * M_PI - point_angle_rad;
+    float point_a_robot = fmodf(point_a_lidar + DEG_TO_RAD(60.0f) + DEG_TO_RAD(240.0f), 2 * M_PI);
+
+    float point_x_robot = cosf(point_a_robot) * point_distance;
+    float point_y_robot = sinf(point_a_robot) * point_distance;
+    float delta_angle = fabsf(angle_modulo(point_a_robot - robot_dir));
+    
+    if (point_distance < ROBOT_MAX_RADIUS_MM + LIDAR_DETECTION_DISTANCE_MM) {
+        // LOG_ERR("dist: %u", point_distance);
+        // LOG_ERR("point (robot): x=%.1f, y=%.1f, a=%.1f", point_x_robot, point_y_robot, RAD_TO_DEG(point_a_robot));
+    }
 
     // if it is a near obstacle change return code
     if ((point_distance < ROBOT_MAX_RADIUS_MM + LIDAR_DETECTION_DISTANCE_MM) &&
         (delta_angle < M_PI / 3)) {
-        LOG_DBG("Obstacle detected | robot_dir: %.3f, angle_modulo(point_angle_rad): %.3f, diff "
-                "%.3f, tresh %.3f",
-                robot_dir, angle_modulo(point_angle_rad), delta_angle, M_PI / 3);
+        LOG_ERR("obstacle on path: robot_dir=: %.1f, obstable_angle: %.1f, delta: %.1f",
+                RAD_TO_DEG(robot_dir), RAD_TO_DEG(point_a_robot), RAD_TO_DEG(delta_angle));
         return_code = 1;
     }
 

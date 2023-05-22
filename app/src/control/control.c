@@ -362,7 +362,7 @@ static int control_task(void)
             ) {
                 shared_ctrl.waypoints.idx = MIN(shared_ctrl.waypoints.idx + 1, shared_ctrl.waypoints.n);
                 dist_prev = -1.0f;
-                LOG_INF("idx: %d", shared_ctrl.waypoints.idx);
+                LOG_DBG("idx: %d", shared_ctrl.waypoints.idx);
             } else {
                 dist_prev = wp_dist;
             }

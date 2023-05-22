@@ -78,7 +78,7 @@ void match_1()
     match_wait_start();
     LOG_INF("MATCH START");
     int side = gpio_pin_get_dt(&sw_side);
-    LOG_INF("side= %d", side);
+    LOG_ERR("side= %d", side);
     enum team_color color = side ? TEAM_COLOR_GREEN : TEAM_COLOR_BLUE;
     strat_init(color);
     shared_ctrl.start = true;
@@ -108,21 +108,21 @@ int main(void)
     // _test_pathfinding();
     // _test_pokarm_stepper();
 
-    // match_1();
-    nav_init();
-    shared_ctrl.start_init = true;
+    match_1();
+    // nav_init();
+    // shared_ctrl.start_init = true;
 
-    control_task_wait_ready();
+    // control_task_wait_ready();
 
-    control_set_pos(&shared_ctrl, (pos2_t){.x = 200, .y = 200, .a = -M_PI_2});
-    shared_ctrl.start = true;
+    // control_set_pos(&shared_ctrl, (pos2_t){.x = 200, .y = 200, .a = -M_PI_2});
+    // shared_ctrl.start = true;
 
-    nav_go_to_with_pathfinding((pos2_t){.x = 2000 - 200, .y = 200, .a = -M_PI_2}, NULL, 0);
+    // nav_go_to_with_pathfinding((pos2_t){.x = 2000 - 200, .y = 200, .a = -M_PI_2}, NULL, 0);
 
-    while (1) {
-        k_sleep(K_SECONDS(1));
-    }
+    // while (1) {
+    //     k_sleep(K_SECONDS(1));
+    // }
 
-    LOG_ERR("HAAAAAAAAAAAAAAAAAAAAAA");
+    // LOG_ERR("HAAAAAAAAAAAAAAAAAAAAAA");
     return 0;
 }

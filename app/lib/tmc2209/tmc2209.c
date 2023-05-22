@@ -84,7 +84,7 @@ int tmc2209_init(tmc2209_t *dev, uart_hdb_t *uart_hdb, uint8_t addr)
     tmc2209_set_mres(dev, TMC2209_MRES_256);
     tmc2209_set_ihold_irun(dev, 31, 31);
     tmc2209_set_speed(dev, 0);
-    LOG_INF("tmc2209 <%p> init ok", (void *)dev);
+    LOG_DBG("tmc2209 <%p> init ok", (void *)dev);
     return ret;
 }
 

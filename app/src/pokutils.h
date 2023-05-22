@@ -25,7 +25,8 @@
 #define M_SQRT3    1.73205080756887729352
 #endif
 
-#define DEG_TO_RAD(_rad) (_rad * 180.0f / M_PI)
+#define RAD_TO_DEG(_rad) ((_rad) * 180.0f / M_PI)
+#define DEG_TO_RAD(_deg) ((_deg) / 180.0f * M_PI)
 
 #define SIGNF(_val)     (signbit(_val) ? -1.0f : 1.0f)
 #define NEG_SQRTF(_val) (SIGNF(_val) * sqrtf(fabsf(_val)))
