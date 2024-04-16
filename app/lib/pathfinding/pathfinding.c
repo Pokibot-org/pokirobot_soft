@@ -324,8 +324,8 @@ void delete_colliding_obstacles(pathfinding_object_t *obj, obstacle_holder_t *ob
 int pathfinding_find_path(pathfinding_object_t *obj, obstacle_holder_t *ob_hold, point2_t start,
                           point2_t end, path_node_t **end_node)
 {
-    LOG_INF("Stating pathfinding at node x:%f, y%f towards x:%f, y%f ", start.x, start.y, end.x,
-            end.y);
+    LOG_INF("Stating pathfinding at node x:%f, y%f towards x:%f, y%f ", (double)start.x,
+            (double)start.y, (double)end.x, (double)end.y);
     *end_node = NULL;
     // TODO: Check input validity, must be between 0 and pathfinding_boundaries
     // Init start node
@@ -360,14 +360,15 @@ int pathfinding_find_path(pathfinding_object_t *obj, obstacle_holder_t *ob_hold,
             return PATHFINDING_ERROR_NOT_ENOUGH_MEMORY;
         }
         point2_t rand_coordinates = pathfinding_generate_rand_coordinates(obj, end);
-        LOG_DBG("Random coordinates generated : x:%f y:%f", rand_coordinates.x, rand_coordinates.y);
+        LOG_DBG("Random coordinates generated : x:%f y:%f", (double)rand_coordinates.x,
+                (double)rand_coordinates.y);
         path_node_t *closest_node_p = get_closest_node(obj, rand_coordinates);
         LOG_DBG("Closest node %p", closest_node_p);
         point2_t new_coordinates;
         get_new_valid_coordinates(obj, closest_node_p->coordinate, rand_coordinates,
                                   &new_coordinates);
-        LOG_DBG("New valid coordinates generated : x:%f y:%f", new_coordinates.x,
-                new_coordinates.y);
+        LOG_DBG("New valid coordinates generated : x:%f y:%f", (double)new_coordinates.x,
+                (double)new_coordinates.y);
         // get new valid coordinates before
         if (check_collision(obj, ob_hold, closest_node_p->coordinate, new_coordinates) ==
             OBSTACLE_COLLISION_DETECTED) {

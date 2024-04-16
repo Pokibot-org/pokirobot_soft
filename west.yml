@@ -9,5 +9,12 @@ manifest:
   projects:
     - name: zephyr
       remote: zephyrproject-rtos
-      revision: v3.3-branch
-      import: true
+      revision: v3.6-branch
+      import:
+        # By using name-allowlist we can clone only the modules that are
+        # strictly needed by the application.
+        name-allowlist:
+          - cmsis      # required by the ARM port
+          - cmsis-dsp
+          - hal_stm32
+          - zcbor

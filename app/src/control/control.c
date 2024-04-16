@@ -49,8 +49,8 @@ control_t shared_ctrl;
         return -1;                                                                                 \
     }
 
-
-int control_get_pos_internal(control_t *dev, pos2_t* pos) {
+int control_get_pos_internal(control_t *dev, pos2_t *pos)
+{
     int err = 0;
     READ_LOCKVAR(dev->pos, *pos, err, K_MSEC((uint64_t)CONTROL_PERIOD_MS));
     if (err) {
@@ -233,9 +233,9 @@ omni3_t omni_from_local_vel(vel2_t local_vel)
 {
     const float w_factor = ROBOT_L * local_vel.w;
     omni3_t omni3 = {
-        .v1 = (-local_vel.vx - M_SQRT3 * local_vel.vy) / 2.0 + w_factor,
+        .v1 = (-local_vel.vx - M_SQRT3 * local_vel.vy) / 2.0f + w_factor,
         .v2 = local_vel.vx + w_factor,
-        .v3 = (-local_vel.vx + M_SQRT3 * local_vel.vy) / 2.0 + w_factor,
+        .v3 = (-local_vel.vx + M_SQRT3 * local_vel.vy) / 2.0f + w_factor,
     };
     return omni3;
 }
@@ -355,12 +355,13 @@ static int control_task(void)
 
         // update next waypoints
         if (!skip_write) {
-            LOG_DBG("dist: %.2f | prev: %.2f | delta: %e", wp_dist, dist_prev, wp_dist - dist_prev);
-            if (idx < n && dist_prev >= 0.0f && (
-                (wp_dist > dist_prev && wp_dist <= WP_SENSITIVITY) ||
-                wp_dist < CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT)
-            ) {
-                shared_ctrl.waypoints.idx = MIN(shared_ctrl.waypoints.idx + 1, shared_ctrl.waypoints.n);
+            LOG_DBG("dist: %.2f | prev: %.2f | delta: %e", (double)wp_dist, (double)dist_prev,
+                    (double)(wp_dist - dist_prev));
+            if (idx < n && dist_prev >= 0.0f &&
+                ((wp_dist > dist_prev && wp_dist <= WP_SENSITIVITY) ||
+                 wp_dist < CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT)) {
+                shared_ctrl.waypoints.idx =
+                    MIN(shared_ctrl.waypoints.idx + 1, shared_ctrl.waypoints.n);
                 dist_prev = -1.0f;
                 LOG_DBG("idx: %d", shared_ctrl.waypoints.idx);
             } else {
@@ -376,10 +377,11 @@ static int control_task(void)
     continue_nocommit:
         // sleep
         LOG_DBG("idx: %d", shared_ctrl.waypoints.idx);
-        LOG_DBG("pos: %.2f %.2f %.2f", pos.x, pos.y, pos.a);
-        LOG_DBG("target: %.2f %.2f %.2f", wp1.x, wp1.y, wp1.a);
-        LOG_DBG("next: %.2f %.2f %.2f", wp2.x, wp2.y, wp2.a);
-        LOG_DBG("speed: %.2f %.2f %.2f", motors_v.v1, motors_v.v2, motors_v.v3);
+        LOG_DBG("pos: %.2f %.2f %.2f", (double)pos.x, (double)pos.y, (double)pos.a);
+        LOG_DBG("target: %.2f %.2f %.2f", (double)wp1.x, (double)wp1.y, (double)wp1.a);
+        LOG_DBG("next: %.2f %.2f %.2f", (double)wp2.x, (double)wp2.y, (double)wp2.a);
+        LOG_DBG("speed: %.2f %.2f %.2f", (double)motors_v.v1, (double)motors_v.v2,
+                (double)motors_v.v3);
         k_sleep(K_MSEC((uint64_t)CONTROL_PERIOD_MS));
     }
     LOG_INF("control task done (ret=%d)", ret);
@@ -499,19 +501,19 @@ void _test_calibration_distance()
     pos2_t target = (pos2_t){0.0f, 0.0f, 0.0f};
     control_set_pos(&shared_ctrl, (pos2_t){0.0f, 0.0f, 0.0f});
     control_set_waypoints(&shared_ctrl, &target, 1);
-    LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y,
-            shared_ctrl.pos.val.a);
-    LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.waypoints.wps[0].x,
-            shared_ctrl.waypoints.wps[0].y, shared_ctrl.waypoints.wps[0].a);
+    LOG_DBG("pos: %.2f %.2f %.2f", (double)shared_ctrl.pos.val.x, (double)shared_ctrl.pos.val.y,
+            (double)shared_ctrl.pos.val.a);
+    LOG_DBG("target: %.2f %.2f %.2f", (double)shared_ctrl.waypoints.wps[0].x,
+            (double)shared_ctrl.waypoints.wps[0].y, (double)shared_ctrl.waypoints.wps[0].a);
     k_sleep(K_MSEC(1000));
     shared_ctrl.start = true;
     // gpio_pin_toggle(led.port, led.pin);
     target = (pos2_t){0.0f, 3000.0f, 0.0f * M_PI};
     control_set_waypoints(&shared_ctrl, &target, 1);
-    LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y,
-            shared_ctrl.pos.val.a);
-    LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.waypoints.wps[0].x,
-            shared_ctrl.waypoints.wps[0].y, shared_ctrl.waypoints.wps[0].a);
+    LOG_DBG("pos: %.2f %.2f %.2f", (double)shared_ctrl.pos.val.x, (double)shared_ctrl.pos.val.y,
+            (double)shared_ctrl.pos.val.a);
+    LOG_DBG("target: %.2f %.2f %.2f", (double)shared_ctrl.waypoints.wps[0].x,
+            (double)shared_ctrl.waypoints.wps[0].y, (double)shared_ctrl.waypoints.wps[0].a);
     k_sleep(K_MSEC(15000));
 }
 
@@ -537,20 +539,20 @@ void _test_calibration_angle()
     pos2_t target = (pos2_t){0.0f, 0.0f, 0.0f};
     control_set_pos(&shared_ctrl, (pos2_t){0.0f, 0.0f, 0.0f});
     control_set_waypoints(&shared_ctrl, &target, 1);
-    LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y,
-            shared_ctrl.pos.val.a);
-    LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.waypoints.wps[0].x,
-            shared_ctrl.waypoints.wps[0].y, shared_ctrl.waypoints.wps[0].a);
+    LOG_DBG("pos: %.2f %.2f %.2f", (double)shared_ctrl.pos.val.x, (double)shared_ctrl.pos.val.y,
+            (double)shared_ctrl.pos.val.a);
+    LOG_DBG("target: %.2f %.2f %.2f", (double)shared_ctrl.waypoints.wps[0].x,
+            (double)shared_ctrl.waypoints.wps[0].y, (double)shared_ctrl.waypoints.wps[0].a);
     k_sleep(K_MSEC(1000));
     shared_ctrl.start = true;
     // gpio_pin_toggle(led.port, led.pin);
     target = (pos2_t){0.0f, 0.0f, 20.0f * M_PI};
     control_set_waypoints(&shared_ctrl, &target, 1);
     k_sleep(K_MSEC(15000));
-    LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y,
-            shared_ctrl.pos.val.a);
-    LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.waypoints.wps[0].x,
-            shared_ctrl.waypoints.wps[0].y, shared_ctrl.waypoints.wps[0].a);
+    LOG_DBG("pos: %.2f %.2f %.2f", (double)shared_ctrl.pos.val.x, (double)shared_ctrl.pos.val.y,
+            (double)shared_ctrl.pos.val.a);
+    LOG_DBG("target: %.2f %.2f %.2f", (double)shared_ctrl.waypoints.wps[0].x,
+            (double)shared_ctrl.waypoints.wps[0].y, (double)shared_ctrl.waypoints.wps[0].a);
 }
 
 void _test_calibration_mix()
@@ -575,26 +577,26 @@ void _test_calibration_mix()
     pos2_t target = (pos2_t){0.0f, 0.0f, 0.0f};
     control_set_pos(&shared_ctrl, (pos2_t){0.0f, 0.0f, 0.0f});
     control_set_waypoints(&shared_ctrl, &target, 1);
-    LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y,
-            shared_ctrl.pos.val.a);
-    LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.waypoints.wps[0].x,
-            shared_ctrl.waypoints.wps[0].y, shared_ctrl.waypoints.wps[0].a);
+    LOG_DBG("pos: %.2f %.2f %.2f", (double)shared_ctrl.pos.val.x, (double)shared_ctrl.pos.val.y,
+            (double)shared_ctrl.pos.val.a);
+    LOG_DBG("target: %.2f %.2f %.2f", (double)shared_ctrl.waypoints.wps[0].x,
+            (double)shared_ctrl.waypoints.wps[0].y, (double)shared_ctrl.waypoints.wps[0].a);
     k_sleep(K_MSEC(1000));
     shared_ctrl.start = true;
     target = (pos2_t){0.0f, 0.0f, 1.0f * M_PI};
     control_set_waypoints(&shared_ctrl, &target, 1);
     k_sleep(K_MSEC(5000));
-    LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y,
-            shared_ctrl.pos.val.a);
-    LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.waypoints.wps[0].x,
-            shared_ctrl.waypoints.wps[0].y, shared_ctrl.waypoints.wps[0].a);
+    LOG_DBG("pos: %.2f %.2f %.2f", (double)shared_ctrl.pos.val.x, (double)shared_ctrl.pos.val.y,
+            (double)shared_ctrl.pos.val.a);
+    LOG_DBG("target: %.2f %.2f %.2f", (double)shared_ctrl.waypoints.wps[0].x,
+            (double)shared_ctrl.waypoints.wps[0].y, (double)shared_ctrl.waypoints.wps[0].a);
     target = (pos2_t){0.0f, 1000.0f, -1.0f * M_PI};
     control_set_waypoints(&shared_ctrl, &target, 1);
     k_sleep(K_MSEC(5000));
-    LOG_DBG("pos: %.2f %.2f %.2f", shared_ctrl.pos.val.x, shared_ctrl.pos.val.y,
-            shared_ctrl.pos.val.a);
-    LOG_DBG("target: %.2f %.2f %.2f", shared_ctrl.waypoints.wps[0].x,
-            shared_ctrl.waypoints.wps[0].y, shared_ctrl.waypoints.wps[0].a);
+    LOG_DBG("pos: %.2f %.2f %.2f", (double)shared_ctrl.pos.val.x, (double)shared_ctrl.pos.val.y,
+            (double)shared_ctrl.pos.val.a);
+    LOG_DBG("target: %.2f %.2f %.2f", (double)shared_ctrl.waypoints.wps[0].x,
+            (double)shared_ctrl.waypoints.wps[0].y, (double)shared_ctrl.waypoints.wps[0].a);
 }
 
 void _test_connerie()
@@ -757,7 +759,8 @@ void _test_drawing()
     for (int i = 0; i < draw_wps_len; i++) {
         draw_wps[i].x *= scaling;
         draw_wps[i].y *= scaling;
-        LOG_DBG("p[%d]: %.2f %.2f %.2f", i, draw_wps[i].x, draw_wps[i].y, draw_wps[i].a);
+        LOG_DBG("p[%d]: %.2f %.2f %.2f", i, (double)draw_wps[i].x, (double)draw_wps[i].y,
+                (double)draw_wps[i].a);
     }
     control_set_waypoints(&shared_ctrl, draw_wps, draw_wps_len);
     control_task_wait_target_default(100000.0f, 10.0f);
