@@ -9,7 +9,9 @@
 #include <sys/un.h>
 
 LOG_MODULE_REGISTER(strat_interface);
-#define LOG_POS(pos) LOG_DBG("position<x: %3.2f,y: %3.2f,a: %3.2f>", (pos).x, (pos).y, (pos).a)
+#define LOG_POS(pos)                                                                               \
+    LOG_DBG("position<x: %3.2f,y: %3.2f,a: %3.2f>", (double)(pos).x, (double)(pos).y,              \
+            (double)(pos).a)
 
 #define CONTROL_PERIOD_MS     1.0f
 #define CONTROL_SPEED         10000.0f
@@ -27,6 +29,7 @@ typedef struct control {
     pos2_t waypoints[256];
     int n_waypoints;
     int current_waypoint;
+    float dir_angle;
 } control_t;
 control_t fake_ctrl;
 
@@ -71,6 +74,11 @@ int strat_get_robot_pos(pos2_t *pos)
     int ret = control_get_pos(&fake_ctrl, pos);
     LOG_POS(*pos);
     return ret;
+}
+
+float strat_get_robot_dir_angle(void)
+{
+    return fake_ctrl.dir_angle;
 }
 
 int strat_set_robot_pos(pos2_t pos)
@@ -119,7 +127,7 @@ int strat_move_robot_to(pos2_t pos, k_timeout_t timeout)
         fake_ctrl.start = true;
     }
 
-    LOG_DBG("pos.a %f", pos.a);
+    LOG_DBG("pos.a %f", (double)pos.a);
     if (strat_set_target(pos)) {
         return -1;
     }
@@ -145,7 +153,7 @@ int strat_put_layer(pos2_t plate_pos, uint8_t current_cake_height, k_timeout_t t
 void fake_control_task(void)
 {
     const float speed = CONTROL_SPEED / (CONTROL_PERIOD_MS * 1000.0f);
-    const float precision = speed + 0.1;
+    const float precision = speed + 0.1f;
     char buffer[256];
     fake_ctrl.running = true;
     while (fake_ctrl.running) {
@@ -165,8 +173,8 @@ void fake_control_task(void)
         current_point.x += norm.dx * fminf(speed, dist);
         current_point.y += norm.dy * fminf(speed, dist);
 
-        if (fabs(target_point.x - current_point.x) < precision &&
-            fabs(target_point.y - current_point.y) < precision) {
+        if (fabsf(target_point.x - current_point.x) < precision &&
+            fabsf(target_point.y - current_point.y) < precision) {
             if (fake_ctrl.current_waypoint + 1 == fake_ctrl.n_waypoints) {
                 fake_ctrl.at_target = true;
             } else {
@@ -176,8 +184,8 @@ void fake_control_task(void)
         fake_ctrl.pos.val = (pos2_t){.x = current_point.x, .y = current_point.y, .a = target_angle};
         k_mutex_unlock(&fake_ctrl.pos.lock);
 
-        snprintf(buffer, 256, "{\"pos\": {\"x\":%.2f, \"y\":%.2f, \"a\":%.2f}}", current_pos.x,
-                 current_pos.y, current_pos.a);
+        snprintf(buffer, 256, "{\"pos\": {\"x\":%.2f, \"y\":%.2f, \"a\":%.2f}}",
+                 (double)current_pos.x, (double)current_pos.y, (double)current_pos.a);
         socket_send(buffer);
         k_sleep(K_USEC((uint64_t)(CONTROL_PERIOD_MS * 1000)));
     }
@@ -244,7 +252,7 @@ int pokpush_retract(void)
 
 // INIT
 
-int fake_init(const struct device *dev)
+int fake_init(void)
 {
     INIT_LOCKVAR(fake_ctrl.pos);
     socket_init();
