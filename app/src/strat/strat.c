@@ -52,18 +52,26 @@ struct cake_layer {
 };
 
 const static struct cake_layer layer_list[] = {
-    // (struct cake_layer){.color = LAYER_COLOR_BROWN, .point = {.x = BOARD_CENTER_X - 275, .y = BOARD_CENTER_Y - 375}},
-    // (struct cake_layer){.color = LAYER_COLOR_BROWN, .point = {.x = BOARD_CENTER_X + 275, .y = BOARD_CENTER_Y - 375}},
-    // (struct cake_layer){.color = LAYER_COLOR_BROWN, .point = {.x = BOARD_CENTER_X - 275, .y = BOARD_CENTER_Y + 375}},
-    // (struct cake_layer){.color = LAYER_COLOR_BROWN, .point = {.x = BOARD_CENTER_X + 275, .y = BOARD_CENTER_Y + 375}},
+    // (struct cake_layer){.color = LAYER_COLOR_BROWN, .point = {.x = BOARD_CENTER_X - 275, .y =
+    // BOARD_CENTER_Y - 375}},
+    // (struct cake_layer){.color = LAYER_COLOR_BROWN, .point = {.x = BOARD_CENTER_X + 275, .y =
+    // BOARD_CENTER_Y - 375}},
+    // (struct cake_layer){.color = LAYER_COLOR_BROWN, .point = {.x = BOARD_CENTER_X - 275, .y =
+    // BOARD_CENTER_Y + 375}},
+    // (struct cake_layer){.color = LAYER_COLOR_BROWN, .point = {.x = BOARD_CENTER_X + 275, .y =
+    // BOARD_CENTER_Y + 375}},
     // (struct cake_layer){.color = LAYER_COLOR_PINK, .point = {.x = 225, .y = 575}},
     // (struct cake_layer){.color = LAYER_COLOR_PINK, .point = {.x = BOARD_SIZE_X - 225, .y = 575}},
     // (struct cake_layer){.color = LAYER_COLOR_PINK, .point = {.x = 225, .y = BOARD_SIZE_Y - 575}},
-    // (struct cake_layer){.color = LAYER_COLOR_PINK, .point = {.x = BOARD_SIZE_X - 225, .y = BOARD_SIZE_Y - 575}},
+    // (struct cake_layer){.color = LAYER_COLOR_PINK, .point = {.x = BOARD_SIZE_X - 225, .y =
+    // BOARD_SIZE_Y - 575}},
     // (struct cake_layer){.color = LAYER_COLOR_YELLOW, .point = {.x = 225, .y = 775}},
-    // (struct cake_layer){.color = LAYER_COLOR_YELLOW, .point = {.x = BOARD_SIZE_X - 225, .y = 775}},
-    // (struct cake_layer){.color = LAYER_COLOR_YELLOW, .point = {.x = 225, .y = BOARD_SIZE_Y - 775}},
-    // (struct cake_layer){.color = LAYER_COLOR_YELLOW, .point = {.x = BOARD_SIZE_X - 225, .y = BOARD_SIZE_Y - 775}},
+    // (struct cake_layer){.color = LAYER_COLOR_YELLOW, .point = {.x = BOARD_SIZE_X - 225, .y =
+    // 775}},
+    // (struct cake_layer){.color = LAYER_COLOR_YELLOW, .point = {.x = 225, .y = BOARD_SIZE_Y -
+    // 775}},
+    // (struct cake_layer){.color = LAYER_COLOR_YELLOW, .point = {.x = BOARD_SIZE_X - 225, .y =
+    // BOARD_SIZE_Y - 775}},
 
 };
 
@@ -526,8 +534,8 @@ const char *get_side_name(enum team_color color)
     switch (color) {
         case TEAM_COLOR_BLUE:
             return "BLUE";
-        case TEAM_COLOR_GREEN:
-            return "GREEN";
+        case TEAM_COLOR_YELLOW:
+            return "YELLOW";
         default:
         case TEAM_COLOR_NONE:
             return "UNKNOWN";

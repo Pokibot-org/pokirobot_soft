@@ -4,7 +4,7 @@
 enum team_color {
     TEAM_COLOR_NONE,
     TEAM_COLOR_BLUE,
-    TEAM_COLOR_GREEN,
+    TEAM_COLOR_YELLOW,
 };
 
 void strat_init(enum team_color color);

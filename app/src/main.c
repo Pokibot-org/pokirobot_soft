@@ -79,7 +79,7 @@ void match_1()
     LOG_INF("MATCH START");
     int side = gpio_pin_get_dt(&sw_side);
     LOG_ERR("side= %d", side);
-    enum team_color color = side ? TEAM_COLOR_GREEN : TEAM_COLOR_BLUE;
+    enum team_color color = side ? TEAM_COLOR_YELLOW : TEAM_COLOR_BLUE;
     strat_init(color);
     shared_ctrl.start = true;
 
