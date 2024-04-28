@@ -1,5 +1,4 @@
 #include <zephyr/logging/log.h>
-#include <sys/_stdint.h>
 #include "pokibrain/pokibrain.h"
 #include "strat.h"
 #include "strat_interface.h"

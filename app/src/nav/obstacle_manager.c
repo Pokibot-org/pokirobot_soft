@@ -120,7 +120,7 @@ uint8_t process_point(obstacle_manager_t *obj, uint16_t point_distance, float po
     if ((point_distance < ROBOT_MAX_RADIUS_MM + LIDAR_DETECTION_DISTANCE_MM) &&
         (delta_angle < M_PI / 3)) {
         LOG_ERR("obstacle on path: robot_dir=: %.1f, obstable_angle: %.1f, delta: %.1f",
-                RAD_TO_DEG(robot_dir), RAD_TO_DEG(point_a_robot), RAD_TO_DEG(delta_angle));
+                (double)RAD_TO_DEG(robot_dir), (double)RAD_TO_DEG(point_a_robot), (double)RAD_TO_DEG(delta_angle));
         return_code = 1;
     }
 
