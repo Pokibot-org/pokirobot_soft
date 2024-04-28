@@ -1,39 +1,38 @@
-
-.PHONY: help build clean format
+.PHONY: help
 
 SRC_FILES := $(shell find app/src app/lib -name '*.c' -o -name '*.h')
  
-help:
-	@echo "you are on your own you fool"
-	@echo "make <help / build / rebuild / clean / format>"
+help: # show help for each of the Makefile recipes.
+	@grep -E '^[a-zA-Z0-9 -]+:.*#'  Makefile | sort | while read -r l; do printf "\033[1;32m$$(echo $$l | cut -f 1 -d':')\033[00m:$$(echo $$l | cut -f 2- -d'#')\n"; done
 
-build:
+build: # build target
 	west build -b nucleo_f446re app
 
-build_pc_app:
-	west build -b native_posix pc_app --build-dir build-pc-app
-
-run_pc_app:
-	./build-pc-app/zephyr/zephyr.elf
-
-run_pc_gui:
-	python tools/strat_visualizer/src/main.py
-rebuild:
+rebuild: # rebuild target
 	west build -b nucleo_f446re app --pristine
 
-clean:
+build_pc_app: # build strat pc app
+	west build -b native_posix pc_app --build-dir build-pc-app
+
+run_pc_app: # run strat pc app
+	./build-pc-app/zephyr/zephyr.elf
+
+run_pc_gui: # run start pc ui
+	python tools/strat_visualizer/src/main.py
+
+clean: # clean project
 	west build -t clean
 
-flash:
+flash: # flash target
 	west flash
 
-dbg:
+dbg: # debug target and connect with gdb
 	west debug
 
-dbgserv:
+dbgserv: # debug target and expose gdb server
 	west debugserver
 
-format:
+format: # format all files in the project 
 	clang-format -i $(SRC_FILES)
 	tools/format_eof.sh $(SRC_FILES)
 
