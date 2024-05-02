@@ -20,7 +20,7 @@ typedef struct uart_hdb_msg {
     uint8_t data_size;
     uint8_t *answer_buffer;
     uint8_t answer_buffer_len;
-    bool *answer_received;
+    struct k_sem answer_received_sem;
 } uart_hdb_msg_t;
 
 typedef struct uart_hdb {

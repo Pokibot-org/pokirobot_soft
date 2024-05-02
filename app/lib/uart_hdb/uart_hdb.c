@@ -53,7 +53,7 @@ void uart_hdb_thread(void *arg1, void *arg2, void *arg3)
                     k_sleep(K_USEC(1));
                 }
             }
-            *msg.answer_received = true;
+            k_sem_give(&msg.answer_received_sem);
             // LOG_DBG("reply received: %02x %02x %02x %02x %02x %02x %02x %02x",
             //     msg.answer_buffer[0], msg.answer_buffer[1],
             //     msg.answer_buffer[2], msg.answer_buffer[3],
@@ -136,7 +136,6 @@ int uart_hdb_write(uart_hdb_t *dev, const uint8_t *buf, size_t len)
     msg.data_size = len;
     msg.answer_buffer = NULL;
     msg.answer_buffer_len = 0;
-    msg.answer_received = NULL;
     k_msgq_put(&dev->frame_queue, &msg, K_FOREVER);
     return ret;
 }
@@ -155,20 +154,14 @@ int uart_hdb_transceive(uart_hdb_t *dev, const uint8_t *write_buf, size_t write_
     msg.data_size = write_len;
     msg.answer_buffer = read_buf;
     msg.answer_buffer_len = read_len;
-    bool answer_received = false;
-    msg.answer_received = &answer_received;
+    k_sem_init(&msg.answer_received_sem, 0, 1);
     LOG_DBG("before transceive put");
     // k_sleep(K_MSEC(1));
     k_msgq_put(&dev->frame_queue, &msg, K_FOREVER);
     LOG_DBG("after transceive put");
     // k_sleep(K_MSEC(1));
 
-    int timeout = 0;
-    while (!answer_received && timeout < 100) {
-        // k_yield();
-        timeout++;
-        k_sleep(K_USEC(10));
-    }
+    k_sem_take(&msg.answer_received_sem, K_MSEC(200));
 
     return ret;
 }
