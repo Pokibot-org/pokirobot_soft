@@ -10,9 +10,8 @@ LOG_MODULE_REGISTER(shared);
 
 uart_hdb_t steppers_uart_hdb;
 
-int shared_init(const struct device *dev)
+int shared_init(void)
 {
-    ARG_UNUSED(dev);
     LOG_INF("shared objects init");
 
     if (uart_hdb_init(&steppers_uart_hdb, DEVICE_DT_GET(DT_ALIAS(stepper_bus)))) {

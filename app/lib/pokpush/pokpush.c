@@ -25,7 +25,7 @@ static struct pokpush {
     .servo.spec = PWM_DT_SPEC_GET(DT_ALIAS(servo_pokpush)),
 };
 
-static int pokpush_init(const struct device *dev)
+static int pokpush_init(void)
 {
     int err = 0;
 

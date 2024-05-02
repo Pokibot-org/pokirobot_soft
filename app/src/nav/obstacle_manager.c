@@ -107,8 +107,8 @@ uint8_t process_point(obstacle_manager_t *obj, uint16_t point_distance, float po
     float point_a_lidar = 2.0f * M_PI - point_angle_rad;
     float point_a_robot = fmodf(point_a_lidar + DEG_TO_RAD(60.0f) + DEG_TO_RAD(240.0f), 2 * M_PI);
 
-    float point_x_robot = cosf(point_a_robot) * point_distance;
-    float point_y_robot = sinf(point_a_robot) * point_distance;
+    // float point_x_robot = cosf(point_a_robot) * point_distance;
+    // float point_y_robot = sinf(point_a_robot) * point_distance;
     float delta_angle = fabsf(angle_modulo(point_a_robot - robot_dir));
     
     if (point_distance < ROBOT_MAX_RADIUS_MM + LIDAR_DETECTION_DISTANCE_MM) {
