@@ -137,7 +137,7 @@
 
 &uart5 {
     status = "okay";
-    current-speed = < 115200 >;
+    current-speed = < 460800 >;
     pinctrl-0 = < &uart5_rx_pd2 &uart5_tx_pc12 >;
     pinctrl-names = "default";
     // single-wire;

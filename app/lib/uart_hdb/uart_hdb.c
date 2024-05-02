@@ -34,6 +34,12 @@ void uart_hdb_thread(void *arg1, void *arg2, void *arg3)
         // LOG_DBG("message received: %02x %02x %02x %02x %02x %02x %02x %02x",
         //     msg.data[0], msg.data[1], msg.data[2], msg.data[3], msg.data[4],
         //     msg.data[5], msg.data[6], msg.data[7]);
+
+        /* clear all the received bytes in case the uart driver implement a fifo and
+        we received unexpected bytes. */
+        uint8_t none;
+        while (!uart_poll_in(device->uart, &none)) {}
+
         for (size_t i = 0; i < msg.data_size; i++) {
             uart_poll_out(device->uart, msg.data[i]);
         }
@@ -60,7 +66,6 @@ void uart_hdb_thread(void *arg1, void *arg2, void *arg3)
             //     msg.answer_buffer[4], msg.answer_buffer[5],
             //     msg.answer_buffer[6], msg.answer_buffer[7]);
         }
-        k_sleep(K_USEC(50));
     }
 }
 
