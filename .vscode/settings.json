@@ -10,4 +10,8 @@
         "complex": "c"
     },
     "C_Cpp.errorSquiggles": "disabled",
+    "clangd.arguments": [
+        "-compile-commands-dir=${workspaceFolder}/build", 
+        "--header-insertion=never"
+    ],
 }

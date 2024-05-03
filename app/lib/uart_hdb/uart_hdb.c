@@ -191,7 +191,6 @@ bool uart_hdb_is_ready(uart_hdb_t *dev)
 int uart_hdb_write(uart_hdb_t *dev, const uint8_t *buf, size_t len)
 {
     // LOG_DBG("uart_hdb_write");
-    int ret = 0;
     if (len >= UART_HDB_MSG_DATA_MAX_SIZE) {
         LOG_WRN("Data to big, increase UART_HDB_MSG_DATA_MAX_SIZE");
         return 1;
@@ -203,14 +202,14 @@ int uart_hdb_write(uart_hdb_t *dev, const uint8_t *buf, size_t len)
     msg.answer_buffer_len = 0;
     k_sem_init(&msg.answer_received_sem, 0, 1);
     k_msgq_put(&dev->frame_queue, &msg, K_FOREVER);
-    return ret;
+    return 0;
 }
 
 int uart_hdb_transceive(uart_hdb_t *dev, const uint8_t *write_buf, size_t write_len,
                         uint8_t *read_buf, size_t read_len)
 {
     // LOG_DBG("uart_hdb_transceive");
-    int ret = 0;
+
     if (write_len >= UART_HDB_MSG_DATA_MAX_SIZE) {
         LOG_WRN("Data to big, increase UART_HDB_MSG_DATA_MAX_SIZE");
         return 1;
@@ -223,7 +222,11 @@ int uart_hdb_transceive(uart_hdb_t *dev, const uint8_t *write_buf, size_t write_
     k_sem_init(&msg.answer_received_sem, 0, 1);
     k_msgq_put(&dev->frame_queue, &msg, K_FOREVER);
 
-    k_sem_take(&msg.answer_received_sem, K_MSEC(200));
+    if (k_sem_take(&msg.answer_received_sem, K_MSEC(500)) < 0)
+    {
+        LOG_ERR("Timeout in transceive");
+        return -1;
+    }
 
-    return ret;
+    return 0;
 }
