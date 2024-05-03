@@ -45,7 +45,7 @@ def load_image(name):
 
 
 def draw_robot(screen, board, robot):
-    ratio = board.dim_y[1] / board.real_size[1]
+    ratio = board.dim_x[1] / board.real_size[1]
     on_board_radius = robot.radius * ratio
     on_board_pos = (robot.pos[0] * ratio, board.dim_y[1] - robot.pos[1] * ratio)
 
@@ -111,6 +111,7 @@ class Session(socketserver.BaseRequestHandler):
                 robot.pos[0] = json_data["pos"]["x"] + 1500
                 robot.pos[1] = json_data["pos"]["y"]
                 robot.dir = json_data["pos"]["a"]
+                print(robot.pos)
         except Exception as err:
             print("Error during decoding", err)
             print(self.request[0])

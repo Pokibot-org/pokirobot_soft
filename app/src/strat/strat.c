@@ -95,6 +95,7 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
 
     point2_t end_point = convert_point_for_team(ctx->team_color, drop_zones[1].point);
     LOG_ERR("color: %d", ctx->team_color);
+    // pos2_t docking_pos = CONVERT_POINT2_TO_POS2(end_point, 0);
     pos2_t docking_pos;
     get_home_docking_pos((point2_t){.x = BOARD_CENTER_X, .y = BOARD_CENTER_Y}, end_point,
                          &docking_pos);

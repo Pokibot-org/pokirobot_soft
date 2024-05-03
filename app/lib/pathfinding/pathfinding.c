@@ -324,7 +324,7 @@ void delete_colliding_obstacles(pathfinding_object_t *obj, obstacle_holder_t *ob
 int pathfinding_find_path(pathfinding_object_t *obj, obstacle_holder_t *ob_hold, point2_t start,
                           point2_t end, path_node_t **end_node)
 {
-    LOG_INF("Stating pathfinding at node x:%f, y%f towards x:%f, y%f ", (double)start.x,
+    LOG_INF("Stating pathfinding <x:%.1f | y:%.1f> -> <x:%.1f | y%.1f>", (double)start.x,
             (double)start.y, (double)end.x, (double)end.y);
     *end_node = NULL;
     // TODO: Check input validity, must be between 0 and pathfinding_boundaries
