@@ -8,28 +8,76 @@
 
 LOG_MODULE_REGISTER(uart_hdb);
 
-int uart_hdb_read(const uart_hdb_t *dev, uint8_t *buf, size_t len)
+void send_receive_it_clbk_V2(const struct device *dev, void *user_data)
 {
-    int ret = 0;
-    for (int i = 0; i < len; i++) {
-        uart_poll_in(dev->uart, buf + i);
-    }
-    return ret;
+	struct uart_hdb_it_data *data = user_data;
+	if (uart_irq_rx_ready(dev) > 0) {
+		uint8_t byte;
+		uart_fifo_read(dev, &byte, sizeof(byte));
+		if (data->index >= data->to_receive) {
+			return;
+		}
+
+		data->rx_buffer[data->index] = byte;
+		data->index++;
+	}
 }
 
-void uart_hdb_thread(void *arg1, void *arg2, void *arg3)
+int send_receive_V2(struct uart_hdb *hdb, const uint8_t *send_data, size_t send_size,
+							 uint8_t *receive_data, size_t receive_size, k_timeout_t timeout)
 {
-    // const uint8_t min_wait_in_bit_time = 8;
-    uart_hdb_t *device = (uart_hdb_t *)arg1;
-    LOG_INF("uart_hdb thread launched");
-    while (1) {
-        uart_hdb_msg_t msg;
-        k_msgq_get(&device->frame_queue, &msg, K_FOREVER);
-        if (!msg.data_size) {
-            LOG_DBG("data_size = 0");
-            continue;
-        }
-        // LOG_DBG("message received: %02x %02x %02x %02x",
+	struct uart_hdb_it_data *data = &hdb->it_data;
+	int ret = -ETIMEDOUT;
+
+	if (send_size + receive_size > sizeof(data->rx_buffer)) {
+		LOG_ERR("RX buffer to small");
+		return -EINVAL;
+	}
+
+
+	// Clear all the received bytes in case the uart driver implement a fifo and we did received
+	// unexpected bytes
+	uint8_t none;
+	while (!uart_poll_in(hdb->uart, &none)) {
+	}
+
+	if (uart_irq_callback_user_data_set(hdb->uart, send_receive_it_clbk_V2, data)) {
+		ret = -ENOTSUP;
+		goto exit;
+	}
+
+	data->index = 0;
+	data->to_receive = send_size + receive_size;
+
+	uart_irq_rx_enable(hdb->uart);
+
+	for (size_t i = 0; i < send_size; i++) {
+		uart_poll_out(hdb->uart, send_data[i]);
+	}
+
+	ret = -ETIMEDOUT;
+	uint64_t start_time = k_uptime_ticks();
+	while (k_uptime_ticks() - start_time < timeout.ticks) {
+		if (data->index == data->to_receive) {
+			memcpy(receive_data, &data->rx_buffer[send_size], receive_size);
+			ret = 0;
+			break;
+		}
+	}
+
+	if (ret == -ETIMEDOUT) {
+		LOG_WRN("Timeout, wanted to receive %d bytes, got %d bytes", receive_size,
+				data->index - send_size);
+	}
+
+	uart_irq_rx_disable(hdb->uart);
+exit:
+	return ret;
+}
+
+
+void send_recive_V1(struct uart_hdb *device, uart_hdb_msg_t msg) {
+            // LOG_DBG("message received: %02x %02x %02x %02x",
         //     msg.data[0], msg.data[1], msg.data[2], msg.data[3]);
         // LOG_DBG("message received: %02x %02x %02x %02x %02x %02x %02x %02x",
         //     msg.data[0], msg.data[1], msg.data[2], msg.data[3], msg.data[4],
@@ -66,22 +114,40 @@ void uart_hdb_thread(void *arg1, void *arg2, void *arg3)
             //     msg.answer_buffer[4], msg.answer_buffer[5],
             //     msg.answer_buffer[6], msg.answer_buffer[7]);
         }
+}
+
+int uart_hdb_read(const uart_hdb_t *dev, uint8_t *buf, size_t len)
+{
+    int ret = 0;
+    for (int i = 0; i < len; i++) {
+        uart_poll_in(dev->uart, buf + i);
+    }
+    return ret;
+}
+
+void uart_hdb_thread(void *arg1, void *arg2, void *arg3)
+{
+    // const uint8_t min_wait_in_bit_time = 8;
+    uart_hdb_t *device = (uart_hdb_t *)arg1;
+    LOG_INF("uart_hdb thread launched");
+    while (1) {
+        uart_hdb_msg_t msg;
+        k_msgq_get(&device->frame_queue, &msg, K_FOREVER);
+        if (!msg.data_size) {
+            LOG_DBG("data_size = 0");
+            continue;
+        }
+#if 1
+        send_receive_V2(device, msg.data, msg.data_size, msg.answer_buffer, msg.answer_buffer_len, K_MSEC(150));
+        k_sem_give(&msg.answer_received_sem);
+#else
+        send_recive_V1(device, msg);
+#endif
+
     }
 }
 
-/* Here as an example, should be done in the devicetree!
-const struct uart_config uart_cfg = {
-        .baudrate = 115200,
-        .parity = UART_CFG_PARITY_NONE,
-        .stop_bits = UART_CFG_STOP_BITS_1,
-        .data_bits = UART_CFG_DATA_BITS_8,
-        .flow_ctrl = UART_CFG_FLOW_CTRL_NONE
-    };
-ret = uart_configure(dev->uart, &uart_cfg);
-    if (ret) {
-            return 2;
-    }
-*/
+
 int uart_hdb_init(uart_hdb_t *dev, const struct device *uart)
 {
     int ret = 0;
@@ -96,15 +162,6 @@ int uart_hdb_init(uart_hdb_t *dev, const struct device *uart)
         goto exit;
     }
     dev->uart = uart;
-
-    struct uart_config uart_cfg;
-    ret = uart_config_get(dev->uart, &uart_cfg);
-    if (ret) {
-        LOG_ERR("UART not configured in devicetree");
-        ret = -3;
-        goto exit;
-    }
-    dev->baudrate = uart_cfg.baudrate;
 
     k_msgq_init(&dev->frame_queue, dev->frame_queue_buffer, sizeof(uart_hdb_msg_t),
                 UART_HDB_MESSAGE_QUEUE_SIZE);
@@ -141,6 +198,7 @@ int uart_hdb_write(uart_hdb_t *dev, const uint8_t *buf, size_t len)
     msg.data_size = len;
     msg.answer_buffer = NULL;
     msg.answer_buffer_len = 0;
+    k_sem_init(&msg.answer_received_sem, 0, 1);
     k_msgq_put(&dev->frame_queue, &msg, K_FOREVER);
     return ret;
 }
@@ -160,11 +218,7 @@ int uart_hdb_transceive(uart_hdb_t *dev, const uint8_t *write_buf, size_t write_
     msg.answer_buffer = read_buf;
     msg.answer_buffer_len = read_len;
     k_sem_init(&msg.answer_received_sem, 0, 1);
-    LOG_DBG("before transceive put");
-    // k_sleep(K_MSEC(1));
     k_msgq_put(&dev->frame_queue, &msg, K_FOREVER);
-    LOG_DBG("after transceive put");
-    // k_sleep(K_MSEC(1));
 
     k_sem_take(&msg.answer_received_sem, K_MSEC(200));
 

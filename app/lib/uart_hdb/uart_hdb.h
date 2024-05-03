@@ -23,9 +23,16 @@ typedef struct uart_hdb_msg {
     struct k_sem answer_received_sem;
 } uart_hdb_msg_t;
 
+
+struct uart_hdb_it_data {
+	uint8_t rx_buffer[32];
+	uint8_t index;
+	uint8_t to_receive;
+};
+
 typedef struct uart_hdb {
     const struct device *uart;
-    uint32_t baudrate;
+    struct uart_hdb_it_data it_data;
     bool ready;
     K_THREAD_STACK_MEMBER(thread_stack, UART_HDB_STACK_SIZE);
     struct k_thread thread;
