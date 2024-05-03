@@ -6,7 +6,7 @@
             "name": "Debug pc_app",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build-pc-app/zephyr/zephyr.elf",
+            "program": "${workspaceFolder}/build_pc/zephyr/zephyr.elf",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
