@@ -59,7 +59,10 @@ int send_receive_V2(struct uart_hdb *hdb, const uint8_t *send_data, size_t send_
 	uint64_t start_time = k_uptime_ticks();
 	while (k_uptime_ticks() - start_time < timeout.ticks) {
 		if (data->index == data->to_receive) {
-			memcpy(receive_data, &data->rx_buffer[send_size], receive_size);
+            if (receive_data)
+            {
+			    memcpy(receive_data, &data->rx_buffer[send_size], receive_size);
+            }
 			ret = 0;
 			break;
 		}
