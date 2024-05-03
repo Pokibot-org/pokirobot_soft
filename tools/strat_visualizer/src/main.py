@@ -108,7 +108,7 @@ class Session(socketserver.BaseRequestHandler):
         try:
             json_data = json.loads(self.request[0].decode())
             if "pos" in json_data:
-                robot.pos[0] = json_data["pos"]["x"]
+                robot.pos[0] = json_data["pos"]["x"] + 1500
                 robot.pos[1] = json_data["pos"]["y"]
                 robot.dir = json_data["pos"]["a"]
         except Exception as err:

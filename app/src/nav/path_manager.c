@@ -138,12 +138,14 @@ uint8_t path_manager_find_path(point2_t start, point2_t end, obstacle_t *obstacl
             }
         }
     }
+
+    const int32_t offset = 5;
     pathfinding_configuration_t pathfinding_config;
-    pathfinding_config.field_boundaries.min_x = 5;
-    pathfinding_config.field_boundaries.min_y = 5;
-    pathfinding_config.field_boundaries.max_x = TALBLE_X_MM - 5;
-    pathfinding_config.field_boundaries.max_y = TALBLE_Y_MM - 5;
-    pathfinding_config.delta_distance = 200.0f; // jump of Xmm
+    pathfinding_config.field_boundaries.min_x = BOARD_MIN_X + offset;
+    pathfinding_config.field_boundaries.min_y = BOARD_MIN_Y + offset;
+    pathfinding_config.field_boundaries.max_x = BOARD_MAX_X - offset;
+    pathfinding_config.field_boundaries.max_y = BOARD_MAX_Y - offset;
+    pathfinding_config.delta_distance = 500.0f; // jump of Xmm
     pathfinding_config.radius_of_security = ROBOT_MAX_RADIUS_MM + 10;
     pathfinding_object_configure(&pm_obj.pathfinding_obj, &pathfinding_config);
 
