@@ -12,10 +12,10 @@ rebuild: # rebuild target
 	west build -b nucleo_f446re app --pristine
 
 build-pc-app: # build strat pc app
-	west build -b native_posix pc_app --build-dir build-pc-app
+	west build -b native_posix pc_app --build-dir build_pc
 
 run-pc-app: # run strat pc app
-	./build-pc-app/zephyr/zephyr.elf
+	./build_pc/zephyr/zephyr.elf
 
 run-pc-gui: # run start pc ui
 	python tools/strat_visualizer/src/main.py
