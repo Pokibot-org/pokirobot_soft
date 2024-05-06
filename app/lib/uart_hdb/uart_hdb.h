@@ -15,13 +15,10 @@ typedef enum uart_hdb_msg_event {
     UART_HDB_MSG_EVENT_SEND_WITH_ANSWER,
 } uart_hdb_msg_event_t;
 
-typedef struct uart_hdb_msg {
+typedef struct uart_hdb_msg_tx {
     uint8_t data[UART_HDB_MSG_DATA_MAX_SIZE];
     uint8_t data_size;
-    uint8_t *answer_buffer;
-    uint8_t answer_buffer_len;
-    struct k_sem answer_received_sem;
-} uart_hdb_msg_t;
+} uart_hdb_msg_tx_t;
 
 
 struct uart_hdb_it_data {
@@ -32,12 +29,13 @@ struct uart_hdb_it_data {
 
 typedef struct uart_hdb {
     const struct device *uart;
+    struct k_mutex access_mutex;
     struct uart_hdb_it_data it_data;
     bool ready;
     K_THREAD_STACK_MEMBER(thread_stack, UART_HDB_STACK_SIZE);
     struct k_thread thread;
     k_tid_t thread_id;
-    char __aligned(4) frame_queue_buffer[sizeof(uart_hdb_msg_t) * UART_HDB_MESSAGE_QUEUE_SIZE];
+    char __aligned(4) frame_queue_buffer[sizeof(uart_hdb_msg_tx_t) * UART_HDB_MESSAGE_QUEUE_SIZE];
     struct k_msgq frame_queue;
 } uart_hdb_t;
 
