@@ -6,10 +6,10 @@ help: # show help for each of the Makefile recipes.
 	@grep -E '^[a-zA-Z0-9 -]+:.*#'  Makefile | sort | while read -r l; do printf "\033[1;32m$$(echo $$l | cut -f 1 -d':')\033[00m:$$(echo $$l | cut -f 2- -d'#')\n"; done
 
 build: # build target
-	west build -b nucleo_f446re app
+	west build -b nucleo_f446re app --build-dir build_target
 
 rebuild: # rebuild target
-	west build -b nucleo_f446re app --pristine
+	west build -b nucleo_f446re app --build-dir build_target --pristine
 
 build-pc-app: # build strat pc app
 	west build -b native_posix pc_app --build-dir build_pc
