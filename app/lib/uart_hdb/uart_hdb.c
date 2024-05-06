@@ -140,7 +140,7 @@ void uart_hdb_thread(void *arg1, void *arg2, void *arg3)
             LOG_DBG("data_size = 0");
             continue;
         }
-#if 0
+#if 1
         send_receive_V2(device, msg.data, msg.data_size, msg.answer_buffer, msg.answer_buffer_len, K_MSEC(150));
         k_sem_give(&msg.answer_received_sem);
 #else
