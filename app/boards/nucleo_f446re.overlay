@@ -1,6 +1,7 @@
 / {
     aliases {
         console = &usart2;
+        ui-uart = &uart4;
         stepper-bus = &uart5;
         camsense-uart = &usart1;
         sw-side = &swcote;
@@ -152,6 +153,13 @@
 &usart2 {
     status = "okay";
     current-speed = <921600>;
+};
+
+&uart4 {
+	pinctrl-0 = <&uart4_tx_pa0 &uart4_rx_pa1>;
+	pinctrl-names = "default";
+	current-speed = <921600>;
+	status = "okay";
 };
 
 &uart5 {
