@@ -21,10 +21,10 @@ run-pc-gui: # run start pc ui
 	python tools/strat_visualizer/src/main.py
 
 clean: # clean project
-	west build -t clean
+	west build -t clean --build-dir build_target
 
 flash: # flash target
-	west flash
+	west flash --build-dir build_target
 
 dbg: # debug target and connect with gdb
 	west debug
