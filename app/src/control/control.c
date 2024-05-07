@@ -128,21 +128,9 @@ int control_init(control_t *ctrl, tmc2209_t *m1, tmc2209_t *m2, tmc2209_t *m3)
 
 void control_force_motor_stop(void)
 {
-    LOG_WRN("!MOTOR STOP ======== MOTOR STOP!");
+    LOG_INF("stopping motor control");
     shared_ctrl.brake = true;
     shared_ctrl.ready = false;
-    for (int i = 0; i < 10; i++) {
-        tmc2209_set_ihold_irun(&train_motor_1, 1, 1);
-        tmc2209_set_ihold_irun(&train_motor_1, 1, 1);
-        tmc2209_set_ihold_irun(&train_motor_1, 1, 1);
-        tmc2209_set_speed(&train_motor_1, 0);
-        tmc2209_set_speed(&train_motor_2, 200.0f);
-        tmc2209_set_speed(&train_motor_3, 0);
-        LOG_WRN("%s: loop %d", __func__, i);
-    }
-    // delay used to be sure that tmc task send the messages
-    // to be changed !
-    k_sleep(K_MSEC(1000));
 }
 
 vel2_t world_vel_from_delta(pos2_t delta, vel2_t prev_vel)
@@ -390,7 +378,18 @@ static int control_task(void)
                 (double)motors_v.v3);
         k_sleep(K_MSEC((uint64_t)CONTROL_PERIOD_MS));
     }
-    LOG_INF("control task done (ret=%d)", ret);
+    LOG_INF("control task done (ret=%d), resetting motors", ret);
+    for (int i = 0; i < 3; i++) {
+        tmc2209_set_ihold_irun(&train_motor_1, 1, 1);
+        tmc2209_set_ihold_irun(&train_motor_2, 1, 1);
+        tmc2209_set_ihold_irun(&train_motor_3, 1, 1);
+        tmc2209_set_speed(&train_motor_1, 0);
+        tmc2209_set_speed(&train_motor_2, 0);
+        tmc2209_set_speed(&train_motor_3, 0);
+    }
+    // delay used to be sure that tmc task send the messages
+    // to be changed !
+    k_sleep(K_MSEC(1000));
     return ret;
 }
 
