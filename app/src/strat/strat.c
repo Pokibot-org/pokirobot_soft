@@ -9,7 +9,7 @@
 #include "pokpush/pokpush.h"
 #include "global_def.h"
 
-LOG_MODULE_REGISTER(strategy);
+LOG_MODULE_REGISTER(strategy, 0);
 
 #define CONVERT_POS2_TO_POINT2(pos)                                                                \
     (point2_t)                                                                                     \
@@ -94,7 +94,7 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
     struct pokibrain_user_context *ctx = params->world_context;
 
     point2_t end_point = convert_point_for_team(ctx->team_color, drop_zones[1].point);
-    LOG_ERR("color: %d", ctx->team_color);
+    LOG_INF("color: %d", ctx->team_color);
     // pos2_t docking_pos = CONVERT_POINT2_TO_POS2(end_point, 0);
     pos2_t docking_pos;
     get_home_docking_pos((point2_t){.x = BOARD_CENTER_X, .y = BOARD_CENTER_Y}, end_point,
@@ -133,10 +133,8 @@ static void strat_end_game_clbk(void *world_context)
     struct pokibrain_user_context *ctx = world_context;
     LOG_INF("GAME IS OVER");
     LOG_INF("SCORE %d", calculate_score(ctx));
-
     nav_stop();
     strat_force_motor_stop();
-    k_sleep(K_FOREVER);
 }
 
 const char *get_side_name(enum team_color color)

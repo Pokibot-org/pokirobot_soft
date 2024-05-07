@@ -65,7 +65,6 @@ typedef struct control {
     tmc2209_t *m1;
     tmc2209_t *m2;
     tmc2209_t *m3;
-    struct k_timer refresh_timer;
 } control_t;
 
 extern tmc2209_t train_motor_1;
