@@ -14,7 +14,7 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/util.h>
 
-LOG_MODULE_REGISTER(control);
+LOG_MODULE_REGISTER(control, CONFIG_CONTROL_LOG_LEVEL);
 
 tmc2209_t train_motor_1;
 tmc2209_t train_motor_2;

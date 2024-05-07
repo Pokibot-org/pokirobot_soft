@@ -7,8 +7,9 @@
 #include "lidar/camsense_x1/camsense_x1.h"
 #include "pokutils.h"
 #include <zephyr/logging/log.h>
+#include "global_def.h"
 
-LOG_MODULE_REGISTER(obstacle_manager, 3);
+LOG_MODULE_REGISTER(obstacle_manager, CONFIG_OBSTACLE_MANAGER_LOG_LEVEL);
 
 // DEFINES
 #define MAX_LIDAR_MESSAGE                  32
@@ -126,10 +127,10 @@ uint8_t process_point(obstacle_manager_t *obj, uint16_t point_distance, float po
 
 #if CHECK_IF_OBSTACLE_INSIDE_TABLE
     // REMOVE THE POINTS IF THERE ARE NOT IN THE TABLE!
-    if (new_obstacle.data.circle.coordinates.x < -1500 ||
-        new_obstacle.data.circle.coordinates.x > 1500 ||
-        new_obstacle.data.circle.coordinates.y < 0 ||
-        new_obstacle.data.circle.coordinates.y > 2000) {
+    if (new_obstacle.data.circle.coordinates.x < BOARD_MIN_X ||
+        new_obstacle.data.circle.coordinates.x > BOARD_MAX_X ||
+        new_obstacle.data.circle.coordinates.y < BOARD_MIN_Y ||
+        new_obstacle.data.circle.coordinates.y > BOARD_MAX_Y) {
         return 2;
     }
 #endif
@@ -226,7 +227,7 @@ static void obstacle_manager_task()
 
             lidar_message_t lidar_message;
             k_sem_take(&obsacle_holder_lock, K_FOREVER);
-            if (!k_msgq_get(&obs_man_obj.lidar_msgq, &lidar_message, K_NO_WAIT)) {
+            while (k_msgq_get(&obs_man_obj.lidar_msgq, &lidar_message, K_NO_WAIT)) {
                 err = process_lidar_message(&obs_man_obj, &lidar_message);
                 if (err) {
                     LOG_ERR("obstacle_manager_task error when calling "

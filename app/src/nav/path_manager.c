@@ -7,7 +7,7 @@
 #include "pathfinding/pathfinding.h"
 #include "string.h"
 
-LOG_MODULE_REGISTER(path_manager, 4);
+LOG_MODULE_REGISTER(path_manager, CONFIG_PATH_MANAGER_LOG_LEVEL);
 
 typedef struct path_manager_object {
     point2_t start;

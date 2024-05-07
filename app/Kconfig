@@ -14,6 +14,10 @@ config CONTROL_THREAD_PRIORITY
     int "thread priority"
     default 5
 
+module = CONTROL
+module-str = control
+source "subsys/logging/Kconfig.template.log_config"
+
 config OBSTACLE_MANAGER_THREAD_STACK
     int "Stack size"
     default 1024
@@ -21,11 +25,19 @@ config OBSTACLE_MANAGER_THREAD_PRIORITY
     int "Thread priority"
     default 6
 
+module = OBSTACLE_MANAGER
+module-str = obstacle_manager
+source "subsys/logging/Kconfig.template.log_config"
+
 config PATH_MANAGER_THREAD_STACK
     int "Stack size"
     default 4096
 config PATH_MANAGER_THREAD_PRIORITY
     int "Thread priority"
     default 14
+
+module = PATH_MANAGER
+module-str = path_manager
+source "subsys/logging/Kconfig.template.log_config"
 
 endmenu

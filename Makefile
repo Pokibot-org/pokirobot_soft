@@ -8,6 +8,9 @@ help: # show help for each of the Makefile recipes.
 build: # build target
 	west build -b nucleo_f446re app --build-dir build_target
 
+build-control: # build target winth control logs
+	west build -b nucleo_f446re app --build-dir build_target -- -DOVERLAY_CONFIG="control_logs.conf"
+
 rebuild: # rebuild target
 	west build -b nucleo_f446re app --build-dir build_target --pristine
 
