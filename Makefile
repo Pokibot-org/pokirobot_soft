@@ -1,4 +1,4 @@
-.PHONY: help
+.PHONY: help build build-control flash clean
 
 SRC_FILES := $(shell find app/src app/lib -name '*.c' -o -name '*.h')
  
@@ -6,13 +6,13 @@ help: # show help for each of the Makefile recipes.
 	@grep -E '^[a-zA-Z0-9 -]+:.*#'  Makefile | sort | while read -r l; do printf "\033[1;32m$$(echo $$l | cut -f 1 -d':')\033[00m:$$(echo $$l | cut -f 2- -d'#')\n"; done
 
 build: # build target
-	west build -b nucleo_f446re app --build-dir build
+	west build -b nucleo_f446re app
 
 build-control: # build target winth control logs
-	west build -b nucleo_f446re app --build-dir build -- -DOVERLAY_CONFIG="control_logs.conf"
+	west build -b nucleo_f446re app -- -DOVERLAY_CONFIG="control_logs.conf"
 
 rebuild: # rebuild target
-	west build -b nucleo_f446re app --build-dir build --pristine
+	west build -b nucleo_f446re app --pristine
 
 build-pc-app: # build strat pc app
 	west build -b native_posix pc_app --build-dir build_pc
@@ -24,10 +24,10 @@ run-pc-gui: # run start pc ui
 	python tools/strat_visualizer/src/main.py
 
 clean: # clean project
-	west build -t clean --build-dir build
+	west build -t clean
 
 flash: # flash target
-	west flash --build-dir build
+	west flash
 
 dbg: # debug target and connect with gdb
 	west debug
