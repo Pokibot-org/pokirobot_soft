@@ -288,3 +288,9 @@ void pokibrain_think_now(void)
     pokibrain_events_t ev = POKIBRAIN_THINK;
     k_msgq_put(&event_queue, &ev, K_NO_WAIT);
 }
+
+void pokibrain_terminate(void)
+{
+    k_timer_stop(&match_end_timer);
+    k_work_submit(&end_game_work);
+}

@@ -7,7 +7,11 @@
 #include <stdint.h>
 #include "nav/nav.h"
 #include "pokpush/pokpush.h"
+<<<<<<< HEAD
 #include "pokstick/pokstick.h"
+=======
+#include "pokuicom/pokuicom.h"
+>>>>>>> 26eab55 (Use match start from ui + send score at the end of the match)
 #include "global_def.h"
 
 LOG_MODULE_REGISTER(strategy);
@@ -43,8 +47,9 @@ struct solar_pannel {
 
 struct pokibrain_user_context {
     pos2_t robot_pos;
-    enum team_color team_color;
+    enum strat_team_color team_color;
     uint32_t plants_pushed;
+    bool in_end_zone;
 };
 
 struct drop_zone drop_zones[] = {
@@ -93,8 +98,9 @@ const char *get_side_name(enum team_color color)
 }
 
 struct point2 convert_point_for_team(enum team_color color, struct point2 point)
+struct point2 convert_point_for_team(enum strat_team_color color, struct point2 point)
 {
-    if (color == TEAM_COLOR_BLUE) {
+    if (color == STRAT_TEAM_COLOR_BLUE) {
         return point;
     }
 
@@ -102,9 +108,9 @@ struct point2 convert_point_for_team(enum team_color color, struct point2 point)
     return point;
 }
 
-struct pos2 convert_pos_for_team(enum team_color color, struct pos2 pos)
+struct pos2 convert_pos_for_team(enum strat_team_color color, struct pos2 pos)
 {
-    if (color == TEAM_COLOR_BLUE) {
+    if (color == STRAT_TEAM_COLOR_BLUE) {
         return pos;
     }
 
@@ -114,10 +120,33 @@ struct pos2 convert_pos_for_team(enum team_color color, struct pos2 pos)
     return pos;
 }
 
+/**
+REMPOTER LES PLANTES ET LES METTRE EN CULTURE
+• 3 points par plante valide dans une zone adaptée
+• 1 points supplémentaires si la plante valide est dans un pot
+• 1 points supplémentaires si la plante valide est dans une jardinière
+
+I.4.b. ORIENTER LES PANNEAUX SOLAIRES
+• 5 points pour chaque panneau valide pour l’équipe;
+
+I.4.c. ASSURER LA POLLINISATION DES PLANTES
+• 5 points par zone de dépose de l’équipe occupée par au moins une coccinelle à la fin du match.
+• 5 points supplémentaires par zone de dépose de l’équipe dans laquelle au moins une coccinelle est
+en contact avec une plante ou un pot contenant une plante en fin de match.
+
+• Attention : si une coccinelle réalise ses actions dans une zone adverse, alors les points ainsi fait vont à
+l’équipe adverse.
+
+I.4.d. RETOURNER SE RECHARGER LES BATTERIES
+• 10 points si le robot de l’équipe est dans l’aire valide.
+*/
 
 int calculate_score(struct pokibrain_user_context *ctx)
 {
-    return ctx->plants_pushed;
+    int score = 0;
+    score += ctx->plants_pushed * 3;
+    score += ctx->in_end_zone ? 10 : 0;
+    return score;
 }
 
 int get_home_docking_pos(point2_t robot_point, point2_t end_point, pos2_t *dock_pos)
@@ -322,7 +351,7 @@ int32_t pokibrain_reward_calculation_go_home(struct pokibrain_callback_params *p
 int pokibrain_completion_go_home(struct pokibrain_callback_params *params)
 {
     LOG_DBG("COMPLETION %s", __func__);
-
+    pokibrain_terminate();
     return 0;
 }
 
@@ -338,14 +367,29 @@ static void strat_end_game_clbk(void *world_context)
 {
     struct pokibrain_user_context *ctx = world_context;
     LOG_INF("GAME IS OVER");
-    LOG_INF("SCORE %d", calculate_score(ctx));
+    uint8_t score = calculate_score(ctx);
+    LOG_INF("SCORE %d", score);
+    pokuicom_send_score(score);
     nav_stop();
     strat_force_motor_stop();
 }
 
+const char *get_side_name(enum strat_team_color color)
+{
+    switch (color) {
+        case STRAT_TEAM_COLOR_BLUE:
+            return "BLUE";
+        case STRAT_TEAM_COLOR_YELLOW:
+            return "YELLOW";
+        default:
+        case STRAT_TEAM_COLOR_NONE:
+            return "UNKNOWN";
+    }
+}
+
 // -------------------------- PUBLIC FUNCTIONS ---------------------------
 
-void strat_init(enum team_color color)
+void strat_init(enum strat_team_color color)
 {
     LOG_INF("Strat init with team side %s", get_side_name(color));
 

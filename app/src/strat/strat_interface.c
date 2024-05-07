@@ -1,5 +1,6 @@
 #include "strat_interface.h"
 #include "control/control.h"
+#include "pokuicom/pokuicom.h"
 
 int strat_set_robot_brake(bool brake)
 {

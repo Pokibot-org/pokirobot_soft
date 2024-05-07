@@ -42,4 +42,5 @@ void pokibrain_start(void);
 void pokibrain_think_now(void);
 uint32_t pokibrain_get_time_in_match_ms(void);
 uint32_t pokibrain_get_time_remaining_in_match_ms(void);
+void pokibrain_terminate(void);
 #endif

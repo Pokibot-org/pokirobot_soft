@@ -12,6 +12,8 @@ enum pokprotocol_team received_color;
 
 static void pokprotocol_receive(struct poktocol_msg *msg, void *user_data) 
 {
+    LOG_INF("Received msg type %d", msg->type);
+
     switch (msg->type) {
         case POKTOCOL_DATA_TYPE_SCORE:
             break;

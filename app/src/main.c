@@ -12,6 +12,7 @@
 #include "strat/strat.h"
 #include "pokstick/pokstick.h"
 #include "pokpush/pokpush.h"
+#include "pokuicom/pokuicom.h"
 
 LOG_MODULE_REGISTER(main);
 
@@ -67,22 +68,30 @@ void match_wait_start()
     hmi_led_success();
 
     LOG_INF("MATCH WAIT FOR STARTER KEY");
-    tirette_wait_until_released();
+    // tirette_wait_until_released();
+    while (!pokuicom_is_match_started()) {
+        k_sleep(K_MSEC(10));
+    }
 }
 
 void match_1()
 {
     // static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
-    static const struct gpio_dt_spec sw_side = GPIO_DT_SPEC_GET(DT_ALIAS(sw_side), gpios);
+    // static const struct gpio_dt_spec sw_side = GPIO_DT_SPEC_GET(DT_ALIAS(sw_side), gpios);
     // static const struct gpio_dt_spec sw_power = GPIO_DT_SPEC_GET(DT_ALIAS(sw_power), gpios);
 
     match_init();
     match_wait_start();
     LOG_INF("MATCH START");
-    int side = gpio_pin_get_dt(&sw_side);
-    LOG_ERR("side= %d", side);
-    enum team_color color = side ? TEAM_COLOR_YELLOW : TEAM_COLOR_BLUE;
-    strat_init(color);
+    // int side = gpio_pin_get_dt(&sw_side);
+    // LOG_ERR("side= %d", side);
+
+    enum pokprotocol_team color;
+    while (!pokuicom_get_team_color(&color)) {
+        k_sleep(K_MSEC(10));
+    }
+    enum strat_team_color start_color = (color == POKTOCOL_TEAM_YELLOW) ? STRAT_TEAM_COLOR_YELLOW : STRAT_TEAM_COLOR_BLUE;
+    strat_init(start_color);
     shared_ctrl.start = true;
 
     strat_run();
