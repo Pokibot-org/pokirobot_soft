@@ -10,7 +10,7 @@
 LOG_MODULE_REGISTER(pokibrain, POKIBRAIN_LOG_LEVEL);
 
 // DEFINES ---------------------------------------------------------------
-#define GAME_ROUND_TIME_S 10
+#define GAME_ROUND_TIME_S 99
 
 // TYPES -----------------------------------------------------------------
 typedef enum {
