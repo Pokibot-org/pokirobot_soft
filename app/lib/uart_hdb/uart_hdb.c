@@ -30,8 +30,8 @@ void uart_hdb_thread(void *arg1, void *arg2, void *arg3)
             LOG_DBG("data_size = 0");
             continue;
         }
-        LOG_WRN("message received: %02x %02x %02x %02x",
-            msg.data[0], msg.data[1], msg.data[2], msg.data[3]);
+        // LOG_DBG("message received: %02x %02x %02x %02x",
+        //     msg.data[0], msg.data[1], msg.data[2], msg.data[3]);
         // LOG_DBG("message received: %02x %02x %02x %02x %02x %02x %02x %02x",
         //     msg.data[0], msg.data[1], msg.data[2], msg.data[3], msg.data[4],
         //     msg.data[5], msg.data[6], msg.data[7]);
