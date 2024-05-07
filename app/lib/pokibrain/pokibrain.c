@@ -16,7 +16,6 @@ LOG_MODULE_REGISTER(pokibrain, POKIBRAIN_LOG_LEVEL);
 typedef enum {
     POKIBRAIN_THINK,
     POKIBRAIN_TASK_DONE,
-    POKIBRAIN_DIE,
 } pokibrain_events_t;
 
 typedef struct {
@@ -55,6 +54,8 @@ void pokibrain_run_task_work_handler(struct k_work *work);
 K_WORK_DEFINE(run_task, pokibrain_run_task_work_handler);
 K_MSGQ_DEFINE(task_to_run_msgq, sizeof(struct pokibrain_task), POKIBRAIN_DEPTH, 4);
 
+static void end_game_work_handler(struct k_work *work);
+K_WORK_DEFINE(end_game_work, end_game_work_handler);
 // IMPLEMENTATION --------------------------------------------------------
 
 int run_task_precompute(struct pokibrain_task *task_to_run,
@@ -101,14 +102,20 @@ static uint32_t pokibrain_get_time_in_match_ms(void)
     return k_uptime_get_32() - brain.start_time_ms;
 }
 
-static void pokibrain_match_timer(struct k_timer *timer_id)
+static void end_game_work_handler(struct k_work *work)
 {
+    LOG_DBG("Die");
     k_timer_stop(&timer);
     k_msgq_purge(&event_queue);
     brain.running = false;
     if (brain.end_clbk) {
         brain.end_clbk(brain.world_context);
     }
+}
+
+static void pokibrain_match_timer(struct k_timer *timer_id)
+{
+    k_work_submit(&end_game_work);
 }
 
 static void pokibrain_periodic_timer(struct k_timer *timer_id)
@@ -227,15 +234,6 @@ void pokibrain_task(void *arg1, void *arg2, void *arg3)
                 break;
             case POKIBRAIN_TASK_DONE:
                 pokibrain_run_next_task();
-                break;
-            case POKIBRAIN_DIE:
-                LOG_DBG("Die");
-                k_timer_stop(&timer);
-                k_msgq_purge(&event_queue);
-                brain.running = false;
-                if (brain.end_clbk) {
-                    brain.end_clbk(brain.world_context);
-                }
                 break;
             default:
                 break;
