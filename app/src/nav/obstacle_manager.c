@@ -228,7 +228,7 @@ static int obstacle_manager_task(void)
 
             lidar_message_t lidar_message;
             k_sem_take(&obsacle_holder_lock, K_FOREVER);
-            while (k_msgq_get(&obs_man_obj.lidar_msgq, &lidar_message, K_NO_WAIT)) {
+            while (!k_msgq_get(&obs_man_obj.lidar_msgq, &lidar_message, K_NO_WAIT)) {
                 err = process_lidar_message(&obs_man_obj, &lidar_message);
                 if (err) {
                     LOG_ERR("obstacle_manager_task error when calling "
