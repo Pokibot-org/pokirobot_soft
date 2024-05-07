@@ -133,12 +133,10 @@ static void strat_end_game_clbk(void *world_context)
     struct pokibrain_user_context *ctx = world_context;
     LOG_INF("GAME IS OVER");
     LOG_INF("SCORE %d", calculate_score(ctx));
+
     nav_stop();
-    strat_set_robot_brake(true);
-    while (1) {
-        strat_force_motor_stop();
-        k_sched_lock();
-    }
+    strat_force_motor_stop();
+    k_sleep(K_FOREVER);
 }
 
 const char *get_side_name(enum team_color color)

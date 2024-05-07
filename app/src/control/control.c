@@ -100,6 +100,7 @@ int control_init(control_t *ctrl, tmc2209_t *m1, tmc2209_t *m2, tmc2209_t *m3)
     ctrl->dir_angle = 0.0f;
     INIT_LOCKVAR(ctrl->pos);
     k_mutex_init(&ctrl->waypoints.lock);
+    k_timer_init(&ctrl->refresh_timer, NULL, NULL);
     control_set_pos(ctrl, (pos2_t){0.0f, 0.0f, 0.0f});
     shared_ctrl.waypoints.wps = k_malloc(CONTROL_WAYPOINTS_N * sizeof(pos2_t));
     pos2_t target = (pos2_t){0.0f, 0.0f, 0.0f};
@@ -124,19 +125,6 @@ int control_init(control_t *ctrl, tmc2209_t *m1, tmc2209_t *m2, tmc2209_t *m3)
     }
     ctrl->ready = true;
     return ret;
-}
-
-void control_force_motor_stop(void)
-{
-    shared_ctrl.ready = false;
-    for (int i = 0; i < 10; i++) {
-        tmc2209_set_speed(&train_motor_1, 0);
-        tmc2209_set_speed(&train_motor_2, 0);
-        tmc2209_set_speed(&train_motor_3, 0);
-    }
-    // delay used to be sure that tmc task send the messages
-    // to be changed !
-    k_sleep(K_MSEC(1000));
 }
 
 vel2_t world_vel_from_delta(pos2_t delta, vel2_t prev_vel)
@@ -269,7 +257,7 @@ int control_task_wait_target(float planar_sensivity, float angular_sensivity,
     return CONTROL_WAIT_OK;
 }
 
-static void control_task_wait_start()
+static void control_task_wait_start(void)
 {
     while (!shared_ctrl.start) {
         k_sleep(K_MSEC(10));
@@ -298,7 +286,12 @@ static int control_task(void)
     control_task_wait_start();
     LOG_INF("control task start");
     bool wp_init = false;
-    while (shared_ctrl.ready) {
+
+    k_timer_start(&shared_ctrl.refresh_timer, 
+        K_MSEC((uint64_t)CONTROL_PERIOD_MS),
+            K_MSEC((uint64_t)CONTROL_PERIOD_MS));
+
+    while (true) {
         bool skip_write = false;
         int n, idx;
         pos2_t wp1, wp2;
@@ -382,16 +375,29 @@ static int control_task(void)
         LOG_DBG("next: %.2f %.2f %.2f", (double)wp2.x, (double)wp2.y, (double)wp2.a);
         LOG_DBG("speed: %.2f %.2f %.2f", (double)motors_v.v1, (double)motors_v.v2,
                 (double)motors_v.v3);
-        k_sleep(K_MSEC((uint64_t)CONTROL_PERIOD_MS));
+
+        if (!shared_ctrl.ready) {
+            LOG_INF("control canceled");
+            break;
+        }
+
+        k_timer_status_sync(&shared_ctrl.refresh_timer);
     }
     LOG_INF("control task done (ret=%d)", ret);
     return ret;
 }
 
 #if CONFIG_CONTROL_TASK
-K_THREAD_DEFINE(control_task_name, CONFIG_CONTROL_THREAD_STACK, control_task, NULL, NULL, NULL,
+K_THREAD_DEFINE(ctrl_task, CONFIG_CONTROL_THREAD_STACK, control_task, NULL, NULL, NULL,
                 CONFIG_CONTROL_THREAD_PRIORITY, 0, 0);
 #endif
+
+void control_force_motor_stop(void)
+{
+    shared_ctrl.brake = true;
+    shared_ctrl.ready = false;
+    k_thread_join(ctrl_task, K_FOREVER);
+}
 
 void _test_gconf()
 {

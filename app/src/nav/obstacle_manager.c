@@ -18,7 +18,8 @@ LOG_MODULE_REGISTER(obstacle_manager, CONFIG_OBSTACLE_MANAGER_LOG_LEVEL);
 // TYPES
 
 typedef enum {
-    om_message_lidar_data_received
+    OM_MESSAGE_LIDAR_DATA_RECEIVED,
+    OM_MESSAGE_QUIT
 } om_message_type_t;
 
 typedef struct {
@@ -211,18 +212,18 @@ void lidar_receive_data_callback(const lidar_message_t *message, void *user_data
         LOG_WRN("No space in lidar buffer");
     }
 
-    const obstacle_manager_message_t msg = {.type = om_message_lidar_data_received};
+    const obstacle_manager_message_t msg = {.type = OM_MESSAGE_LIDAR_DATA_RECEIVED};
     obstacle_manager_send_message(&msg);
 }
 
-static void obstacle_manager_task()
+static int obstacle_manager_task(void)
 {
     int err;
     obstacle_manager_message_t msg;
     while (true) {
         k_msgq_get(&obstacle_manager_msgq, &msg, K_FOREVER);
         LOG_DBG("Received message");
-        if (msg.type == om_message_lidar_data_received) {
+        if (msg.type == OM_MESSAGE_LIDAR_DATA_RECEIVED) {
             LOG_DBG("Received event");
 
             lidar_message_t lidar_message;
@@ -236,6 +237,8 @@ static void obstacle_manager_task()
                 }
             }
             k_sem_give(&obsacle_holder_lock);
+        } else if (msg.type == OM_MESSAGE_QUIT) {
+            return 0;
         }
     }
 }
@@ -257,6 +260,7 @@ void obstacle_manager_init(obstacle_manager_collision_clbk fun)
 void obstacle_manager_kill(void)
 {
     camsense_x1_kill();
-    k_thread_suspend(obstacle_manager_thread);
-    k_msgq_purge(&obs_man_obj.lidar_msgq);
+    const obstacle_manager_message_t msg = {.type = OM_MESSAGE_QUIT};
+    k_msgq_put(&obstacle_manager_msgq, &msg, K_FOREVER);
+    k_thread_join(obstacle_manager_thread, K_FOREVER);
 }
