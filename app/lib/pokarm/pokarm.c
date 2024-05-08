@@ -9,6 +9,7 @@
 #include "control/control.h"
 #include "tmc2209/tmc2209.h"
 #include <zephyr/logging/log.h>
+#include <zephyr/drivers/gpio.h>
 
 LOG_MODULE_REGISTER(pokarm);
 
@@ -21,14 +22,19 @@ LOG_MODULE_REGISTER(pokarm);
  * - rotation on Y axis : servo
  */
 
+#if (DT_NODE_HAS_STATUS(DT_ALIAS(servo_orientation), okay) &&                                      \
+     DT_NODE_HAS_STATUS(DT_ALIAS(servo_arm), okay) &&                                              \
+     DT_NODE_HAS_STATUS(DT_ALIAS(sw_arm_top), okay))
 typedef struct pokarm {
     servo_pwm_t servo_orientation;
     servo_pwm_t servo_arm;
     tmc2209_t z_stepper;
+    struct gpio_dt_spec top_sw;
 } pokarm_t;
 static pokarm_t shared_pokarm = {
     .servo_orientation.spec = PWM_DT_SPEC_GET(DT_ALIAS(servo_orientation)),
     .servo_arm.spec = PWM_DT_SPEC_GET(DT_ALIAS(servo_arm)),
+    .top_sw = GPIO_DT_SPEC_GET(DT_ALIAS(sw_arm_top), gpios)
 };
 
 int pokarm_init(void)
@@ -141,3 +147,5 @@ void _test_pokarm_drawing(void) {
 //
 //    // end of drawing
 }
+
+#endif

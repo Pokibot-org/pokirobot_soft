@@ -32,6 +32,10 @@ struct drop_zone {
     point2_t point;
 };
 
+struct solar_pannel {
+    point2_t point;
+};
+
 struct pokibrain_user_context {
     pos2_t robot_pos;
     enum team_color team_color;
@@ -46,6 +50,19 @@ struct drop_zone drop_zones[] = {
     (struct drop_zone){
         .point = {.x = BOARD_MAX_X - (float)DROP_ZONE_SIDE_LEN / 2, .y = BOARD_CENTER_Y}},
 };
+
+struct solar_pannel solar_pannels[] = {
+    (struct solar_pannel){.point = {.x = BOARD_MIN_X + 275, .y = 0}},
+    (struct solar_pannel){.point = {.x = BOARD_MIN_X + 275 + 225, .y = 0}},
+    (struct solar_pannel){.point = {.x = BOARD_MIN_X + 275 + 225*2, .y = 0}},
+    (struct solar_pannel){.point = {.x = BOARD_MIN_X + 275 + 225*2 + 550, .y = 0}},
+    (struct solar_pannel){.point = {.x = BOARD_MIN_X + 275 + 225*2 + 550 + 225, .y = 0}},
+    (struct solar_pannel){.point = {.x = BOARD_MIN_X + 275 + 225*2 + 550 + 255*2, .y = 0}},
+    (struct solar_pannel){.point = {.x = BOARD_MAX_X - 275, .y = 0}},
+    (struct solar_pannel){.point = {.x = BOARD_MAX_X - (275 + 225), .y = 0}},
+    (struct solar_pannel){.point = {.x = BOARD_MAX_X - (275 + 225*2), .y = 0}},
+};
+
 
 struct point2 convert_point_for_team(enum team_color color, struct point2 point)
 {

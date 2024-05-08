@@ -10,6 +10,7 @@
 #include "tirette/tirette.h"
 #include "pokutils.h"
 #include "strat/strat.h"
+#include "pokstick/pokstick.h"
 #include "pokpush/pokpush.h"
 
 LOG_MODULE_REGISTER(main);
@@ -22,7 +23,8 @@ void match_init()
     static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
     // static const struct gpio_dt_spec sw_side = GPIO_DT_SPEC_GET(DT_ALIAS(sw_side), gpios);
     static const struct gpio_dt_spec sw_power = GPIO_DT_SPEC_GET(DT_ALIAS(sw_power), gpios);
-
+    
+    pokstick_retract();
     pokpush_retract();
     int ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
     if (ret < 0) {
