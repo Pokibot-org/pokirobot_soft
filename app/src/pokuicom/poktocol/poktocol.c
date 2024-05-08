@@ -101,6 +101,7 @@ int pokprotocol_feed_byte(struct poktocol *obj, uint8_t byte)
     } else {
         if (obj->receive_index >= MAX_DATA_PAYLOAD_SIZE) {
             obj->receive_index = 0;
+            obj->receiving = false;
             return -1;
         }
         obj->receive_buffer[obj->receive_index] = byte;
