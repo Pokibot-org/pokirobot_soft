@@ -112,6 +112,8 @@ int pokprotocol_feed_byte(struct poktocol *obj, uint8_t byte)
         }
         if (obj->receive_index >= POKMAC_HEADER_SIZE && obj->packet_completed_index == obj->receive_index) {
             pokprotocol_decode_mac(obj);
+				obj->receive_index = 0;
+				obj->receiving = false;
         }
     }
 
