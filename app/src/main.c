@@ -67,7 +67,7 @@ void match_wait_start()
     k_sleep(K_MSEC(500));
     hmi_led_success();
 
-    LOG_INF("MATCH WAIT FOR STARTER KEY");
+    LOG_INF("MATCH WAIT START");
     // tirette_wait_until_released();
     while (!pokuicom_is_match_started()) {
         k_sleep(K_MSEC(10));

@@ -2,6 +2,7 @@
 #include "stdbool.h"
 #include "poktocol.h"
 
+#define POKMAC_SYNC_SIZE      2
 #define POKMAC_HEADER_SIZE    3
 #define POKMAC_CRC_SIZE       2
 
@@ -15,27 +16,40 @@ void pokprotocol_init(struct poktocol *obj, struct poktocol_config *cfg)
 int pokprotocol_send(struct poktocol *obj, const struct poktocol_msg *msg)
 {
     uint8_t send_buffer[MAX_DATA_PAYLOAD_SIZE];
-    uint8_t data_len = 0;
-    send_buffer[data_len++] = msg->cmd;
-    send_buffer[data_len++] = msg->type;
-    switch (msg->type) {
-        case POKTOCOL_DATA_TYPE_SCORE:
-            send_buffer[data_len++] = msg->data.score;
-            break;
-        case POKTOCOL_DATA_TYPE_TEAM:
-            send_buffer[data_len++] = msg->data.team;
-            break;
-        case POKTOCOL_DATA_TYPE_MATCH_STARTED:
-            break;
-        default:
-            break;
+    send_buffer[0] = 0xDE;
+    send_buffer[1] = 0xAD;
+
+    send_buffer[2] = 1; // WRITE NO ACK
+
+    // APPLICATIF
+    uint8_t index = POKMAC_SYNC_SIZE + POKMAC_HEADER_SIZE;
+    send_buffer[index++] = msg->cmd;
+    send_buffer[index++] = msg->type;
+
+    if( msg->cmd == POKTOCOL_CMD_TYPE_WRITE ) {
+        switch (msg->type) {
+            case POKTOCOL_DATA_TYPE_SCORE:
+                send_buffer[index++] = msg->data.score;
+                break;
+            case POKTOCOL_DATA_TYPE_TEAM:
+                send_buffer[index++] = msg->data.team;
+                break;
+            case POKTOCOL_DATA_TYPE_MATCH_STARTED:
+                break;
+            default:
+                break;
+        }
     }
 
-    // Unused crc
-    send_buffer[data_len++] = 0;
-    send_buffer[data_len++] = 0;
+    uint16_t app_payload_size = index - (POKMAC_SYNC_SIZE + POKMAC_HEADER_SIZE);
+    send_buffer[3] = app_payload_size >> 8;
+    send_buffer[4] = app_payload_size & 0xFFU;
 
-    obj->cfg.send(send_buffer, data_len, obj->cfg.user_data);
+    // Unused crc
+    send_buffer[index++] = 0;
+    send_buffer[index++] = 0;
+
+    obj->cfg.send(send_buffer, index, obj->cfg.user_data);
     return 0;
 }
 

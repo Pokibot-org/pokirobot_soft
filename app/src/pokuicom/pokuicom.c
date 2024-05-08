@@ -30,6 +30,15 @@ static void pokprotocol_receive(struct poktocol_msg *msg, void *user_data)
     }
 }
 
+int pokuicom_request(enum poktocol_data_types type)
+{
+    struct poktocol_msg msg = {
+        .cmd = POKTOCOL_CMD_TYPE_REQUEST,
+        .type = type
+    };
+    return pokprotocol_send(&obj, &msg);
+}
+
 static void pokprotocol_send_buffer(char *buffer, size_t len, void *user_data) 
 {
     for (size_t i = 0; i< len; i++) {
@@ -64,6 +73,8 @@ int pokuicom_get_team_color(enum pokprotocol_team *color)
 
 void uart_irq_callback(const struct device *dev, void *user_data)
 {
+    LOG_INF("Received byte");
+
     char c;
     uart_poll_in(uart_dev, &c);
     pokprotocol_feed_byte(&obj, c);
@@ -79,6 +90,8 @@ int pokuicom_init(void)
     pokprotocol_init(&obj, &cfg);
     uart_irq_callback_set(uart_dev, uart_irq_callback);
     uart_irq_rx_enable(uart_dev);
+
+    LOG_INF("init ok");
     return 0;
 }
 
