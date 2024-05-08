@@ -82,10 +82,8 @@ struct pos2 convert_pos_for_team(enum team_color color, struct pos2 pos)
     }
 
     pos.x = -pos.x;
-    pos.a = pos.a + M_PI;
-    if (pos.a > M_2_PI) {
-        pos.a -= M_2_PI;
-    }
+    pos.a = -pos.a;
+
     return pos;
 }
 
