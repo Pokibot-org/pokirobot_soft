@@ -56,6 +56,17 @@ pos2_t pos2_diff(const pos2_t terminal, const pos2_t initial)
     return delta;
 }
 
+pos2_t pos2_add(const pos2_t a, const pos2_t b)
+{
+    pos2_t c = {
+        .x = a.x + b.x,
+        .y = a.y + b.y,
+        .a = a.a + b.a,
+    };
+    return c;
+}
+
+
 float angle_modulo(float a)
 {
     return fmodf(a + M_PI, 2 * M_PI) - M_PI;
