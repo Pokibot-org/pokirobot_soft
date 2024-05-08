@@ -171,17 +171,33 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
     );
 
     strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
-                                STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 3000);
+                                STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 20000, 15000);
 
     pokstick_retract();
 
-    point2_t end_point = convert_point_for_team(ctx->team_color, drop_zones[1].point);
-    LOG_INF("color: %d", ctx->team_color);
-    pos2_t docking_pos = CONVERT_POINT2_TO_POS2(end_point, 0);
     // pos2_t docking_pos;
     // get_home_docking_pos((point2_t){.x = BOARD_CENTER_X, .y = BOARD_CENTER_Y}, end_point,
     //                      &docking_pos);
-    nav_go_to_with_pathfinding(docking_pos, NULL, 0);
+    // nav_go_to_with_pathfinding(docking_pos, NULL, 0);
+    int traver_err = 0;
+    {
+        point2_t end_point = convert_point_for_team(ctx->team_color, drop_zones[1].point);
+        pos2_t docking_pos = CONVERT_POINT2_TO_POS2(end_point, 0);
+        
+        strat_set_target(convert_pos_for_team(ctx->team_color, docking_pos));
+        traver_err = strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
+                        STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 20000, 10000);
+    }
+
+    if (traver_err)
+    {
+        point2_t end_point = convert_point_for_team(ctx->team_color, drop_zones[2].point);
+        pos2_t docking_pos = CONVERT_POINT2_TO_POS2(end_point, 0);
+        
+        strat_set_target(convert_pos_for_team(ctx->team_color, docking_pos));
+        traver_err = strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
+                        STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 50000, 40000);
+    }
 
     k_sleep(K_FOREVER);
     return 0;
