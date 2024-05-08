@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include "nav/nav.h"
 #include "pokpush/pokpush.h"
+#include "pokstick/pokstick.h"
 #include "global_def.h"
 
 LOG_MODULE_REGISTER(strategy, 0);
@@ -81,9 +82,9 @@ struct pos2 convert_pos_for_team(enum team_color color, struct pos2 pos)
     }
 
     pos.x = -pos.x;
-    pos.a = pos.a + 180.0f;
-    if (pos.a > 360.0f) {
-        pos.a -= 360.0f;
+    pos.a = pos.a + M_PI_2;
+    if (pos.a > M_PI) {
+        pos.a -= M_PI;
     }
     return pos;
 }
@@ -105,19 +106,73 @@ int get_home_docking_pos(point2_t robot_point, point2_t end_point, pos2_t *dock_
     return 0;
 }
 
+int get_closest_push_point_for_solar_panels(point2_t robot_point, point2_t *point)
+{
+    point2_t closest_pt; 
+    float closest_dist = MAXFLOAT;
+    for (size_t i = 0; i < ARRAY_SIZE(solar_pannels); i++)
+    {
+        point2_t cur_point = solar_pannels[i].point;
+        float dist = vec2_distance(robot_point, cur_point);
+        if (dist < closest_dist) 
+        {
+            closest_dist = dist;
+            closest_pt = cur_point;
+        }
+    }
+    closest_pt.y = ROBOT_RADIUS + ROBOT_POKSTICK_LEN;
+    *point = closest_pt;
+    return 0;
+}
+
 int pokibrain_task_go_home(struct pokibrain_callback_params *params)
 {
     LOG_INF("RUNNING %s", __func__);
     struct pokibrain_user_context *ctx = params->world_context;
 
+    // point2_t point;
+    // get_closest_push_point_for_solar_panels(ctx->robot_pos, &point);
+    // nav_go_to_with_pathfinding(CONVERT_POINT2_TO_POS2(point, M_PI_2)); 
+
+    const float angle_push_pannels = -M_PI / 3 - M_PI / 2;
+    const float our_last_solar_x = BOARD_MIN_X + 275 + 225*2;
+    pos2_t pos_to_push_solar_setup_0  = (pos2_t){
+            .x = our_last_solar_x,
+            .y = ctx->robot_pos.y,
+            .a = angle_push_pannels
+    };
+
+    pos2_t pos_to_push_solar_after = (pos2_t){
+            .x = BOARD_MIN_X + 450.0f / 2,
+            .y = ctx->robot_pos.y,
+            .a = angle_push_pannels
+    };
+
+    strat_set_target(convert_pos_for_team(ctx->team_color, pos_to_push_solar_setup_0));
+    strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
+                      STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 3000);
+
+    k_sleep(K_SECONDS(1));
+
+    pokstick_deploy();
+
+    k_sleep(K_MSEC(1000));
+
+    strat_set_target(convert_pos_for_team(ctx->team_color, pos_to_push_solar_after));
+    strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
+                                STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 3000);
+
+    pokstick_retract();
+
     point2_t end_point = convert_point_for_team(ctx->team_color, drop_zones[1].point);
     LOG_INF("color: %d", ctx->team_color);
-    // pos2_t docking_pos = CONVERT_POINT2_TO_POS2(end_point, 0);
-    pos2_t docking_pos;
-    get_home_docking_pos((point2_t){.x = BOARD_CENTER_X, .y = BOARD_CENTER_Y}, end_point,
-                         &docking_pos);
+    pos2_t docking_pos = CONVERT_POINT2_TO_POS2(end_point, 0);
+    // pos2_t docking_pos;
+    // get_home_docking_pos((point2_t){.x = BOARD_CENTER_X, .y = BOARD_CENTER_Y}, end_point,
+    //                      &docking_pos);
     nav_go_to_with_pathfinding(docking_pos, NULL, 0);
-    k_sleep(K_SECONDS(1));
+
+    k_sleep(K_FOREVER);
     return 0;
 }
 
@@ -178,7 +233,7 @@ void strat_init(enum team_color color)
     };
     world_context.team_color = color;
     pos2_t start_pos =
-        convert_pos_for_team(color, CONVERT_POINT2_TO_POS2(drop_zones[0].point, M_PI_2));
+        convert_pos_for_team(color, CONVERT_POINT2_TO_POS2(drop_zones[0].point, -M_PI_2));
     strat_set_robot_pos(start_pos);
     strat_set_target(start_pos);
 

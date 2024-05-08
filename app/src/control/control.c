@@ -328,8 +328,8 @@ static int control_task(void)
         pos2_t delta1 = pos2_diff(wp1, pos);
         pos2_t delta2 = pos2_diff(wp2, pos);
         wp_dist = vec2_abs((vec2_t){delta1.x, delta1.y});
-        if (idx >= (n - 1) && wp_dist < CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT &&
-            delta2.a < CONTROL_ANGULAR_TARGET_SENSITIVITY_DEFAULT) {
+        if (idx >= (n - 1) && wp_dist < shared_ctrl.planar_target_sensivity &&
+            delta2.a < shared_ctrl.angular_target_sensivity) {
             shared_ctrl.at_target = true;
         } else {
             shared_ctrl.at_target = false;

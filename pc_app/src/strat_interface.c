@@ -250,6 +250,17 @@ int pokpush_retract(void)
     return 0;
 }
 
+int pokstick_deploy(void)
+{
+    LOG_INF("STICK DEPLOYED");
+    return 0;
+}
+int pokstick_retract(void)
+{
+    LOG_INF("STICK RETRACTED");
+    return 0;
+}
+
 // INIT
 
 int fake_init(void)
