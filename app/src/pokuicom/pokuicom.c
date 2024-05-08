@@ -2,6 +2,9 @@
 #include "pokuicom.h"
 #include <zephyr/drivers/uart.h>
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
+
+LOG_MODULE_REGISTER(pokuicom);
 
 static const struct device *uart_dev = DEVICE_DT_GET(DT_ALIAS(ui_uart));
 
