@@ -133,7 +133,7 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
     // get_closest_push_point_for_solar_panels(ctx->robot_pos, &point);
     // nav_go_to_with_pathfinding(CONVERT_POINT2_TO_POS2(point, M_PI_2)); 
 
-    const float offset_pokstick = +M_PI / 3;
+    const float offset_pokstick = M_PI / 6;
     const pos2_t pos_offset_pokstick = {
         .x = 0,
         .y = 0,
@@ -141,46 +141,22 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
     };
 
     const float our_last_solar_x = BOARD_MIN_X + 275 + 225*2;
+    const float push_y = (float)DROP_ZONE_SIDE_LEN / 2 - 40;
     pos2_t pos_to_push_solar_setup_0  = (pos2_t){
-            .x = our_last_solar_x,
-            .y = ctx->robot_pos.y,
+            .x = our_last_solar_x + ROBOT_RADIUS / 2,
+            .y = push_y,
             .a = -M_PI
     };
 
     pos2_t pos_to_push_solar_after = (pos2_t){
             .x = BOARD_MIN_X + 450.0f / 2,
-            .y = ctx->robot_pos.y,
+            .y = push_y,
             .a = -M_PI
     };
 
-
-    strat_set_target(convert_pos_for_team(ctx->team_color, (pos2_t){.x = BOARD_MIN_X + 400, .y = 400, .a = 0}));
-    strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
-                      STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 3000);
-    k_sleep(K_SECONDS(1));
-        strat_set_target(convert_pos_for_team(ctx->team_color, (pos2_t){.x = BOARD_MIN_X + 400, .y = 400, .a = -M_PI}));
-    strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
-                      STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 3000);
-    k_sleep(K_SECONDS(1));
-    strat_set_target(convert_pos_for_team(ctx->team_color, (pos2_t){.x = BOARD_MIN_X + 400, .y = 400, .a = 0}));
-    strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
-                      STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 3000);
-    k_sleep(K_SECONDS(1));
-        k_sleep(K_FOREVER);
-
-       strat_set_target(convert_pos_for_team(ctx->team_color, (pos2_t){.x = BOARD_MIN_X + 800, .y = 800, .a = 0}));
-    strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
-                      STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 3000);
-    k_sleep(K_SECONDS(1));
-       strat_set_target(convert_pos_for_team(ctx->team_color, (pos2_t){.x = BOARD_MIN_X + 400, .y = 800, .a = 0}));
-    strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
-                      STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 3000);
-    k_sleep(K_SECONDS(1));
-    k_sleep(K_FOREVER);
-
     strat_set_target(
         pos2_add(convert_pos_for_team(ctx->team_color, pos_to_push_solar_setup_0), pos_offset_pokstick)
-    );    
+    );
     strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
                       STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 3000);
 
@@ -267,8 +243,13 @@ void strat_init(enum team_color color)
         .plants_pushed = 0,
     };
     world_context.team_color = color;
-    pos2_t start_pos =
-        convert_pos_for_team(color, CONVERT_POINT2_TO_POS2(drop_zones[0].point, -M_PI_2));
+
+    pos2_t start_pos_blue = {
+        .x = BOARD_MIN_X + ROBOT_RADIUS,
+        .y = BOARD_MIN_Y + 332/2 + 120,
+        .a = -M_PI_2
+    };
+    pos2_t start_pos = convert_pos_for_team(color, start_pos_blue);
     strat_set_robot_pos(start_pos);
     strat_set_target(start_pos);
 
