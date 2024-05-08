@@ -82,10 +82,22 @@ struct pos2 convert_pos_for_team(enum team_color color, struct pos2 pos)
     }
 
     pos.x = -pos.x;
+
+    return pos;
+}
+
+struct pos2 convert_pos_for_team_for_start(enum team_color color, struct pos2 pos)
+{
+    if (color == TEAM_COLOR_BLUE) {
+        return pos;
+    }
+
+    pos.x = -pos.x;
     pos.a = -pos.a;
 
     return pos;
 }
+
 
 int calculate_score(struct pokibrain_user_context *ctx)
 {
@@ -145,6 +157,31 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
             .y = ctx->robot_pos.y,
             .a = angle_push_pannels
     };
+
+
+    strat_set_target(convert_pos_for_team(ctx->team_color, (pos2_t){.x = BOARD_MIN_X + 400, .y = 400, .a = 0}));
+    strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
+                      STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 3000);
+    k_sleep(K_SECONDS(1));
+        strat_set_target(convert_pos_for_team(ctx->team_color, (pos2_t){.x = BOARD_MIN_X + 400, .y = 400, .a = -M_PI}));
+    strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
+                      STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 3000);
+    k_sleep(K_SECONDS(1));
+   strat_set_target(convert_pos_for_team(ctx->team_color, (pos2_t){.x = BOARD_MIN_X + 400, .y = 400, .a = 0}));
+    strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
+                      STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 3000);
+    k_sleep(K_SECONDS(1));
+        k_sleep(K_FOREVER);
+
+       strat_set_target(convert_pos_for_team(ctx->team_color, (pos2_t){.x = BOARD_MIN_X + 800, .y = 800, .a = 0}));
+    strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
+                      STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 3000);
+    k_sleep(K_SECONDS(1));
+       strat_set_target(convert_pos_for_team(ctx->team_color, (pos2_t){.x = BOARD_MIN_X + 400, .y = 800, .a = 0}));
+    strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
+                      STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 3000);
+    k_sleep(K_SECONDS(1));
+    k_sleep(K_FOREVER);
 
     strat_set_target(convert_pos_for_team(ctx->team_color, pos_to_push_solar_setup_0));
     strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
@@ -231,7 +268,7 @@ void strat_init(enum team_color color)
     };
     world_context.team_color = color;
     pos2_t start_pos =
-        convert_pos_for_team(color, CONVERT_POINT2_TO_POS2(drop_zones[0].point, -M_PI_2));
+        convert_pos_for_team_for_start(color, CONVERT_POINT2_TO_POS2(drop_zones[0].point, -M_PI_2));
     strat_set_robot_pos(start_pos);
     strat_set_target(start_pos);
 
