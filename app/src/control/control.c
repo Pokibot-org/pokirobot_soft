@@ -353,7 +353,7 @@ static int control_task(void)
                     (double)(wp_dist - dist_prev));
             if (idx < n && dist_prev >= 0.0f &&
                 ((wp_dist > dist_prev && wp_dist <= WP_SENSITIVITY) ||
-                 wp_dist < CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT)) {
+                 wp_dist < shared_ctrl.planar_target_sensivity )) {
                 shared_ctrl.waypoints.idx =
                     MIN(shared_ctrl.waypoints.idx + 1, shared_ctrl.waypoints.n);
                 dist_prev = -1.0f;
