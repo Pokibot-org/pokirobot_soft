@@ -14,7 +14,7 @@ LOG_MODULE_REGISTER(obstacle_manager, CONFIG_OBSTACLE_MANAGER_LOG_LEVEL);
 // DEFINES
 #define MAX_LIDAR_MESSAGE                  32
 #define CHECK_IF_OBSTACLE_INSIDE_TABLE     0
-#define OBSTACLE_MANAGER_DECIMATION_FACTOR 4
+#define OBSTACLE_MANAGER_DECIMATION_FACTOR 2
 // TYPES
 
 typedef enum {
@@ -42,8 +42,7 @@ K_SEM_DEFINE(obsacle_holder_lock, 1, 1);
 // PRIVATE DEF
 #define CAMSENSE_OFFSET_IN_ROBOT    (-180.0f * 3.0f / 4.0f)
 #define CAMSENSE_CENTER_OFFSET_DEG  (CAMSENSE_OFFSET_IN_ROBOT)
-// #define LIDAR_COUNTER_CLOCKWISE
-#define LIDAR_DETECTION_DISTANCE_MM 230
+#define LIDAR_DETECTION_DISTANCE_MM 280
 // 360 == detecting obstacles even behind
 // FUNC
 
@@ -71,8 +70,8 @@ uint8_t process_point(obstacle_manager_t *obj, uint16_t point_distance, float po
         .type = obstacle_type_circle,
         .data.circle.radius = 0 // FIXME: remove the magic number
     };
-    pos2_t actual_robot_pos;
-    strat_get_robot_pos(&actual_robot_pos);
+    // pos2_t actual_robot_pos;
+    // strat_get_robot_pos(&actual_robot_pos);
     float robot_dir = strat_get_robot_dir_angle();
 
     // LOG_INF("IN PROCESS POINT: angle: %f, distance: %d", point_angle, point_distance);
@@ -112,14 +111,10 @@ uint8_t process_point(obstacle_manager_t *obj, uint16_t point_distance, float po
     // float point_x_robot = cosf(point_a_robot) * point_distance;
     // float point_y_robot = sinf(point_a_robot) * point_distance;
     float delta_angle = fabsf(angle_modulo(point_a_robot - robot_dir));
-    
-    if (point_distance < ROBOT_MAX_RADIUS_MM + LIDAR_DETECTION_DISTANCE_MM) {
-        // LOG_ERR("dist: %u", point_distance);
-        // LOG_ERR("point (robot): x=%.1f, y=%.1f, a=%.1f", point_x_robot, point_y_robot, RAD_TO_DEG(point_a_robot));
-    }
+
 
     // if it is a near obstacle change return code
-    if ((point_distance < ROBOT_MAX_RADIUS_MM + LIDAR_DETECTION_DISTANCE_MM) &&
+    if ((point_distance < (ROBOT_MAX_RADIUS_MM + LIDAR_DETECTION_DISTANCE_MM)) &&
         (delta_angle < M_PI / 3)) {
         LOG_ERR("obstacle on path: robot_dir=: %.1f, obstable_angle: %.1f, delta: %.1f",
                 (double)RAD_TO_DEG(robot_dir), (double)RAD_TO_DEG(point_a_robot), (double)RAD_TO_DEG(delta_angle));
@@ -188,14 +183,7 @@ uint8_t process_lidar_message(obstacle_manager_t *obj, const lidar_message_t *me
             continue;
         }
 
-#ifdef LIDAR_COUNTER_CLOCKWISE
-// float point_angle =
-//     360.0f - ((message->start_angle + step * i) +
-//                  (CAMSENSE_CENTER_OFFSET_DEG + 180.0f));
-#error FIXME
-#else
         float point_angle = (message->start_angle + step * i) + CAMSENSE_CENTER_OFFSET_DEG + 180.0f;
-#endif
         uint8_t err_code = process_point(&obs_man_obj, message->points[i].distance, point_angle);
         if (err_code == 1) // 0 ok, 1 in front of robot, 2 outside table
         {
