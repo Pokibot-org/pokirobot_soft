@@ -513,7 +513,7 @@ void _test_calibration_distance()
     k_sleep(K_MSEC(1000));
     shared_ctrl.start = true;
     // gpio_pin_toggle(led.port, led.pin);
-    target = (pos2_t){0.0f, 3000.0f, 0.0f * M_PI};
+    target = (pos2_t){0.0f, 1100.0f, 0.0f * M_PI};
     control_set_waypoints(&shared_ctrl, &target, 1);
     LOG_DBG("pos: %.2f %.2f %.2f", (double)shared_ctrl.pos.val.x, (double)shared_ctrl.pos.val.y,
             (double)shared_ctrl.pos.val.a);

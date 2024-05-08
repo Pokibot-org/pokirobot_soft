@@ -15,9 +15,9 @@
 #define CONTROL_WAIT_TIMEOUT_BRAKE  (-2)
 
 #define CONTROL_PERIOD_MS 2.0f
-#define ROBOT_L           160.404f
+#define ROBOT_L           159.078f
 #define WHEEL_PERIMETER   358.142f
-#define MM_TO_USTEPS      102657.14f
+#define MM_TO_USTEPS      121752.69f
 
 #define PLANAR_VMAX   400.0f // 700 mm/s
 #define PLANAR_FACTOR (0.06f * PLANAR_VMAX)
