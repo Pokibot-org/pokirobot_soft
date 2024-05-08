@@ -73,10 +73,8 @@ int pokuicom_get_team_color(enum pokprotocol_team *color)
 
 void uart_irq_callback(const struct device *dev, void *user_data)
 {
-    LOG_INF("Received byte");
-
     char c;
-    uart_poll_in(uart_dev, &c);
+    uart_fifo_read(uart_dev, &c, 1);
     pokprotocol_feed_byte(&obj, c);
 }
 
