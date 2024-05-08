@@ -167,7 +167,7 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
     strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
                       STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 3000);
     k_sleep(K_SECONDS(1));
-   strat_set_target(convert_pos_for_team(ctx->team_color, (pos2_t){.x = BOARD_MIN_X + 400, .y = 400, .a = 0}));
+    strat_set_target(convert_pos_for_team(ctx->team_color, (pos2_t){.x = BOARD_MIN_X + 400, .y = 400, .a = 0}));
     strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
                       STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 3000);
     k_sleep(K_SECONDS(1));
