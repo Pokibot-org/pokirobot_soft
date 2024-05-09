@@ -10,7 +10,7 @@
 #include "pokstick/pokstick.h"
 #include "global_def.h"
 
-LOG_MODULE_REGISTER(strategy, 0);
+LOG_MODULE_REGISTER(strategy);
 
 #define CONVERT_POS2_TO_POINT2(pos)                                                                \
     (point2_t)                                                                                     \
@@ -64,6 +64,18 @@ struct solar_pannel solar_pannels[] = {
     (struct solar_pannel){.point = {.x = BOARD_MAX_X - (275 + 225*2), .y = 0}},
 };
 
+const char *get_side_name(enum team_color color)
+{
+    switch (color) {
+        case TEAM_COLOR_BLUE:
+            return "BLUE";
+        case TEAM_COLOR_YELLOW:
+            return "YELLOW";
+        default:
+        case TEAM_COLOR_NONE:
+            return "UNKNOWN";
+    }
+}
 
 struct point2 convert_point_for_team(enum team_color color, struct point2 point)
 {
@@ -181,9 +193,7 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
     // nav_go_to_with_pathfinding(docking_pos, NULL, 0);
     int traver_err = 0;
     {
-        point2_t end_point = convert_point_for_team(ctx->team_color, drop_zones[1].point);
-        pos2_t docking_pos = CONVERT_POINT2_TO_POS2(end_point, 0);
-        
+        pos2_t docking_pos = CONVERT_POINT2_TO_POS2(drop_zones[1].point, 0);
         strat_set_target(convert_pos_for_team(ctx->team_color, docking_pos));
         traver_err = strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
                         STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 20000, 10000);
@@ -191,9 +201,7 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
 
     if (traver_err)
     {
-        point2_t end_point = convert_point_for_team(ctx->team_color, drop_zones[2].point);
-        pos2_t docking_pos = CONVERT_POINT2_TO_POS2(end_point, 0);
-        
+        pos2_t docking_pos = CONVERT_POINT2_TO_POS2(drop_zones[2].point, 0);
         strat_set_target(convert_pos_for_team(ctx->team_color, docking_pos));
         traver_err = strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
                         STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 50000, 40000);
@@ -234,19 +242,6 @@ static void strat_end_game_clbk(void *world_context)
     LOG_INF("SCORE %d", calculate_score(ctx));
     nav_stop();
     strat_force_motor_stop();
-}
-
-const char *get_side_name(enum team_color color)
-{
-    switch (color) {
-        case TEAM_COLOR_BLUE:
-            return "BLUE";
-        case TEAM_COLOR_YELLOW:
-            return "YELLOW";
-        default:
-        case TEAM_COLOR_NONE:
-            return "UNKNOWN";
-    }
 }
 
 // -------------------------- PUBLIC FUNCTIONS ---------------------------
