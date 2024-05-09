@@ -294,6 +294,8 @@ static int control_task(void)
     tmc2209_set_ihold_irun(&train_motor_1, 31, 31);
     tmc2209_set_ihold_irun(&train_motor_2, 31, 31);
     tmc2209_set_ihold_irun(&train_motor_3, 31, 31);
+    k_sleep(K_MSEC(10));
+
     bool wp_init = false;
     while (shared_ctrl.ready) {
         bool skip_write = false;
