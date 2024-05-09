@@ -14,7 +14,6 @@ LOG_MODULE_REGISTER(obstacle_manager, CONFIG_OBSTACLE_MANAGER_LOG_LEVEL);
 // DEFINES
 #define MAX_LIDAR_MESSAGE                  32
 #define CHECK_IF_OBSTACLE_INSIDE_TABLE     0
-#define OBSTACLE_MANAGER_DECIMATION_FACTOR 2
 // TYPES
 
 typedef enum {
@@ -32,6 +31,7 @@ typedef struct obstacle_manager {
     char __aligned(4) lidar_msgq_buffer[MAX_LIDAR_MESSAGE * sizeof(lidar_message_t)];
     struct k_msgq lidar_msgq;
     obstacle_manager_collision_clbk collision_callback;
+    bool obstacle_detected;
 } obstacle_manager_t;
 
 K_MSGQ_DEFINE(obstacle_manager_msgq, sizeof(obstacle_manager_message_t), 32, 1);
@@ -39,6 +39,10 @@ K_MSGQ_DEFINE(obstacle_manager_msgq, sizeof(obstacle_manager_message_t), 32, 1);
 // PRIVATE VAR
 static obstacle_manager_t obs_man_obj = {0};
 K_SEM_DEFINE(obsacle_holder_lock, 1, 1);
+
+void collision_callback_hander(struct k_work *work);
+K_WORK_DELAYABLE_DEFINE(collision_callback_work, collision_callback_hander);
+
 // PRIVATE DEF
 #define CAMSENSE_OFFSET_IN_ROBOT    (-180.0f * 3.0f / 4.0f)
 #define CAMSENSE_CENTER_OFFSET_DEG  (CAMSENSE_OFFSET_IN_ROBOT)
@@ -66,10 +70,10 @@ uint8_t obstacle_manager_get_obstacle_snapshot(obstacle_holder_t *obj)
 uint8_t process_point(obstacle_manager_t *obj, uint16_t point_distance, float point_angle)
 {
     uint8_t return_code = 0;
-    obstacle_t new_obstacle = {
-        .type = obstacle_type_circle,
-        .data.circle.radius = 0 // FIXME: remove the magic number
-    };
+    // obstacle_t new_obstacle = {
+    //     .type = obstacle_type_circle,
+    //     .data.circle.radius = 0 // FIXME: remove the magic number
+    // };
     // pos2_t actual_robot_pos;
     // strat_get_robot_pos(&actual_robot_pos);
     float robot_dir = strat_get_robot_dir_angle();
@@ -116,7 +120,7 @@ uint8_t process_point(obstacle_manager_t *obj, uint16_t point_distance, float po
     // if it is a near obstacle change return code
     if ((point_distance < (ROBOT_MAX_RADIUS_MM + LIDAR_DETECTION_DISTANCE_MM)) &&
         (delta_angle < M_PI / 3)) {
-        LOG_ERR("obstacle on path: robot_dir=: %.1f, obstable_angle: %.1f, delta: %.1f",
+        LOG_DBG("obstacle on path: robot_dir=: %.1f, obstable_angle: %.1f, delta: %.1f",
                 (double)RAD_TO_DEG(robot_dir), (double)RAD_TO_DEG(point_a_robot), (double)RAD_TO_DEG(delta_angle));
         return_code = 1;
     }
@@ -135,19 +139,25 @@ uint8_t process_point(obstacle_manager_t *obj, uint16_t point_distance, float po
     // printk("<%0.2f:%0.2f>\n", new_obstacle.data.circle.coordinates.x,
     // new_obstacle.data.circle.coordinates.y);
     // LOG_INF("Local %f %f %f", actual_robot_pos.x,actual_robot_pos.y,actual_robot_pos.a);
-    obstacle_holder_push(&obj->obstacles_holders[obj->current_obs_holder_index], &new_obstacle);
+    // obstacle_holder_push(&obj->obstacles_holders[obj->current_obs_holder_index], &new_obstacle);
 
     return return_code;
+}
+
+void collision_callback_hander(struct k_work *work)
+{
+    obs_man_obj.obstacle_detected = false;
+    if (obs_man_obj.collision_callback) {
+        obs_man_obj.collision_callback(obs_man_obj.obstacle_detected);
+    }
 }
 
 uint8_t process_lidar_message(obstacle_manager_t *obj, const lidar_message_t *message)
 {
     float step = 0.0f;
-    static bool obstacle_detected = false;
-    // const uint8_t max_detect_count = 1;
-    // static uint8_t obstacle_detected_count = 0;
-    static uint8_t decimation_counter;
     static float old_end_angle;
+    static uint8_t filt_buff = 0;
+
     if (message->end_angle > message->start_angle) {
         step = (message->end_angle - message->start_angle) / 8.0f;
     } else {
@@ -159,35 +169,40 @@ uint8_t process_lidar_message(obstacle_manager_t *obj, const lidar_message_t *me
                 obj->obstacles_holders[obj->current_obs_holder_index].write_head);
         obstacle_holder_clear(&obj->obstacles_holders[obj->current_obs_holder_index]);
         obj->current_obs_holder_index = !obj->current_obs_holder_index;
-        // if (obstacle_detected) {
-        //     obstacle_detected_count = MIN(obstacle_detected_count + 1, max_detect_count);
-        // } else {
-        //     obstacle_detected_count = 0;
-        // }
-        if (obj->collision_callback) {
-            // obj->collision_callback(obstacle_detected_count == max_detect_count);
-            obj->collision_callback(obstacle_detected);
-        }
-        obstacle_detected = false;
     }
     old_end_angle = message->end_angle;
 
     for (int i = 0; i < NUMBER_OF_LIDAR_POINTS; i++) {
-        decimation_counter = (decimation_counter + 1) % OBSTACLE_MANAGER_DECIMATION_FACTOR;
-        if (decimation_counter) {
-            continue;
-        }
-
         // Filter some noisy data
-        if (message->points[i].quality <= 20) {
+        filt_buff = filt_buff << 1;
+        if (message->points[i].quality <= 60) {
             continue;
         }
 
         float point_angle = (message->start_angle + step * i) + CAMSENSE_CENTER_OFFSET_DEG + 180.0f;
         uint8_t err_code = process_point(&obs_man_obj, message->points[i].distance, point_angle);
+
         if (err_code == 1) // 0 ok, 1 in front of robot, 2 outside table
         {
-            obstacle_detected = true;
+            filt_buff |= 1;
+        }
+
+
+        uint8_t count_detections = 0;
+        const uint8_t nb_detection_treshhold = 6;
+        for (size_t i = 0; i < (sizeof(filt_buff) * 8); i++)
+        {
+            count_detections += (filt_buff >> i) & 0x1;
+        }
+        
+        if (count_detections >= nb_detection_treshhold) {
+            k_work_reschedule(&collision_callback_work, K_MSEC(600));
+            if (!obj->obstacle_detected) {
+                obj->obstacle_detected = true;
+                if (obj->collision_callback) {
+                    obj->collision_callback(obj->obstacle_detected);
+                }
+            }
         }
     }
     return 0;
