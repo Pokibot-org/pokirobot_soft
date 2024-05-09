@@ -7,11 +7,8 @@
 #include <stdint.h>
 #include "nav/nav.h"
 #include "pokpush/pokpush.h"
-<<<<<<< HEAD
 #include "pokstick/pokstick.h"
-=======
 #include "pokuicom/pokuicom.h"
->>>>>>> 26eab55 (Use match start from ui + send score at the end of the match)
 #include "global_def.h"
 
 LOG_MODULE_REGISTER(strategy);
@@ -84,20 +81,6 @@ struct solar_pannel solar_pannels[] = {
     (struct solar_pannel){.point = {.x = BOARD_MAX_X - (275 + 225*2), .y = 0}},
 };
 
-const char *get_side_name(enum team_color color)
-{
-    switch (color) {
-        case TEAM_COLOR_BLUE:
-            return "BLUE";
-        case TEAM_COLOR_YELLOW:
-            return "YELLOW";
-        default:
-        case TEAM_COLOR_NONE:
-            return "UNKNOWN";
-    }
-}
-
-struct point2 convert_point_for_team(enum team_color color, struct point2 point)
 struct point2 convert_point_for_team(enum strat_team_color color, struct point2 point)
 {
     if (color == STRAT_TEAM_COLOR_BLUE) {
