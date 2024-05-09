@@ -33,6 +33,10 @@ struct drop_zone {
     point2_t point;
 };
 
+struct plant_zone {
+    point2_t point;
+};
+
 struct solar_pannel {
     point2_t point;
 };
@@ -50,6 +54,17 @@ struct drop_zone drop_zones[] = {
                                  .y = BOARD_MAX_Y - (float)DROP_ZONE_SIDE_LEN / 2}},
     (struct drop_zone){
         .point = {.x = BOARD_MAX_X - (float)DROP_ZONE_SIDE_LEN / 2, .y = BOARD_CENTER_Y}},
+};
+
+struct plant_zone plante_zones[] = {
+    (struct plant_zone){.point = {.x = BOARD_CENTER_X,
+                                 .y = BOARD_CENTER_Y + 500}},
+    (struct plant_zone){.point = {.x = BOARD_CENTER_X,
+                                 .y = BOARD_CENTER_Y - 500}},
+    (struct plant_zone){.point = {.x = BOARD_CENTER_X - 500,
+                                 .y = BOARD_CENTER_Y + 300}},
+    (struct plant_zone){.point = {.x = BOARD_CENTER_X - 500,
+                                 .y = BOARD_CENTER_Y - 300}},
 };
 
 struct solar_pannel solar_pannels[] = {
@@ -140,7 +155,7 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
 {
     LOG_INF("RUNNING %s", __func__);
     struct pokibrain_user_context *ctx = params->world_context;
-
+    int err = 0;
     // point2_t point;
     // get_closest_push_point_for_solar_panels(ctx->robot_pos, &point);
     // nav_go_to_with_pathfinding(CONVERT_POINT2_TO_POS2(point, M_PI_2)); 
@@ -160,50 +175,95 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
             .a = -M_PI
     };
 
+    pos2_t pos_to_push_solar_midle_setup_0  = (pos2_t){
+            .x = BOARD_MIN_X + 275 + 225*2 + 550,
+            .y = 450,
+            .a = -M_PI
+    };
+
+    pos2_t pos_to_push_solar_midle_setup_1  = (pos2_t){
+            .x = BOARD_MIN_X + 275 + 225*2 + 550 + 255*2 + ROBOT_RADIUS / 2,
+            .y = push_y,
+            .a = -M_PI
+    };
+
+    pos2_t pos_to_push_solar_midle_end  = (pos2_t){
+            .x = BOARD_MIN_X + 275 + 225*2 + 550 - ROBOT_RADIUS / 2,
+            .y = push_y,
+            .a = -M_PI
+    };
+
     pos2_t pos_to_push_solar_after = (pos2_t){
             .x = BOARD_MIN_X + 450.0f / 2,
             .y = push_y,
             .a = -M_PI
     };
 
+
+    // PUSH HOME PANELS
     strat_set_target(
         pos2_add(convert_pos_for_team(ctx->team_color, pos_to_push_solar_setup_0), pos_offset_pokstick)
     );
-    strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
-                      STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 3000);
+    err = strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
+                      STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 6000);
 
-    k_sleep(K_SECONDS(1));
+    if (!err) {
+        pokstick_deploy();
 
-    pokstick_deploy();
+        k_sleep(K_MSEC(500));
 
-    k_sleep(K_MSEC(1000));
+        strat_set_target(
+            pos2_add(convert_pos_for_team(ctx->team_color, pos_to_push_solar_after), pos_offset_pokstick)
+        );
+
+        strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
+                                    STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 20000, 15000);
+
+        pokstick_retract();
+    }
+
+    // PUSH MIDDLE PANNELS
+    strat_set_target(
+        pos2_add(convert_pos_for_team(ctx->team_color, pos_to_push_solar_midle_setup_0), pos_offset_pokstick)
+    );
+    err = strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
+                      STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 1000);
 
     strat_set_target(
-        pos2_add(convert_pos_for_team(ctx->team_color, pos_to_push_solar_after), pos_offset_pokstick)
+        pos2_add(convert_pos_for_team(ctx->team_color, pos_to_push_solar_midle_setup_1), pos_offset_pokstick)
     );
+    err = strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
+                      STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 3000);
 
-    strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
-                                STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 20000, 15000);
+    if (!err) {
+        pokstick_deploy();
 
-    pokstick_retract();
+        k_sleep(K_MSEC(500));
 
-    // pos2_t docking_pos;
-    // get_home_docking_pos((point2_t){.x = BOARD_CENTER_X, .y = BOARD_CENTER_Y}, end_point,
-    //                      &docking_pos);
-    // nav_go_to_with_pathfinding(docking_pos, NULL, 0);
-    int traver_err = 0;
+        strat_set_target(
+            pos2_add(convert_pos_for_team(ctx->team_color, pos_to_push_solar_midle_end), pos_offset_pokstick)
+        );
+
+        strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
+                                    STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 20000, 15000);
+
+        pokstick_retract();
+    }
+
+    // GO HOME
     {
         pos2_t docking_pos = CONVERT_POINT2_TO_POS2(drop_zones[1].point, 0);
         strat_set_target(convert_pos_for_team(ctx->team_color, docking_pos));
-        traver_err = strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
+        err = strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
                         STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 20000, 10000);
     }
 
-    if (traver_err)
+    // IF WE FAIL TO GO IN THE END ZONE
+    if (err)
     {
         pos2_t docking_pos = CONVERT_POINT2_TO_POS2(drop_zones[2].point, 0);
         strat_set_target(convert_pos_for_team(ctx->team_color, docking_pos));
-        traver_err = strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
+        err = strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
                         STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 50000, 40000);
     }
 
