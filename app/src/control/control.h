@@ -20,12 +20,12 @@
 #define MM_TO_USTEPS      121752.69f
 
 #define PLANAR_VMAX   400.0f // 700 mm/s
-#define PLANAR_FACTOR (0.06f * PLANAR_VMAX)
-#define PLANAR_RAMP   (2.0f * PLANAR_VMAX * CONTROL_PERIOD_MS / 1000.0f) // 2 seconds to reach vmax
+#define PLANAR_FACTOR (0.10f * PLANAR_VMAX)
+#define PLANAR_RAMP   (1.0f * PLANAR_VMAX * CONTROL_PERIOD_MS / 1000.0f) // 1 seconds to reach vmax
 
 #define ANGULAR_VMAX   (0.7f * M_PI) // 0.5 rotation/s
-#define ANGULAR_FACTOR (0.7f * ANGULAR_VMAX)
-#define ANGULAR_RAMP   (0.5f * ANGULAR_VMAX * CONTROL_PERIOD_MS / 1000.0f) // 1 seconds to reach vmax
+#define ANGULAR_FACTOR (1.0f * ANGULAR_VMAX)
+#define ANGULAR_RAMP   (0.25f * ANGULAR_VMAX * CONTROL_PERIOD_MS / 1000.0f) // 2 seconds to reach vmax
 
 // normal
 // #define CONTROL_PLANAR_TARGET_SENSITIVITY_DEFAULT  5.0f             // 5mm
