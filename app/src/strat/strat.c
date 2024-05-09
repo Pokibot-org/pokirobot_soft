@@ -257,6 +257,11 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
     }
 
     // PUSH PLANTS
+    if(pokibrain_get_time_remaining_in_match_ms() / 1000 < 40)
+    {
+        goto go_home;
+    }
+
     float a_push = -M_PI_2;
     strat_set_target(pos2_add(
         convert_pos_for_team(ctx->team_color,
@@ -283,6 +288,7 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
         pokpush_retract();
     }
 
+go_home:
     // GO HOME
     {
         pos2_t docking_pos = CONVERT_POINT2_TO_POS2(drop_zones[1].point, 0);

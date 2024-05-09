@@ -40,4 +40,6 @@ int pokibrain_init(struct pokibrain_task *tasks, uint32_t number_of_tasks, void 
                    pokibrain_end_of_game_callback_t end_clbk);
 void pokibrain_start(void);
 void pokibrain_think_now(void);
+uint32_t pokibrain_get_time_in_match_ms(void);
+uint32_t pokibrain_get_time_remaining_in_match_ms(void);
 #endif

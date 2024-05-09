@@ -36,7 +36,6 @@ typedef struct {
 } pokibrain_t;
 
 // FUNC ------------------------------------------------------------------
-static uint32_t pokibrain_get_time_in_match_ms(void);
 static void pokibrain_periodic_timer(struct k_timer *timer_id);
 static void pokibrain_match_timer(struct k_timer *timer_id);
 
@@ -97,10 +96,16 @@ exit:
     k_msgq_put(&event_queue, &ev, K_FOREVER);
 }
 
-static uint32_t pokibrain_get_time_in_match_ms(void)
+uint32_t pokibrain_get_time_in_match_ms(void)
 {
     return k_uptime_get_32() - brain.start_time_ms;
 }
+
+uint32_t pokibrain_get_time_remaining_in_match_ms(void)
+{
+    return MAX((int)GAME_ROUND_TIME_S * 1000 - (int)pokibrain_get_time_in_match_ms(), 0);
+}
+
 
 static void end_game_work_handler(struct k_work *work)
 {
