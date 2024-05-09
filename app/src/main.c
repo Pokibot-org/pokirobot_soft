@@ -66,9 +66,12 @@ void match_wait_start()
 
     k_sleep(K_MSEC(500));
     hmi_led_success();
+    
+    pokuicom_send_score(0);
 
     LOG_INF("MATCH WAIT START");
     // tirette_wait_until_released();
+    pokuicom_request(POKTOCOL_DATA_TYPE_TEAM);
     while (!pokuicom_is_match_started()) {
         k_sleep(K_MSEC(10));
     }
@@ -87,7 +90,8 @@ void match_1()
     // LOG_ERR("side= %d", side);
 
     enum pokprotocol_team color;
-    while (!pokuicom_get_team_color(&color)) {
+    while (pokuicom_get_team_color(&color) != 0) {
+        pokuicom_request(POKTOCOL_DATA_TYPE_TEAM);
         k_sleep(K_MSEC(10));
     }
     enum strat_team_color start_color = (color == POKTOCOL_TEAM_YELLOW) ? STRAT_TEAM_COLOR_YELLOW : STRAT_TEAM_COLOR_BLUE;

@@ -168,6 +168,7 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
     LOG_INF("RUNNING %s", __func__);
     struct pokibrain_user_context *ctx = params->world_context;
     int err = 0;
+    uint8_t score = 0;
     // point2_t point;
     // get_closest_push_point_for_solar_panels(ctx->robot_pos, &point);
     // nav_go_to_with_pathfinding(CONVERT_POINT2_TO_POS2(point, M_PI_2)); 
@@ -238,6 +239,9 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
                                     STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 20000, 15000);
 
         pokstick_retract();
+
+        score += 3 * 5;
+        pokuicom_send_score(score);
     }
 
     // PUSH MIDDLE PANNELS
@@ -266,6 +270,9 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
                                     STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 20000, 15000);
 
         pokstick_retract();
+
+        score += 3 * 5;
+        pokuicom_send_score(score);
     }
 
     // PUSH PLANTS
@@ -298,6 +305,9 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
                                     STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 20000, 15000);
 
         pokpush_retract();
+
+        score += 2 * 3; // Let's hope there is is juste 2 plantes
+        pokuicom_send_score(score);
     }
 
 go_home:
@@ -318,6 +328,10 @@ go_home:
                         STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 50000, 40000);
     }
 
+    score += 10;
+    pokuicom_send_score(score);
+    k_sleep(K_SECONDS(1));
+    pokuicom_send_score(score);
     k_sleep(K_FOREVER);
     return 0;
 }
@@ -334,7 +348,6 @@ int32_t pokibrain_reward_calculation_go_home(struct pokibrain_callback_params *p
 int pokibrain_completion_go_home(struct pokibrain_callback_params *params)
 {
     LOG_DBG("COMPLETION %s", __func__);
-    pokibrain_terminate();
     return 0;
 }
 
