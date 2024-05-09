@@ -56,7 +56,7 @@ struct drop_zone drop_zones[] = {
         .point = {.x = BOARD_MAX_X - (float)DROP_ZONE_SIDE_LEN / 2, .y = BOARD_CENTER_Y}},
 };
 
-struct plant_zone plante_zones[] = {
+struct plant_zone plant_zones[] = {
     (struct plant_zone){.point = {.x = BOARD_CENTER_X,
                                  .y = BOARD_CENTER_Y + 500}},
     (struct plant_zone){.point = {.x = BOARD_CENTER_X,
@@ -167,6 +167,8 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
         .a = offset_pokstick
     };
 
+    const float offset_pokpush = -M_PI / 6;
+
     const float our_last_solar_x = BOARD_MIN_X + 275 + 225*2;
     const float push_y = (float)DROP_ZONE_SIDE_LEN / 2 - 40;
     pos2_t pos_to_push_solar_setup_0  = (pos2_t){
@@ -248,6 +250,32 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
                                     STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 20000, 15000);
 
         pokstick_retract();
+    }
+
+    // PUSH PLANTS
+    float a_push = M_PI_2 + offset_pokpush;
+    strat_set_target(
+        convert_pos_for_team(ctx->team_color, (pos2_t){.x = BOARD_CENTER_X, .y=BOARD_CENTER_Y,.a=a_push})
+    );
+    err = strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
+                      STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 15000, 6000);
+    
+    if (!err) {
+        pokpush_deploy();
+
+        k_sleep(K_MSEC(500));
+
+        pos2_t dock_pos = {
+            .x = drop_zones[0].point.x + ROBOT_RADIUS/2,
+            .y = drop_zones[0].point.y + ROBOT_RADIUS/2,
+            .a = a_push
+        };
+        strat_set_target(convert_pos_for_team(ctx->team_color, dock_pos));
+
+        strat_wait_target(STRAT_PLANAR_TARGET_SENSITIVITY_DEFAULT,
+                                    STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, 20000, 15000);
+
+        pokpush_retract();
     }
 
     // GO HOME
