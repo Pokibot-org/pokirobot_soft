@@ -180,7 +180,7 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
         .a = offset_pokstick
     };
 
-    const float offset_pokpush = -M_PI / 6;
+    const float offset_pokpush = -M_PI / 3;
     const pos2_t pos_offset_pokpush = {
         .x = 0,
         .y = 0,
@@ -281,7 +281,7 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
         goto go_home;
     }
 
-    float a_push = -M_PI_2;
+    float a_push = 2*M_PI/3;
     strat_set_target(pos2_add(
         convert_pos_for_team(ctx->team_color,
                              (pos2_t){.x = BOARD_CENTER_X, .y = BOARD_CENTER_Y, .a = a_push}),

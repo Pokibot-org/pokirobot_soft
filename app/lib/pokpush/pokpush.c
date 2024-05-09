@@ -43,7 +43,7 @@ int pokpush_deploy(void)
 {
     LOG_DBG("deploying");
     int err = 0;
-    err |= servo_pwm_set_angle(&obj.servo, M_PI * 4 / 10);
+    err |= servo_pwm_set_angle(&obj.servo, M_PI * 6 / 10);
     return err;
 }
 
