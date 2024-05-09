@@ -50,17 +50,29 @@ def draw_robot(screen, board, robot):
     on_board_pos = (robot.pos[0] * ratio, board.dim_y[1] - robot.pos[1] * ratio)
 
     pg.draw.circle(screen, (30, 30, 100), on_board_pos, on_board_radius)
+    robot.dir = robot.dir - math.pi/2
     pg.draw.line(
         screen,
         (130, 30, 30),
         on_board_pos,
         (
             on_board_pos[0] + on_board_radius * math.cos(robot.dir),
-            on_board_pos[1] + on_board_radius * math.sin(robot.dir + math.pi),
+            on_board_pos[1] + on_board_radius * math.sin(robot.dir),
         ),
         width=4,
     )
 
+    # POKPUSH
+    pg.draw.line(
+        screen,
+        (130, 200, 30),
+        on_board_pos,
+        (
+            on_board_pos[0] + on_board_radius * math.cos(robot.dir + math.pi/6),
+            on_board_pos[1] + on_board_radius * math.sin(robot.dir + math.pi/6),
+        ),
+        width=4,
+    )
 
 # here's the full code
 def main():
