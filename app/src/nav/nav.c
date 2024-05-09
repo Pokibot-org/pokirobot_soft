@@ -103,18 +103,8 @@ int nav_go_to_with_pathfinding(pos2_t end_pos, obstacle_t *obstacle_list, uint8_
 
 void collision_callback(bool collision)
 {
-    static int cnt = 0;
-    if (collision) {
-        cnt = MIN(cnt+1, LIDAR_FILTER);
-        LOG_DBG("Collision detected");
-    } else {
-        cnt = MAX(cnt-1, 0);
-    }
-    if (cnt >= LIDAR_FILTER) {
-        strat_set_robot_brake(true);
-    } else if (cnt <= 0) {
-        strat_set_robot_brake(false);
-    }
+    LOG_INF("Collision status %d", collision);
+    strat_set_robot_brake(collision);
 }
 
 void nav_init(void)
