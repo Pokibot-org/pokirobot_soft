@@ -156,8 +156,7 @@ uint8_t process_lidar_message(obstacle_manager_t *obj, const lidar_message_t *me
 {
     float step = 0.0f;
     static float old_end_angle;
-    const uint8_t consecutive_detection_treshold = 4;
-    static uint8_t consecutive_detection = 0;
+    static uint8_t filt_buff = 0;
 
     if (message->end_angle > message->start_angle) {
         step = (message->end_angle - message->start_angle) / 8.0f;
@@ -175,9 +174,8 @@ uint8_t process_lidar_message(obstacle_manager_t *obj, const lidar_message_t *me
 
     for (int i = 0; i < NUMBER_OF_LIDAR_POINTS; i++) {
         // Filter some noisy data
-
+        filt_buff = filt_buff << 1;
         if (message->points[i].quality <= 60) {
-            consecutive_detection = 0;
             continue;
         }
 
@@ -186,12 +184,18 @@ uint8_t process_lidar_message(obstacle_manager_t *obj, const lidar_message_t *me
 
         if (err_code == 1) // 0 ok, 1 in front of robot, 2 outside table
         {
-            consecutive_detection = MAX(consecutive_detection + 1, consecutive_detection_treshold);
-        } else if (err_code == 0) {
-            consecutive_detection = 0;
+            filt_buff |= 1;
         }
 
-        if (consecutive_detection >= consecutive_detection_treshold) {
+
+        uint8_t count_detections = 0;
+        const uint8_t nb_detection_treshhold = 6;
+        for (size_t i = 0; i < (sizeof(filt_buff) * 8); i++)
+        {
+            count_detections += (filt_buff >> i) & 0x1;
+        }
+        
+        if (count_detections >= nb_detection_treshhold) {
             k_work_reschedule(&collision_callback_work, K_MSEC(600));
             if (!obj->obstacle_detected) {
                 obj->obstacle_detected = true;
