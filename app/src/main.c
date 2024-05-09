@@ -73,7 +73,8 @@ void match_wait_start()
     // tirette_wait_until_released();
     pokuicom_request(POKTOCOL_DATA_TYPE_TEAM);
     while (!pokuicom_is_match_started()) {
-        k_sleep(K_MSEC(10));
+        pokuicom_request(POKTOCOL_DATA_TYPE_MATCH_STARTED);
+        k_sleep(K_MSEC(100));
     }
 }
 
