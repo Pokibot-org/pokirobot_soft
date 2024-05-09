@@ -147,8 +147,9 @@ int tmc2209_set_ihold_irun(tmc2209_t *dev, uint32_t ihold, uint32_t irun)
 int tmc2209_set_mres(tmc2209_t *dev, uint32_t mres)
 {
     int ret = 0;
-    uint32_t gconf = (TMC2209_GCONF_DEFAULT & !FIELD_PREP(GENMASK(7, 7), 0)) |
-                     FIELD_PREP(GENMASK(7, 7), TMC2209_MSTEP_REG_SELECT);
+    uint32_t gconf = (TMC2209_GCONF_DEFAULT & !FIELD_PREP(GENMASK(7, 7), 0) & !FIELD_PREP(GENMASK(2, 2), 0)) |
+                     FIELD_PREP(GENMASK(7, 7), TMC2209_MSTEP_REG_SELECT) |
+                     FIELD_PREP(GENMASK(2, 2), TMC2209_SPREADCYCLE_REG_SELECT);
     ret |= tmc2209_wrequest(dev, TMC2209_REG_GCONF, gconf);
     uint32_t chopconf = (TMC2209_CHOPCONF_DEFAULT & !FIELD_PREP(GENMASK(27, 24), 0)) |
                         FIELD_PREP(GENMASK(27, 24), mres);
