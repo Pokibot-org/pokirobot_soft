@@ -250,6 +250,8 @@ int pokpush_retract(void)
     return 0;
 }
 
+// POKSITCK
+
 int pokstick_deploy(void)
 {
     LOG_INF("STICK DEPLOYED");
@@ -259,6 +261,13 @@ int pokstick_retract(void)
 {
     LOG_INF("STICK RETRACTED");
     return 0;
+}
+
+// POKUICOM
+
+void pokuicom_send_score(uint8_t score)
+{
+    LOG_INF("SCORE: %d", score);
 }
 
 // INIT
