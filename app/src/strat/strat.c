@@ -373,6 +373,10 @@ const char *get_side_name(enum pokprotocol_team color)
 
 void strat_init(void)
 {
+    static struct pokibrain_user_context world_context = {
+        .plants_pushed = 0,
+    };
+    world_context.team_color = color;
     pokuicom_send_score(0);
 
     while (!pokuicom_is_tirette_plugged()) {
@@ -388,11 +392,6 @@ void strat_init(void)
     LOG_INF("Strat init with team side %s", get_side_name(color));
 
     // TODO CALIBRATION
-    static struct pokibrain_user_context world_context = {
-        .plants_pushed = 0,
-    };
-    world_context.team_color = color;
-
     pos2_t start_pos_blue = {
         .x = BOARD_MIN_X + ROBOT_RADIUS,
         .y = BOARD_MIN_Y + 332/2 + 120,
