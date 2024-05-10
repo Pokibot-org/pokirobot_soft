@@ -76,6 +76,7 @@ int control_set_pos(control_t *dev, pos2_t pos);
 int control_set_brake(control_t *dev, bool brake);
 int control_set_waypoints(control_t *dev, pos2_t *src, int n);
 int control_get_pos(control_t *dev, pos2_t *pos);
+void control_set_ihold_irun(int ihold, int irun);
 
 int control_init(control_t *dev, tmc2209_t *m1, tmc2209_t *m2, tmc2209_t *m3);
 

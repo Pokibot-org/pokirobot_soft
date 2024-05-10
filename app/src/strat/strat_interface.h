@@ -25,6 +25,7 @@ int strat_wait_target(float planar_sensivity, float angular_sensivity, uint32_t 
                       STRAT_ANGULAR_TARGET_SENSITIVITY_DEFAULT, _timeout_target_ms,                \
                       _timeout_target_ms)
 void strat_force_motor_stop(void);
+void start_control_set_ihold_irun(int irun, int ihold);
 
 int strat_move_robot_to(pos2_t pos, k_timeout_t timeout);
 

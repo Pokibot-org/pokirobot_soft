@@ -1,8 +1,9 @@
 #ifndef GLOBAL_DEF_H
 #define GLOBAL_DEF_H
 
-#define ROBOT_MAX_RADIUS_MM 210
-#define ROBOT_MIN_RADIUS_MM 120
+#define ROBOT_RADIUS_INSCRIT_MM (335 / 2.0f)
+#define ROBOT_MAX_RADIUS_MM     210
+#define ROBOT_MIN_RADIUS_MM     120
 
 #define BOARD_SIZE_X   3000
 #define BOARD_MIN_X    -1500

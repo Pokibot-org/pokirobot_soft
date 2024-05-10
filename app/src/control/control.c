@@ -270,6 +270,13 @@ static void control_task_wait_start()
     }
 }
 
+void control_set_ihold_irun(int ihold, int irun)
+{
+    tmc2209_set_ihold_irun(&train_motor_1, ihold, irun);
+    tmc2209_set_ihold_irun(&train_motor_2, ihold, irun);
+    tmc2209_set_ihold_irun(&train_motor_3, ihold, irun);
+}
+
 static int control_task(void)
 {
     LOG_INF("control task init");
@@ -291,9 +298,7 @@ static int control_task(void)
     LOG_INF("control task wait");
     control_task_wait_start();
     LOG_INF("control task start");
-    tmc2209_set_ihold_irun(&train_motor_1, 31, 31);
-    tmc2209_set_ihold_irun(&train_motor_2, 31, 31);
-    tmc2209_set_ihold_irun(&train_motor_3, 31, 31);
+    control_set_ihold_irun(31, 31);
     k_sleep(K_MSEC(10));
 
     bool wp_init = false;
@@ -385,9 +390,7 @@ static int control_task(void)
     }
     LOG_INF("control task done (ret=%d), resetting motors", ret);
     for (int i = 0; i < 3; i++) {
-        tmc2209_set_ihold_irun(&train_motor_1, 1, 1);
-        tmc2209_set_ihold_irun(&train_motor_2, 1, 1);
-        tmc2209_set_ihold_irun(&train_motor_3, 1, 1);
+        control_set_ihold_irun(1, 1);
         tmc2209_set_speed(&train_motor_1, 0);
         tmc2209_set_speed(&train_motor_2, 0);
         tmc2209_set_speed(&train_motor_3, 0);

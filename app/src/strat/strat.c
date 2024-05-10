@@ -376,7 +376,7 @@ void strat_init(void)
     static struct pokibrain_user_context world_context = {
         .plants_pushed = 0,
     };
-    world_context.team_color = color;
+
     pokuicom_send_score(0);
 
     while (!pokuicom_is_tirette_plugged()) {
@@ -389,22 +389,62 @@ void strat_init(void)
         pokuicom_request(POKTOCOL_DATA_TYPE_TEAM);
         k_sleep(K_MSEC(10));
     }
+    world_context.team_color = color;
     LOG_INF("Strat init with team side %s", get_side_name(color));
 
     // TODO CALIBRATION
-    pos2_t start_pos_blue = {
-        .x = BOARD_MIN_X + ROBOT_RADIUS,
-        .y = BOARD_MIN_Y + 332/2 + 120,
-        .a = -M_PI_2
-    };
-    pos2_t start_pos = convert_pos_for_team(color, start_pos_blue);
+
+    pos2_t start_pos = convert_pos_for_team(color, CONVERT_POINT2_TO_POS2(drop_zones[0].point, -M_PI_2));
     strat_set_robot_pos(start_pos);
     strat_set_target(start_pos);
+    strat_control_start();
+    k_sleep(K_SECONDS(1));
+    start_control_set_ihold_irun(15, 15);
+    k_sleep(K_MSEC(10));
 
+    // CALIB Y
+    {
+        strat_set_target(pos2_add(start_pos, convert_pos_for_team(color, (pos2_t){.x = 0, .y = -100, .a = 0})));
+        k_sleep(K_SECONDS(4));
+        pos2_t y_calibrated = start_pos;
+        y_calibrated.y = ROBOT_RADIUS_INSCRIT_MM;
+        strat_set_robot_pos(y_calibrated);
+        strat_set_target(y_calibrated);
+    }
+
+
+    // HOME
+    strat_set_target(start_pos);
+    k_sleep(K_SECONDS(4));
+
+    // CALIB X
+    {
+        strat_set_target(pos2_add(start_pos, convert_pos_for_team(color, (pos2_t){.x = -100, .y = 0, .a = start_pos.a + M_PI/3})));
+        k_sleep(K_SECONDS(2));
+        strat_set_target(pos2_add(start_pos, convert_pos_for_team(color, (pos2_t){.x = -100, .y = 0, .a = start_pos.a + M_PI/3})));
+        k_sleep(K_SECONDS(4));
+        pos2_t x_calibrated = start_pos;
+        x_calibrated.x = ROBOT_RADIUS_INSCRIT_MM;
+        strat_set_robot_pos(x_calibrated);
+        strat_set_target(x_calibrated);
+
+        strat_set_target(pos2_add(start_pos, convert_pos_for_team(color, (pos2_t){.x = 0, .y = 0, .a = start_pos.a + M_PI/3})));
+        k_sleep(K_SECONDS(2));
+    }
+
+
+    // HOME
+    strat_set_target(start_pos);
+    k_sleep(K_SECONDS(2));
+
+    start_control_set_ihold_irun(1, 1);
+    k_sleep(K_MSEC(10));
     while (!pokuicom_is_match_started()) {
         pokuicom_request(POKTOCOL_DATA_TYPE_TIRETTE_STATUS);
         k_sleep(K_MSEC(100));
     }
+    start_control_set_ihold_irun(31, 31);
+    k_sleep(K_MSEC(10));
 
     static struct pokibrain_task tasks[] = {
         {.name = "go home",
@@ -417,7 +457,6 @@ void strat_init(void)
                    sizeof(struct pokibrain_user_context), strat_pre_think, strat_end_game_clbk);
 
     nav_init();
-    strat_control_start();
 }
 
 void strat_run(void)

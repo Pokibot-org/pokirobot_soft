@@ -65,14 +65,7 @@ int strat_move_robot_to(pos2_t pos, k_timeout_t timeout)
     return 0;
 }
 
-int strat_grab_layer(pos2_t layer_pos, k_timeout_t timeout)
+void start_control_set_ihold_irun(int irun, int ihold)
 {
-    k_sleep(K_SECONDS(2));
-    return 0;
-}
-
-int strat_put_layer(pos2_t plate_pos, uint8_t current_cake_height, k_timeout_t timeout)
-{
-    k_sleep(K_SECONDS(1));
-    return -1;
+    control_set_ihold_irun(irun, ihold);
 }
