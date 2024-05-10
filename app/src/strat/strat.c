@@ -424,7 +424,7 @@ void strat_init(void)
         strat_set_target(pos2_add(start_pos, convert_pos_for_team(color, (pos2_t){.x = -100, .y = 0, .a = start_pos.a + M_PI/3})));
         k_sleep(K_SECONDS(4));
         pos2_t x_calibrated = start_pos;
-        x_calibrated.x = ROBOT_RADIUS_INSCRIT_MM;
+        x_calibrated.x = BOARD_MIN_X + ROBOT_RADIUS_INSCRIT_MM;
         strat_set_robot_pos(x_calibrated);
         strat_set_target(x_calibrated);
 
