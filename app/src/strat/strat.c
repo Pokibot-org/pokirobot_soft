@@ -167,7 +167,7 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
 
     const float offset_pokstick = M_PI / 6;
     const pos2_t pos_offset_pokstick = {
-        .x = 0,
+        .x = 40,
         .y = 0,
         .a = offset_pokstick
     };
@@ -179,9 +179,17 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
         .a = offset_pokpush
     };
     const float our_last_solar_x = BOARD_MIN_X + 275 + 225*2;
-    const float push_y = (float)DROP_ZONE_SIDE_LEN / 2 - 40;
+    const float push_y = (float)DROP_ZONE_SIDE_LEN / 2 - 30;
+    const float offset_to_push_solar = 100;
+
     pos2_t pos_to_push_solar_setup_0  = (pos2_t){
-            .x = our_last_solar_x + ROBOT_RADIUS / 2,
+            .x = our_last_solar_x + offset_to_push_solar,
+            .y = push_y,
+            .a = -M_PI
+    };
+    
+    pos2_t pos_to_push_solar_after = (pos2_t){
+            .x = BOARD_MIN_X + 450.0f / 2,
             .y = push_y,
             .a = -M_PI
     };
@@ -193,23 +201,16 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
     };
 
     pos2_t pos_to_push_solar_midle_setup_1  = (pos2_t){
-            .x = BOARD_MIN_X + 275 + 225*2 + 550 + 255*2 + ROBOT_RADIUS / 2,
+            .x = BOARD_MIN_X + 275 + 225*2 + 550 + 255*2 + offset_to_push_solar,
             .y = push_y,
             .a = -M_PI
     };
 
     pos2_t pos_to_push_solar_midle_end  = (pos2_t){
-            .x = BOARD_MIN_X + 275 + 225*2 + 550 - ROBOT_RADIUS / 2,
+            .x = BOARD_MIN_X + 275 + 225*2 + 550 - offset_to_push_solar,
             .y = push_y,
             .a = -M_PI
     };
-
-    pos2_t pos_to_push_solar_after = (pos2_t){
-            .x = BOARD_MIN_X + 450.0f / 2,
-            .y = push_y,
-            .a = -M_PI
-    };
-
 
     // PUSH HOME PANELS
     strat_set_target(
@@ -232,7 +233,7 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
 
         pokstick_retract();
 
-        score += 3 * 5;
+        score += 2 * 5;
         pokuicom_send_score(score);
     }
 
@@ -298,7 +299,7 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
 
         pokpush_retract();
 
-        score += 2 * 3; // Let's hope there is is juste 2 plantes
+        score += 1 * 3; // Let's hope there is is juste 1 plante
         pokuicom_send_score(score);
     }
 

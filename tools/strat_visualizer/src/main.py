@@ -31,6 +31,7 @@ class Board:
 class Robot:
     def __init__(self) -> None:
         self.radius = 190
+        self.radius_in = 335/2
         self.pos = [0, 0]
         self.dir = 0
 
@@ -48,9 +49,11 @@ def draw_robot(screen, board, robot):
     print(robot.pos, robot.dir)
     ratio = board.dim_x[1] / board.real_size[1]
     on_board_radius = robot.radius * ratio
+    on_board_radius_in = robot.radius_in * ratio
     on_board_pos = (robot.pos[0] * ratio, board.dim_y[1] - robot.pos[1] * ratio)
 
     pg.draw.circle(screen, (30, 30, 100), on_board_pos, on_board_radius)
+    pg.draw.circle(screen, (20, 20, 60), on_board_pos, on_board_radius_in)
     pg.draw.line(
         screen,
         (130, 30, 30),
