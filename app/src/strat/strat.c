@@ -124,14 +124,6 @@ I.4.d. RETOURNER SE RECHARGER LES BATTERIES
 • 10 points si le robot de l’équipe est dans l’aire valide.
 */
 
-int calculate_score(struct pokibrain_user_context *ctx)
-{
-    int score = 0;
-    score += ctx->plants_pushed * 3;
-    score += ctx->in_end_zone ? 10 : 0;
-    return score;
-}
-
 int get_home_docking_pos(point2_t robot_point, point2_t end_point, pos2_t *dock_pos)
 {
     float segment_len = vec2_distance(robot_point, end_point);
@@ -355,17 +347,12 @@ void strat_pre_think(void *world_context)
 {
     struct pokibrain_user_context *ctx = world_context;
     strat_get_robot_pos(&ctx->robot_pos);
-
-    LOG_DBG("SCORE %d", calculate_score(ctx));
 }
 
 static void strat_end_game_clbk(void *world_context)
 {
-    struct pokibrain_user_context *ctx = world_context;
+    // struct pokibrain_user_context *ctx = world_context;
     LOG_INF("GAME IS OVER");
-    uint8_t score = calculate_score(ctx);
-    LOG_INF("SCORE %d", score);
-    pokuicom_send_score(score);
     nav_stop();
     strat_force_motor_stop();
 }
