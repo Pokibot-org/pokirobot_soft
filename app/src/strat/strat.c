@@ -263,7 +263,7 @@ int pokibrain_task_go_home(struct pokibrain_callback_params *params)
 
         pokstick_retract();
 
-        score += 3 * 5;
+        score += 2 * 5;
         pokuicom_send_score(score);
     }
 
