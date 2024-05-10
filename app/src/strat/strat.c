@@ -392,7 +392,7 @@ void strat_init(void)
     world_context.team_color = color;
     LOG_INF("Strat init with team side %s", get_side_name(color));
 
-    // TODO CALIBRATION
+    // CALIBRATION
 
     pos2_t start_pos = convert_pos_for_team(color, CONVERT_POINT2_TO_POS2(drop_zones[0].point, -M_PI_2));
     strat_set_robot_pos(start_pos);
@@ -405,9 +405,9 @@ void strat_init(void)
     // CALIB Y
     {
         strat_set_target(pos2_add(start_pos, convert_pos_for_team(color, (pos2_t){.x = 0, .y = -100, .a = 0})));
-        k_sleep(K_SECONDS(4));
+        k_sleep(K_SECONDS(3));
         pos2_t y_calibrated = start_pos;
-        y_calibrated.y = ROBOT_RADIUS_INSCRIT_MM;
+        y_calibrated.y = BOARD_MIN_Y + ROBOT_RADIUS_INSCRIT_MM;
         strat_set_robot_pos(y_calibrated);
         strat_set_target(y_calibrated);
     }
@@ -415,20 +415,21 @@ void strat_init(void)
 
     // HOME
     strat_set_target(start_pos);
-    k_sleep(K_SECONDS(4));
+    k_sleep(K_SECONDS(3));
 
     // CALIB X
     {
-        strat_set_target(pos2_add(start_pos, convert_pos_for_team(color, (pos2_t){.x = -100, .y = 0, .a = start_pos.a + M_PI/3})));
+        pos2_t start_with_ok_angle = pos2_add(start_pos,convert_pos_for_team(color, (pos2_t){.x = 0, .y = 0, .a = start_pos.a + M_PI/3}));
+        strat_set_target( start_with_ok_angle);
         k_sleep(K_SECONDS(2));
         strat_set_target(pos2_add(start_pos, convert_pos_for_team(color, (pos2_t){.x = -100, .y = 0, .a = start_pos.a + M_PI/3})));
-        k_sleep(K_SECONDS(4));
-        pos2_t x_calibrated = start_pos;
+        k_sleep(K_SECONDS(3));
+        pos2_t x_calibrated = start_with_ok_angle;
         x_calibrated.x = BOARD_MIN_X + ROBOT_RADIUS_INSCRIT_MM;
         strat_set_robot_pos(x_calibrated);
         strat_set_target(x_calibrated);
 
-        strat_set_target(pos2_add(start_pos, convert_pos_for_team(color, (pos2_t){.x = 0, .y = 0, .a = start_pos.a + M_PI/3})));
+        strat_set_target( start_with_ok_angle );
         k_sleep(K_SECONDS(2));
     }
 
