@@ -9,9 +9,10 @@ LOG_MODULE_REGISTER(pokuicom);
 static const struct device *uart_dev = DEVICE_DT_GET(DT_ALIAS(ui_uart));
 
 struct poktocol obj;
-bool match_started = false;
 bool has_color_info = false;
 enum pokprotocol_team received_color;
+bool has_tirette_info = false;
+enum pokprotocol_tirette_status received_tirette_status;
 
 static void pokprotocol_receive(struct poktocol_msg *msg, void *user_data) 
 {
@@ -24,8 +25,9 @@ static void pokprotocol_receive(struct poktocol_msg *msg, void *user_data)
             has_color_info = true;
             received_color = msg->data.team;
             break;
-        case POKTOCOL_DATA_TYPE_MATCH_STARTED:
-            match_started = true;
+        case POKTOCOL_DATA_TYPE_TIRETTE_STATUS:
+            has_tirette_info = true;
+            received_tirette_status = msg->data.tirette;
             break;
     }
 }
@@ -59,7 +61,18 @@ void pokuicom_send_score(uint8_t score)
 
 bool pokuicom_is_match_started(void)
 {
-    return match_started;
+    if (!has_tirette_info) {
+        return false;
+    }
+    return received_tirette_status == POKTOCOL_TIRETTE_UNPLUGED;
+}
+
+bool pokuicom_is_tirette_plugged(void)
+{
+    if (!has_tirette_info) {
+        return false;
+    }
+    return received_tirette_status == POKTOCOL_TIRETTE_PLUGED;
 }
 
 int pokuicom_get_team_color(enum pokprotocol_team *color)

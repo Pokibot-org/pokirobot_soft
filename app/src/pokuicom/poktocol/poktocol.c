@@ -34,7 +34,8 @@ int pokprotocol_send(struct poktocol *obj, const struct poktocol_msg *msg)
             case POKTOCOL_DATA_TYPE_TEAM:
                 send_buffer[index++] = msg->data.team;
                 break;
-            case POKTOCOL_DATA_TYPE_MATCH_STARTED:
+            case POKTOCOL_DATA_TYPE_TIRETTE_STATUS:
+                send_buffer[index++] = msg->data.tirette;
                 break;
             default:
                 break;
@@ -68,7 +69,8 @@ void pokprotocol_decode_app(struct poktocol *obj, uint8_t *payload, size_t size)
         case POKTOCOL_DATA_TYPE_TEAM:
             obj->ans_msg.data.team = payload[2];
             break;
-        case POKTOCOL_DATA_TYPE_MATCH_STARTED:
+        case POKTOCOL_DATA_TYPE_TIRETTE_STATUS:
+            obj->ans_msg.data.tirette = payload[2];
             break;
         default:
             break;

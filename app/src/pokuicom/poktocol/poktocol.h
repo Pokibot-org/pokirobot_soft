@@ -14,12 +14,18 @@ enum poktocol_commands_types {
 enum poktocol_data_types {
     POKTOCOL_DATA_TYPE_SCORE,
     POKTOCOL_DATA_TYPE_TEAM,
-    POKTOCOL_DATA_TYPE_MATCH_STARTED,
+    POKTOCOL_DATA_TYPE_TIRETTE_STATUS,
 };
 
 enum pokprotocol_team {
     POKTOCOL_TEAM_BLUE,
     POKTOCOL_TEAM_YELLOW,
+};
+
+enum pokprotocol_tirette_status {
+    POKTOCOL_TIRETTE_UNPLUGED,
+    POKTOCOL_TIRETTE_PLUGED,
+    POKTOCOL_TIRETTE_REMOVED,
 };
 
 struct poktocol_msg
@@ -30,6 +36,7 @@ struct poktocol_msg
     {
         uint8_t score;
         enum pokprotocol_team team;
+        enum pokprotocol_tirette_status tirette;
     } data;
 };
 
