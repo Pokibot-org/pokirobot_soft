@@ -45,12 +45,12 @@ def load_image(name):
 
 
 def draw_robot(screen, board, robot):
+    print(robot.pos, robot.dir)
     ratio = board.dim_x[1] / board.real_size[1]
     on_board_radius = robot.radius * ratio
     on_board_pos = (robot.pos[0] * ratio, board.dim_y[1] - robot.pos[1] * ratio)
 
     pg.draw.circle(screen, (30, 30, 100), on_board_pos, on_board_radius)
-    robot.dir = robot.dir - math.pi/2
     pg.draw.line(
         screen,
         (130, 30, 30),
@@ -77,10 +77,13 @@ def draw_robot(screen, board, robot):
 # here's the full code
 def main():
     clock = pg.time.Clock()
-    screen = pg.display.set_mode((400, 300), pg.RESIZABLE)
+    screen = pg.display.set_mode((1080, 720), pg.RESIZABLE)
 
     raw_background = load_image("vinyle.png")
     raw_background_ratio = raw_background.get_width() / raw_background.get_height()
+
+    height = 400
+    screen = pg.display.set_mode((height * raw_background_ratio, height), pg.RESIZABLE)
     # pg.display.set_caption("test")
 
     board = Board()
@@ -122,8 +125,8 @@ class Session(socketserver.BaseRequestHandler):
             if "pos" in json_data:
                 robot.pos[0] = json_data["pos"]["x"] + 1500
                 robot.pos[1] = json_data["pos"]["y"]
-                robot.dir = json_data["pos"]["a"]
-                print(robot.pos)
+                a = json_data["pos"]["a"]
+                robot.dir =  math.remainder(a, math.pi)
         except Exception as err:
             print("Error during decoding", err)
             print(self.request[0])
