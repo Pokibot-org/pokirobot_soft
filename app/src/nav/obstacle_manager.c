@@ -175,9 +175,10 @@ uint8_t process_lidar_message(obstacle_manager_t *obj, const lidar_message_t *me
     for (int i = 0; i < NUMBER_OF_LIDAR_POINTS; i++) {
         // Filter some noisy data
         filt_buff = filt_buff << 1;
-        if (message->points[i].quality <= 60) {
-            continue;
-        }
+        // THE QUALITY PARAMETER IS RANDOM
+        // if (message->points[i].quality <= 5) {
+        //     continue;
+        // }
 
         float point_angle = (message->start_angle + step * i) + CAMSENSE_CENTER_OFFSET_DEG + 180.0f;
         uint8_t err_code = process_point(&obs_man_obj, message->points[i].distance, point_angle);
