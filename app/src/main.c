@@ -16,17 +16,16 @@
 
 LOG_MODULE_REGISTER(main);
 
-void match_init()
+void hardware_init(void)
 {
     LOG_INF("MATCH INIT");
-    // hmi_led_init();
-    // hmi_led_error();
     static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
     // static const struct gpio_dt_spec sw_side = GPIO_DT_SPEC_GET(DT_ALIAS(sw_side), gpios);
     static const struct gpio_dt_spec sw_power = GPIO_DT_SPEC_GET(DT_ALIAS(sw_power), gpios);
     
     pokstick_retract();
     pokpush_retract();
+
     int ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
     if (ret < 0) {
         LOG_ERR("failed to init led");
@@ -42,22 +41,11 @@ void match_init()
         goto exit;
     }
 
-    // init strat
-
-    LOG_INF("MATCH INIT DONE");
-exit:
-    return;
-}
-
-void match_wait_start()
-{
-    LOG_INF("MATCH WAIT FOR TASKS AND POWER");
-    // static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
-    // static const struct gpio_dt_spec sw_side = GPIO_DT_SPEC_GET(DT_ALIAS(sw_side), gpios);
-    static const struct gpio_dt_spec sw_power = GPIO_DT_SPEC_GET(DT_ALIAS(sw_power), gpios);
+    LOG_INF("WAIT FOR TASKS AND POWER");
     while (!gpio_pin_get_dt(&sw_power)) {
         k_sleep(K_MSEC(1));
     }
+
     LOG_INF("POWER IS UP!");
     shared_ctrl.start_init = true;
 
@@ -66,38 +54,15 @@ void match_wait_start()
 
     k_sleep(K_MSEC(500));
     hmi_led_success();
-    
-    pokuicom_send_score(0);
-
-    LOG_INF("MATCH WAIT START");
-    // tirette_wait_until_released();
-    pokuicom_request(POKTOCOL_DATA_TYPE_TEAM);
-    while (!pokuicom_is_match_started()) {
-        pokuicom_request(POKTOCOL_DATA_TYPE_TIRETTE_STATUS);
-        k_sleep(K_MSEC(100));
-    }
+exit:
+    return;
 }
 
-void match_1()
+void match(void)
 {
-    // static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
-    // static const struct gpio_dt_spec sw_side = GPIO_DT_SPEC_GET(DT_ALIAS(sw_side), gpios);
-    // static const struct gpio_dt_spec sw_power = GPIO_DT_SPEC_GET(DT_ALIAS(sw_power), gpios);
+    hardware_init();
 
-    match_init();
-    match_wait_start();
-    LOG_INF("MATCH START");
-    // int side = gpio_pin_get_dt(&sw_side);
-    // LOG_ERR("side= %d", side);
-
-    enum pokprotocol_team color;
-    while (pokuicom_get_team_color(&color) != 0) {
-        pokuicom_request(POKTOCOL_DATA_TYPE_TEAM);
-        k_sleep(K_MSEC(10));
-    }
-    enum strat_team_color start_color = (color == POKTOCOL_TEAM_YELLOW) ? STRAT_TEAM_COLOR_YELLOW : STRAT_TEAM_COLOR_BLUE;
-    strat_init(start_color);
-    shared_ctrl.start = true;
+    LOG_INF("MATCH WAIT START");
 
     strat_run();
 
@@ -124,7 +89,7 @@ int main(void)
     // _test_pathfinding();
     // _test_pokarm_stepper();
 
-    match_1();
+    match();
     // nav_init();
     // shared_ctrl.start_init = true;
 

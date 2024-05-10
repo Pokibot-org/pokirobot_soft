@@ -44,6 +44,10 @@ void strat_force_motor_stop(void)
     control_force_motor_stop();
 }
 
+void strat_control_start(void) {
+    shared_ctrl.start = true;
+}
+
 int strat_move_robot_to(pos2_t pos, k_timeout_t timeout)
 {
     if (!shared_ctrl.start) {

@@ -44,7 +44,7 @@ struct solar_pannel {
 
 struct pokibrain_user_context {
     pos2_t robot_pos;
-    enum strat_team_color team_color;
+    enum pokprotocol_team team_color;
     uint32_t plants_pushed;
     bool in_end_zone;
 };
@@ -81,9 +81,9 @@ struct solar_pannel solar_pannels[] = {
     (struct solar_pannel){.point = {.x = BOARD_MAX_X - (275 + 225*2), .y = 0}},
 };
 
-struct point2 convert_point_for_team(enum strat_team_color color, struct point2 point)
+struct point2 convert_point_for_team(enum pokprotocol_team color, struct point2 point)
 {
-    if (color == STRAT_TEAM_COLOR_BLUE) {
+    if (color == POKTOCOL_TEAM_BLUE) {
         return point;
     }
 
@@ -91,9 +91,9 @@ struct point2 convert_point_for_team(enum strat_team_color color, struct point2 
     return point;
 }
 
-struct pos2 convert_pos_for_team(enum strat_team_color color, struct pos2 pos)
+struct pos2 convert_pos_for_team(enum pokprotocol_team color, struct pos2 pos)
 {
-    if (color == STRAT_TEAM_COLOR_BLUE) {
+    if (color == POKTOCOL_TEAM_BLUE) {
         return pos;
     }
 
@@ -357,25 +357,37 @@ static void strat_end_game_clbk(void *world_context)
     strat_force_motor_stop();
 }
 
-const char *get_side_name(enum strat_team_color color)
+const char *get_side_name(enum pokprotocol_team color)
 {
     switch (color) {
-        case STRAT_TEAM_COLOR_BLUE:
+        case POKTOCOL_TEAM_BLUE:
             return "BLUE";
-        case STRAT_TEAM_COLOR_YELLOW:
+        case POKTOCOL_TEAM_YELLOW:
             return "YELLOW";
         default:
-        case STRAT_TEAM_COLOR_NONE:
             return "UNKNOWN";
     }
 }
 
 // -------------------------- PUBLIC FUNCTIONS ---------------------------
 
-void strat_init(enum strat_team_color color)
+void strat_init(void)
 {
+    pokuicom_send_score(0);
+
+    while (!pokuicom_is_tirette_plugged()) {
+        pokuicom_request(POKTOCOL_DATA_TYPE_TIRETTE_STATUS);
+        k_sleep(K_MSEC(100));
+    }
+
+    enum pokprotocol_team color;
+    while (pokuicom_get_team_color(&color) != 0) {
+        pokuicom_request(POKTOCOL_DATA_TYPE_TEAM);
+        k_sleep(K_MSEC(10));
+    }
     LOG_INF("Strat init with team side %s", get_side_name(color));
 
+    // TODO CALIBRATION
     static struct pokibrain_user_context world_context = {
         .plants_pushed = 0,
     };
@@ -390,9 +402,10 @@ void strat_init(enum strat_team_color color)
     strat_set_robot_pos(start_pos);
     strat_set_target(start_pos);
 
-    // memcpy(world_context.layer_list, layer_list, sizeof(layer_list));
-    // memcpy(world_context.plate_list, plate_list, sizeof(plate_list));
-    // memcpy(world_context.dispenser_list, dispenser_list, sizeof(dispenser_list));
+    while (!pokuicom_is_match_started()) {
+        pokuicom_request(POKTOCOL_DATA_TYPE_TIRETTE_STATUS);
+        k_sleep(K_MSEC(100));
+    }
 
     static struct pokibrain_task tasks[] = {
         {.name = "go home",
@@ -405,9 +418,11 @@ void strat_init(enum strat_team_color color)
                    sizeof(struct pokibrain_user_context), strat_pre_think, strat_end_game_clbk);
 
     nav_init();
+    strat_control_start();
 }
 
 void strat_run(void)
 {
+    strat_init();
     pokibrain_start();
 }

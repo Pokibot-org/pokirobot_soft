@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include "pokuicom/pokuicom.h"
 
 LOG_MODULE_REGISTER(strat_interface);
 #define LOG_POS(pos)                                                                               \
@@ -119,6 +120,10 @@ int strat_wait_target(float planar_sensivity, float angular_sensivity, uint32_t 
 void strat_force_motor_stop(void)
 {
     fake_ctrl.running = false;
+}
+
+void strat_control_start(void) {
+    fake_ctrl.start = true;
 }
 
 int strat_move_robot_to(pos2_t pos, k_timeout_t timeout)
@@ -268,6 +273,26 @@ int pokstick_retract(void)
 void pokuicom_send_score(uint8_t score)
 {
     LOG_INF("SCORE: %d", score);
+}
+
+
+bool pokuicom_is_match_started(void) {
+    return true;
+}
+
+bool pokuicom_is_tirette_plugged(void) {
+    return true;
+}
+
+int pokuicom_get_team_color(enum pokprotocol_team *color)
+{
+    *color = POKTOCOL_TEAM_BLUE;
+    return 0;
+}
+
+int pokuicom_request(enum poktocol_data_types type)
+{
+    return 0;
 }
 
 // INIT

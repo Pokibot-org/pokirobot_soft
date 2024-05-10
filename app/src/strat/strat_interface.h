@@ -10,6 +10,8 @@
 #define STRAT_WAIT_TIMEOUT_TARGET                (-1)
 #define STRAT_WAIT_TIMEOUT_BRAKE                 (-2)
 
+
+void strat_control_start(void);
 int strat_set_robot_brake(bool brake);
 int strat_get_robot_pos(pos2_t *pos);
 int strat_set_robot_pos(pos2_t pos);
