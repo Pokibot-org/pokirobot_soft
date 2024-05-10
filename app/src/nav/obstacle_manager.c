@@ -46,7 +46,7 @@ K_WORK_DELAYABLE_DEFINE(collision_callback_work, collision_callback_hander);
 // PRIVATE DEF
 #define CAMSENSE_OFFSET_IN_ROBOT    (-180.0f * 3.0f / 4.0f)
 #define CAMSENSE_CENTER_OFFSET_DEG  (CAMSENSE_OFFSET_IN_ROBOT)
-#define LIDAR_DETECTION_DISTANCE_MM 350
+#define LIDAR_DETECTION_DISTANCE_MM 300
 // 360 == detecting obstacles even behind
 // FUNC
 
@@ -176,9 +176,9 @@ uint8_t process_lidar_message(obstacle_manager_t *obj, const lidar_message_t *me
         // Filter some noisy data
         filt_buff = filt_buff << 1;
         // THE QUALITY PARAMETER IS RANDOM
-        // if (message->points[i].quality <= 5) {
-        //     continue;
-        // }
+        if (message->points[i].quality <= 30) {
+            continue;
+        }
 
         float point_angle = (message->start_angle + step * i) + CAMSENSE_CENTER_OFFSET_DEG + 180.0f;
         uint8_t err_code = process_point(&obs_man_obj, message->points[i].distance, point_angle);
@@ -190,7 +190,7 @@ uint8_t process_lidar_message(obstacle_manager_t *obj, const lidar_message_t *me
 
 
         uint8_t count_detections = 0;
-        const uint8_t nb_detection_treshhold = 6;
+        const uint8_t nb_detection_treshhold = 3;
         for (size_t i = 0; i < (sizeof(filt_buff) * 8); i++)
         {
             count_detections += (filt_buff >> i) & 0x1;
